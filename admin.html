@@ -61,6 +61,8 @@ if (configured) {
       }
       loadAllData();
       loadTheme();
+      loadRecepten();
+      loadCommunity();
     } else {
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('app-screen').style.display   = 'none';
@@ -121,8 +123,10 @@ window.switchSection = s => {
     el.classList.toggle('active', el.dataset.section === s));
   const main = document.getElementById('main-panel');
   main.innerHTML = '';
-  if (s === 'thema')  { renderThema();  return; }
-  if (s === 'import') { renderImport(); return; }
+  if (s === 'thema')     { renderThema();     return; }
+  if (s === 'import')    { renderImport();    return; }
+  if (s === 'recepten')  { renderRecepten();  return; }
+  if (s === 'community') { renderCommunity(); return; }
   renderSection(s);
 };
 
@@ -371,6 +375,257 @@ window.saveTheme = async () => {
   } catch(e) { toast('Fout: '+e.message,'err'); }
 };
 
+// ── Recepten beheren ─────────────────────────────────────────
+let allRecepten = {};  // { naam: { cat, herbId, tijd, ... } }
+let editingRecept = null;
+
+async function loadRecepten() {
+  const snap = await getDocs(collection(db, 'recepten'));
+  allRecepten = {};
+  snap.docs.forEach(d => { allRecepten[d.id] = d.data(); });
+}
+
+function renderRecepten() {
+  const main = document.getElementById('main-panel');
+  const cats = { koken:'🍽 Koken', soep:'🥣 Soepen', drank:'🥤 Dranken', thee:'🍵 Thee', dessert:'🍰 Desserts' };
+  const keys = Object.keys(allRecepten);
+  main.innerHTML = `
+    <div class="panel-header">
+      <div>
+        <h2>🍳 Recepten <span class="badge">${keys.length}</span></h2>
+        <p class="panel-sub">Beheer alle recepten. Klik op een recept om te bewerken.</p>
+      </div>
+      <button class="btn-primary" onclick="openReceptEditor(null)">+ Nieuw recept</button>
+    </div>
+    ${keys.length === 0 ? `
+      <div class="import-box">
+        <div class="import-icon">🍳</div>
+        <h3>Nog geen recepten in Firebase</h3>
+        <p>Ga naar <strong>📥 Importeer startdata</strong> en klik op de importeer-knop om alle recepten vanuit de app in Firebase te laden.</p>
+      </div>` : `
+    <div class="recept-filter-bar" id="recept-filter-bar">
+      <button class="rbtn active" onclick="filterReceptAdmin('all',this)">Alles</button>
+      ${Object.entries(cats).map(([k,v])=>`<button class="rbtn" onclick="filterReceptAdmin('${k}',this)">${v}</button>`).join('')}
+    </div>
+    <div class="recept-list" id="recept-list"></div>`}`;
+  if (keys.length) renderReceptList('all');
+}
+
+let receptFilter = 'all';
+window.filterReceptAdmin = (cat, btn) => {
+  receptFilter = cat;
+  document.querySelectorAll('.rbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderReceptList(cat);
+};
+
+function renderReceptList(cat) {
+  const cats = { koken:'🍽', soep:'🥣', drank:'🥤', thee:'🍵', dessert:'🍰' };
+  const entries = Object.entries(allRecepten)
+    .filter(([,v]) => cat === 'all' || v.cat === cat)
+    .sort(([a],[b]) => a.localeCompare(b));
+  document.getElementById('recept-list').innerHTML = entries.map(([naam, r]) => `
+    <div class="recept-row">
+      <div class="recept-row-left">
+        <span class="recept-cat-dot">${cats[r.cat]||'🍴'}</span>
+        <div>
+          <div class="recept-row-name">${naam}</div>
+          <div class="recept-row-meta">${r.herbId||''} · ${r.tijd||''} · ${r.porties||''}</div>
+        </div>
+      </div>
+      <div class="recept-row-actions">
+        <button class="btn-edit" onclick="openReceptEditor('${naam.replace(/'/g,"\\'")}')">✏️ Bewerken</button>
+        <button class="btn-del" onclick="deleteRecept('${naam.replace(/'/g,"\\'")}')">🗑</button>
+      </div>
+    </div>`).join('') || '<p class="empty-msg">Geen recepten in deze categorie.</p>';
+}
+
+window.openReceptEditor = (naam) => {
+  editingRecept = naam;
+  const r = naam ? (allRecepten[naam] || {}) : {};
+  document.getElementById('recept-editor-overlay').classList.add('open');
+  document.getElementById('re-title').textContent = naam ? `${naam} bewerken` : 'Nieuw recept';
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val??''; };
+  set('re-naam',         naam||'');
+  set('re-cat',          r.cat||'koken');
+  set('re-herbid',       r.herbId||'');
+  set('re-tijd',         r.tijd||'');
+  set('re-porties',      r.porties||'');
+  set('re-moeilijk',     r.moeilijk||'⚡ Makkelijk');
+  set('re-intro',        r.intro||'');
+  set('re-ingredienten', (r.ingredienten||[]).join('\n'));
+  set('re-methode',      (r.methode||[]).join('\n'));
+  set('re-tip',          r.tip||'');
+  document.getElementById('re-naam').disabled = !!naam;
+};
+
+window.closeReceptEditor = () => {
+  document.getElementById('recept-editor-overlay').classList.remove('open');
+  editingRecept = null;
+};
+
+window.saveRecept = async () => {
+  const get = id => (document.getElementById(id)||{}).value||'';
+  const naam = get('re-naam').trim();
+  if (!naam) { toast('Vul een naam in.','err'); return; }
+  const data = {
+    cat:          get('re-cat'),
+    herbId:       get('re-herbid'),
+    tijd:         get('re-tijd'),
+    porties:      get('re-porties'),
+    moeilijk:     get('re-moeilijk'),
+    intro:        get('re-intro'),
+    ingredienten: get('re-ingredienten').split('\n').map(x=>x.trim()).filter(Boolean),
+    methode:      get('re-methode').split('\n').map(x=>x.trim()).filter(Boolean),
+    tip:          get('re-tip'),
+  };
+  try {
+    await setDoc(doc(db, 'recepten', naam), data);
+    allRecepten[naam] = data;
+    closeReceptEditor();
+    renderRecepten();
+    toast(`${naam} opgeslagen ✓`, 'ok');
+  } catch(e) { toast('Fout: '+e.message,'err'); }
+};
+
+window.deleteRecept = async (naam) => {
+  if (!confirm(`"${naam}" verwijderen?`)) return;
+  try {
+    await deleteDoc(doc(db, 'recepten', naam));
+    delete allRecepten[naam];
+    renderRecepten();
+    toast(`${naam} verwijderd`, 'ok');
+  } catch(e) { toast('Fout: '+e.message,'err'); }
+};
+
+// ── Community beheren ─────────────────────────────────────────
+let allPosts = [];
+
+async function loadCommunity() {
+  const snap = await getDocs(collection(db, 'community'));
+  allPosts = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    .sort((a,b) => (b.ts||0) - (a.ts||0));
+}
+
+function renderCommunity() {
+  const catLabel = { vraag:'❓ Vraag', tip:'💡 Tip', recept:'🍳 Recept', oogst:'🌾 Oogst' };
+  const catColor = { vraag:'rgba(100,180,230,.15)', tip:'rgba(126,200,126,.15)', recept:'rgba(200,169,110,.15)', oogst:'rgba(240,200,40,.15)' };
+  document.getElementById('main-panel').innerHTML = `
+    <div class="panel-header">
+      <div>
+        <h2>🌿 Community <span class="badge">${allPosts.length}</span></h2>
+        <p class="panel-sub">Modereer berichten. Je kunt berichten vastpinnen, verwijderen of zelf posten.</p>
+      </div>
+      <button class="btn-primary" onclick="openPostEditor(null)">+ Nieuw bericht</button>
+    </div>
+    ${allPosts.length === 0 ? `
+      <div class="import-box">
+        <div class="import-icon">🌿</div>
+        <h3>Nog geen berichten in Firebase</h3>
+        <p>Ga naar <strong>📥 Importeer startdata</strong> om de startberichten in Firebase te laden. Gebruikers kunnen daarna zelf reageren en nieuwe berichten plaatsen.</p>
+      </div>` : `
+    <div class="post-admin-list" id="post-admin-list">
+      ${allPosts.map(p => `
+        <div class="post-admin-card ${p.pinned?'pinned':''}">
+          <div class="post-admin-head">
+            <span class="post-admin-cat" style="background:${catColor[p.cat]||'var(--surface2)'}">
+              ${catLabel[p.cat]||p.cat}
+            </span>
+            ${p.pinned ? '<span class="pin-badge">📌 Vastgepind</span>' : ''}
+            <span class="post-admin-date">${p.date||''}</span>
+            <span class="post-admin-author">— ${p.author||''}</span>
+          </div>
+          <div class="post-admin-title">${p.title||''}</div>
+          <div class="post-admin-body">${p.body||''}</div>
+          <div class="post-admin-replies">
+            💬 ${(p.replies||[]).length} reacties · ❤️ ${p.likes||0} likes
+          </div>
+          <div class="post-admin-actions">
+            <button class="btn-edit" onclick="togglePin('${p.id}',${!p.pinned})">
+              ${p.pinned ? '📌 Losmaken' : '📌 Vastpinnen'}
+            </button>
+            <button class="btn-edit" onclick="openPostEditor('${p.id}')">✏️ Bewerken</button>
+            <button class="btn-del"  onclick="deletePost('${p.id}')">🗑 Verwijderen</button>
+          </div>
+        </div>`).join('')}
+    </div>`}`;
+}
+
+window.togglePin = async (id, pin) => {
+  try {
+    const p = allPosts.find(x=>x.id===id);
+    if (!p) return;
+    await setDoc(doc(db,'community',id), {...p, pinned: pin});
+    p.pinned = pin;
+    renderCommunity();
+    toast(pin ? 'Bericht vastgepind 📌' : 'Bericht losgemaakt', 'ok');
+  } catch(e) { toast('Fout: '+e.message,'err'); }
+};
+
+window.openPostEditor = (id) => {
+  const p = id ? allPosts.find(x=>x.id===id)||{} : {};
+  const isNew = !id;
+  document.getElementById('post-editor-overlay').classList.add('open');
+  document.getElementById('pe-title-head').textContent = isNew ? 'Nieuw bericht' : 'Bericht bewerken';
+  document.getElementById('pe-id').value    = id || ('post_'+Date.now());
+  document.getElementById('pe-author').value = p.author || 'HerbalRoot Team';
+  document.getElementById('pe-cat').value   = p.cat    || 'tip';
+  document.getElementById('pe-title').value = p.title  || '';
+  document.getElementById('pe-body').value  = p.body   || '';
+};
+
+window.closePostEditor = () => {
+  document.getElementById('post-editor-overlay').classList.remove('open');
+};
+
+window.savePost = async () => {
+  const get = id => (document.getElementById(id)||{}).value||'';
+  const id = get('pe-id');
+  const data = {
+    id,
+    author:  get('pe-author'),
+    cat:     get('pe-cat'),
+    title:   get('pe-title'),
+    body:    get('pe-body'),
+    date:    new Date().toLocaleDateString('nl-BE'),
+    ts:      Date.now(),
+    likes:   0,
+    replies: [],
+    pinned:  false,
+  };
+  // Preserve existing likes/replies if editing
+  const existing = allPosts.find(x=>x.id===id);
+  if (existing) {
+    data.likes   = existing.likes   || 0;
+    data.replies = existing.replies || [];
+    data.pinned  = existing.pinned  || false;
+    data.date    = existing.date    || data.date;
+  }
+  try {
+    await setDoc(doc(db,'community',id), data);
+    if (existing) {
+      const idx = allPosts.findIndex(x=>x.id===id);
+      allPosts[idx] = data;
+    } else {
+      allPosts.unshift(data);
+    }
+    closePostEditor();
+    renderCommunity();
+    toast('Bericht opgeslagen ✓','ok');
+  } catch(e) { toast('Fout: '+e.message,'err'); }
+};
+
+window.deletePost = async (id) => {
+  const p = allPosts.find(x=>x.id===id);
+  if (!confirm(`"${p?.title||id}" verwijderen?`)) return;
+  try {
+    await deleteDoc(doc(db,'community',id));
+    allPosts = allPosts.filter(x=>x.id!==id);
+    renderCommunity();
+    toast('Bericht verwijderd','ok');
+  } catch(e) { toast('Fout: '+e.message,'err'); }
+};
+
 // ── Import startdata ──────────────────────────────────────────
 function renderImport() {
   document.getElementById('main-panel').innerHTML = `
@@ -473,10 +728,59 @@ window.importAllPlants = async () => {
       totalOk  += ok;
       totalErr += err;
       progress.innerHTML += `<div class="prog-line prog-ok">✓ ${ok} ${cat.label} opgeslagen${err ? ` (${err} fouten)` : ''}</div>`;
-
-      // Update lokale cache
       allPlants[cat.name] = cat.data;
     }
+
+    // Recepten importeren
+    progress.innerHTML += `<div class="prog-line">📤 Recepten importeren…</div>`;
+    try {
+      // Extract RECEPTEN_DB object
+      const receptStart = html.indexOf('const RECEPTEN_DB = {');
+      const receptEnd   = html.indexOf('\n// ═══════════════════════════════════\n// GEOLOCATION', receptStart);
+      const receptRaw   = html.slice(receptStart, receptEnd + 1);
+      const receptObj   = new Function(receptRaw + '\nreturn RECEPTEN_DB;')();
+      let receptOk = 0;
+      for (const [naam, data] of Object.entries(receptObj)) {
+        try {
+          await setDoc(doc(db, 'recepten', naam), data);
+          allRecepten[naam] = data;
+          receptOk++;
+        } catch(e) { totalErr++; }
+      }
+      totalOk += receptOk;
+      progress.innerHTML += `<div class="prog-line prog-ok">✓ ${receptOk} recepten opgeslagen</div>`;
+    } catch(e) {
+      progress.innerHTML += `<div class="prog-line prog-err">⚠️ Recepten overgeslagen: ${e.message}</div>`;
+    }
+
+    // Community seed posts importeren
+    progress.innerHTML += `<div class="prog-line">📤 Community startberichten importeren…</div>`;
+    const seedPosts = [
+      { id:'p1', author:'HerbalRoot Team', avatar:'', cat:'tip',
+        title:'Welkom bij de HerbalRoot Community! 🌿',
+        body:'Dit is jouw plek om vragen te stellen, tips te delen en ervaringen uit te wisselen over het kweken van kruiden. Stel gerust vragen — wij helpen elkaar!',
+        date: new Date().toLocaleDateString('nl-BE'), ts: Date.now()-3000, likes:3, replies:[], pinned:true },
+      { id:'p2', author:'Sofie V.', avatar:'', cat:'vraag',
+        title:'Mijn basilicum laat de blaadjes hangen — wat doe ik fout?',
+        body:'Ik heb mijn basilicum op het zuiden staan maar de blaadjes worden slap. Ik geef elke dag water. Hoe kan dit?',
+        date: new Date().toLocaleDateString('nl-BE'), ts: Date.now()-2000, likes:2,
+        replies:[{ author:'Jan D.', avatar:'', body:'Te veel water! Basilicum wil NIET elke dag water — geef alleen water als de bovenste centimeter grond droog is.', date: new Date().toLocaleDateString('nl-BE') }],
+        pinned:false },
+      { id:'p3', author:'Marie L.', avatar:'', cat:'oogst',
+        title:'Eerste oogst lavendel — zo trots! 💜',
+        body:'Na 2 jaar eindelijk mijn eerste echte oogst lavendel. Heb er lavendelsachetjes van gemaakt voor in de kast. De geur is fantastisch!',
+        date: new Date().toLocaleDateString('nl-BE'), ts: Date.now()-1000, likes:7, replies:[], pinned:false },
+    ];
+    let postOk = 0;
+    for (const post of seedPosts) {
+      try {
+        await setDoc(doc(db,'community',post.id), post);
+        postOk++;
+      } catch(e) { totalErr++; }
+    }
+    allPosts = seedPosts;
+    totalOk += postOk;
+    progress.innerHTML += `<div class="prog-line prog-ok">✓ ${postOk} startberichten opgeslagen</div>`;
 
     // Klaar
     progress.innerHTML += `
@@ -677,6 +981,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   border-radius:6px;color:var(--text);font-size:.78rem;padding:.3rem .5rem;outline:none;}
 .theme-preview{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;}
 
+/* ── Recepten ── */
+.recept-filter-bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem;}
+.rbtn{padding:.4rem 1rem;border-radius:100px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text2);cursor:pointer;font-size:.8rem;transition:all .2s;}
+.rbtn:hover,.rbtn.active{border-color:var(--accent2);color:var(--accent2);background:rgba(200,169,110,.08);}
+.recept-list{display:flex;flex-direction:column;gap:.5rem;}
+.recept-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:.85rem 1rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+.recept-row:hover{border-color:var(--accent);}
+.recept-row-left{display:flex;align-items:center;gap:.75rem;}
+.recept-cat-dot{font-size:1.3rem;flex-shrink:0;}
+.recept-row-name{font-size:.9rem;color:var(--text);font-weight:500;}
+.recept-row-meta{font-size:.72rem;color:var(--text2);margin-top:.1rem;}
+.recept-row-actions{display:flex;gap:.4rem;flex-shrink:0;}
+
+/* ── Community ── */
+.post-admin-list{display:flex;flex-direction:column;gap:.75rem;}
+.post-admin-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:1.1rem 1.25rem;}
+.post-admin-card.pinned{border-color:var(--accent2);background:rgba(200,169,110,.04);}
+.post-admin-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;flex-wrap:wrap;}
+.post-admin-cat{font-size:.7rem;padding:.2rem .6rem;border-radius:100px;color:var(--text);}
+.pin-badge{font-size:.7rem;color:var(--accent2);}
+.post-admin-date{font-size:.7rem;color:var(--text2);margin-left:auto;}
+.post-admin-author{font-size:.7rem;color:var(--text2);}
+.post-admin-title{font-size:.92rem;font-weight:500;color:var(--accent3);margin-bottom:.35rem;}
+.post-admin-body{font-size:.83rem;color:var(--text2);line-height:1.6;margin-bottom:.6rem;}
+.post-admin-replies{font-size:.75rem;color:var(--text2);margin-bottom:.6rem;}
+.post-admin-actions{display:flex;gap:.4rem;flex-wrap:wrap;}
+
 /* ── Toast ── */
 .toast{position:fixed;bottom:1.25rem;right:1.25rem;background:var(--surface);
   border:1px solid var(--border);border-radius:10px;padding:.65rem 1.1rem;
@@ -758,6 +1092,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="nav-item active" data-section="kruiden" onclick="switchSection('kruiden')">🌱 Kruiden</div>
       <div class="nav-item" data-section="groenten" onclick="switchSection('groenten')">🥦 Groenten</div>
       <div class="nav-item" data-section="fruit" onclick="switchSection('fruit')">🍎 Fruit</div>
+      <div class="nav-label" style="margin-top:.5rem">Content</div>
+      <div class="nav-item" data-section="recepten" onclick="switchSection('recepten')">🍳 Recepten</div>
+      <div class="nav-item" data-section="community" onclick="switchSection('community')">🌿 Community</div>
       <div class="nav-label" style="margin-top:.5rem">Instellingen</div>
       <div class="nav-item" data-section="thema" onclick="switchSection('thema')">🎨 Thema & Kleuren</div>
       <div class="nav-label" style="margin-top:.5rem">Data</div>
@@ -879,6 +1216,87 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Recept editor overlay -->
+<div class="editor-overlay" id="recept-editor-overlay">
+  <div class="editor-box">
+    <div class="editor-head">
+      <h3 id="re-title">Recept bewerken</h3>
+      <button class="close-btn" onclick="closeReceptEditor()">✕</button>
+    </div>
+    <div class="editor-body">
+      <div class="fgrid">
+        <div class="fg full"><label>Naam *</label>
+          <input id="re-naam" placeholder="bijv. Mojito">
+          <span class="hint">Unieke naam — niet wijzigen na aanmaken</span></div>
+        <div class="fg"><label>Categorie</label>
+          <select id="re-cat">
+            <option value="koken">🍽 Koken</option>
+            <option value="soep">🥣 Soep</option>
+            <option value="drank">🥤 Drank</option>
+            <option value="thee">🍵 Thee</option>
+            <option value="dessert">🍰 Dessert</option>
+          </select></div>
+        <div class="fg"><label>Plant/kruid ID</label>
+          <input id="re-herbid" placeholder="bijv. munt"></div>
+        <div class="fg"><label>Bereidingstijd</label>
+          <input id="re-tijd" placeholder="bijv. 15 min"></div>
+        <div class="fg"><label>Porties</label>
+          <input id="re-porties" placeholder="bijv. 4 porties"></div>
+        <div class="fg"><label>Moeilijkheid</label>
+          <select id="re-moeilijk">
+            <option>⚡ Makkelijk</option>
+            <option>🌱 Gemiddeld</option>
+            <option>🌳 Uitdagend</option>
+          </select></div>
+        <div class="fg full"><label>Introductie</label>
+          <textarea id="re-intro" rows="2"></textarea></div>
+        <div class="fg full"><label>Ingrediënten (één per regel)</label>
+          <textarea id="re-ingredienten" rows="6" placeholder="500 g bloem&#10;2 eieren&#10;..."></textarea></div>
+        <div class="fg full"><label>Werkwijze (één stap per regel)</label>
+          <textarea id="re-methode" rows="6" placeholder="Verwarm de oven op 180°C.&#10;Meng de ingrediënten.&#10;..."></textarea></div>
+        <div class="fg full"><label>Tip</label>
+          <textarea id="re-tip" rows="2"></textarea></div>
+      </div>
+    </div>
+    <div class="editor-foot">
+      <button class="btn-cancel" onclick="closeReceptEditor()">Annuleren</button>
+      <button class="btn-primary" onclick="saveRecept()">💾 Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Community post editor overlay -->
+<div class="editor-overlay" id="post-editor-overlay">
+  <div class="editor-box" style="max-width:560px">
+    <div class="editor-head">
+      <h3 id="pe-title-head">Bericht bewerken</h3>
+      <button class="close-btn" onclick="closePostEditor()">✕</button>
+    </div>
+    <div class="editor-body">
+      <input type="hidden" id="pe-id">
+      <div class="fgrid">
+        <div class="fg"><label>Auteur</label>
+          <input id="pe-author" placeholder="HerbalRoot Team"></div>
+        <div class="fg"><label>Categorie</label>
+          <select id="pe-cat">
+            <option value="tip">💡 Tip</option>
+            <option value="vraag">❓ Vraag</option>
+            <option value="recept">🍳 Recept</option>
+            <option value="oogst">🌾 Oogst</option>
+          </select></div>
+        <div class="fg full"><label>Titel</label>
+          <input id="pe-title" placeholder="Titel van het bericht"></div>
+        <div class="fg full"><label>Inhoud</label>
+          <textarea id="pe-body" rows="5"></textarea></div>
+      </div>
+    </div>
+    <div class="editor-foot">
+      <button class="btn-cancel" onclick="closePostEditor()">Annuleren</button>
+      <button class="btn-primary" onclick="savePost()">💾 Opslaan</button>
+    </div>
+  </div>
+</div>
 
 <script>
 function switchEtab(id, btn) {
