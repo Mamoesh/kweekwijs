@@ -543,7 +543,7 @@ select option{background:var(--surface2);}
   <div class="search-bar"><input type="text" id="fruit-search" placeholder="🔍  Zoek op naam of latijnse naam..." oninput="renderFruit()"></div>
   <div class="filter-bar" id="fruit-filter-bar">
     <button class="filter-btn active" onclick="setFruitFilter('all',this)">Alles</button>
-    <button class="filter-btn" onclick="setFruitFilter('bes',this)">🫐 Bessen</button>
+    <button class="filter-btn" onclick="setFruitFilter('bes',this)">🍇 Bessen</button>
     <button class="filter-btn" onclick="setFruitFilter('pit',this)">🍎 Pitfruit</button>
     <button class="filter-btn" onclick="setFruitFilter('steen',this)">🍑 Steenfruit</button>
     <button class="filter-btn" onclick="setFruitFilter('klein',this)">🍓 Kleinfruit</button>
@@ -2823,7 +2823,7 @@ const GROENTEN = [
  rec:['Tzatziki','Koude komkommersoep','Komkommersalade','Sushi rollen','Gazpacho'],
  good:['Dille','Sla','Radijs','Bieslook'],bad:['Tomaat','Basilicum'],
  tip:'Komkommers groeien snel — controleer dagelijks! Geef veel water maar zorg voor goede afwatering. Klimplant — geef een net of haag.',
- ph_stages:['🌱','🌿','🌸','🥒'],cp:0,watered:Date.now()-86400000*1},
+ pests:[{naam:'Spintmijt',beschrijving:'Kleine mijten die gele spikkels op blad veroorzaken bij droogte.',voorkomen:'Verhoog luchtvochtigheid, spuit met water, gebruik roofmijten als biologische bestrijding.'},{naam:'Komkommerkever',beschrijving:'Kever die blad en vruchten eet en ziektes overbrengt.',voorkomen:'Gebruik insectengaas bij jonge planten, handmatig verwijderen.'}],diseases:[{naam:'Meeldauw',beschrijving:'Wit poederachtig schimmellaagje op blad, typisch bij droge warme periodes.',voorkomen:'Goede luchtcirculatie, vermijd natte bladeren, gebruik resistant ras.'},{naam:'Komkommermozaïekvirus',beschrijving:'Gele vlekken en gebobbeld blad, verspreid door bladluis.',voorkomen:'Bestrijd bladluis, verwijder aangetaste planten, gebruik virus-resistent zaad.'}],ph_stages:['🌱','🌿','🌸','🥒'],cp:0,watered:Date.now()-86400000*1},
 
 {id:'courgette',name:'Courgette',lat:'Cucurbita pepo',care:'easy',
  photo:'https://picsum.photos/seed/zucchini/480/320',photo2:'https://picsum.photos/seed/zucchini/480/320',
@@ -2835,7 +2835,7 @@ const GROENTEN = [
  rec:['Ratatouille','Courgette fritters','Pasta met courgette','Gegrilde courgette','Courgette-rabarberjam'],
  good:['Marigold','Munt','Dille'],bad:['Aardappel'],
  tip:'Eén plant geeft heel veel vruchten — reken op 1–2 planten per gezin. Mannetjes en vrouwtjesbloemen — bestuiving nodig voor vruchtzetting.',
- ph_stages:['🌱','🌿','🌸','🥬'],cp:0,watered:Date.now()-86400000*2},
+ pests:[{naam:'Bladluis',beschrijving:'Kolonies groene of zwarte luizen op jonge scheuten en bladonderzijde.',voorkomen:'Spuit met verdund zeepwater, moedig lieveheersbeestjes aan.'},{naam:'Slakken',beschrijving:'Vreten jonge zaailingen en vruchten aan.',voorkomen:'Strooi koffiegrond of eierschalen rondom de plant, leg biervalletjes.'}],diseases:[{naam:'Echte meeldauw',beschrijving:'Wit poeder op de bovenkant van blad, plant verliest vitaliteit.',voorkomen:'Niet van bovenaf gieten, goede plantafstand, bespuit met verdund melk (1:9).'},{naam:'Valse meeldauw',beschrijving:'Gele vlekken bovenkant blad, grijs schimmellaagje onderkant.',voorkomen:'Vermijd wateroverlast, giet aan de basis, verwijder aangetast blad.'}],ph_stages:['🌱','🌿','🌸','🥬'],cp:0,watered:Date.now()-86400000*2},
 
 {id:'paprika',name:'Paprika',lat:'Capsicum annuum',care:'medium',
  photo:'https://picsum.photos/seed/paprika/480/320',photo2:'https://picsum.photos/seed/paprika/480/320',
@@ -2847,7 +2847,7 @@ const GROENTEN = [
  rec:['Gevulde paprika','Ratatouille','Tomaten-paprikasoep','Wokgerechten','Ajvar'],
  good:['Basilicum','Marigold','Tomaat'],bad:['Venkel','Kool'],
  tip:'Paprika\'s hebben veel warmte nodig — ideaal in serre of tunnel. Koud weer remt groei sterk.',
- ph_stages:['🌱','🌿','🌸','🫑'],cp:0,watered:Date.now()-86400000*2},
+ pests:[{naam:'Witte vlieg',beschrijving:'Kleine witte vliegjes die sap onttrekken aan bladonderzijde, veroorzaken geel blad.',voorkomen:'Gebruik gele lijmvallen, plant naast basilicum, spuit met insectenzeep.'},{naam:'Spintmijt',beschrijving:'Microscopische mijten die zilverachtige spikkels op blad maken.',voorkomen:'Verhoog luchtvochtigheid, spuit bladeren regelmatig met water.'}],diseases:[{naam:'Phytophthora',beschrijving:'Bruine verkleuringen op stengel en vruchten bij veel vocht.',voorkomen:'Vermijd wateroverlast, gebruik goed drainerende grond, roteer gewassen.'},{naam:'Paprikamozaïekvirus',beschrijving:'Mozaïekpatroon en misvormde bladeren, verspreid door bladluis.',voorkomen:'Bestrijd bladluis direct, verwijder besmette planten, was handen voor werkzaamheden.'}],ph_stages:['🌱','🌿','🌸','🫑'],cp:0,watered:Date.now()-86400000*2},
 
 {id:'sla',name:'Sla',lat:'Lactuca sativa',care:'easy',
  photo:'https://picsum.photos/seed/lettuce/480/320',photo2:'https://picsum.photos/seed/lettuce/480/320',
@@ -2859,7 +2859,7 @@ const GROENTEN = [
  rec:['Groene salade','Caesar salade','BLT sandwich','Wraps','Vietnamese lentjessalade'],
  good:['Radijs','Bieslook','Komkommer','Wortel'],bad:['Peterselie'],
  tip:'Zaai om de 2–3 weken voor continue oogst. Schiet snel door bij hitte — kies zomervariëteiten.',
- ph_stages:['🌱','🌿','🥬','🌸'],cp:1,watered:Date.now()-86400000*1},
+ pests:[{naam:'Slakken',beschrijving:'Nachtelijke vraat aan bladeren, laten slijmsporen achter.',voorkomen:'Strooi diatomeeënaarde of koffiegrond, leg biervalletjes, oogst bij regenweer.'},{naam:'Bladluis',beschrijving:'Groene luizen verbergen zich in de krop.',voorkomen:'Spoel de krop goed af, spuit met zeepwater in beginstadium.'}],diseases:[{naam:'Smet (Botrytis)',beschrijving:'Grijze schimmel op bladeren en stengelbasis bij te veel vocht.',voorkomen:'Goede luchtcirculatie, giet aan de basis, verwijder afgevallen bladeren.'},{naam:'Sla-rand (Tipburn)',beschrijving:'Bruine randen op binnenste blaadjes door calciumtekort bij hitte.',voorkomen:'Regelmatig gieten, bescherm tegen extreme hitte, kies hittetolerante rassen.'}],ph_stages:['🌱','🌿','🥬','🌸'],cp:1,watered:Date.now()-86400000*1},
 
 {id:'spinazie',name:'Spinazie',lat:'Spinacia oleracea',care:'easy',
  photo:'https://picsum.photos/seed/spinach/480/320',photo2:'https://picsum.photos/seed/spinach/480/320',
@@ -2871,7 +2871,7 @@ const GROENTEN = [
  rec:['Spinaziesoep','Spinaziequiche','Salade','Pasta met spinazie','Smoothies'],
  good:['Aardbeien','Radijs','Ui'],bad:['Venkel'],
  tip:'Voorjaars- en herfstgroente — niet geschikt voor zomerse hitte (schiet dan meteen door). Ideaal voor vroeg in het jaar.',
- ph_stages:['🌱','🌿','🥬','🌸'],cp:0,watered:Date.now()-86400000*1},
+ pests:[{naam:'Bladmineerder',beschrijving:'Larven vreten kronkelende gangen in het blad.',voorkomen:'Verwijder aangetaste bladeren, gebruik insectengaas, gebruik biologische bestrijding.'},{naam:'Bladluis',beschrijving:'Zuigt plantensap waardoor blad geel wordt en plant verzwakt.',voorkomen:'Spuit met zeepwater, plant naast dille of venkel als aphid-magneet.'}],diseases:[{naam:'Valse meeldauw',beschrijving:'Gele vlekken op blad met grijs dons aan onderzijde.',voorkomen:'Gebruik resistent ras, vermijd dichte beplanting, giet aan de basis.'},{naam:'Cercospora-bladziekte',beschrijving:'Bruine of gele cirkelvormige vlekken op het blad.',voorkomen:'Crop rotatie, verwijder aangetast plantenmateriaal, vermijd bevloeiing van bovenaf.'}],ph_stages:['🌱','🌿','🥬','🌸'],cp:0,watered:Date.now()-86400000*1},
 
 {id:'wortel',name:'Wortel',lat:'Daucus carota',care:'easy',
  photo:'https://picsum.photos/seed/carrot/480/320',photo2:'https://picsum.photos/seed/carrot/480/320',
@@ -2883,7 +2883,7 @@ const GROENTEN = [
  rec:['Wortelpompoensoep met gember','Worteltaart','Geroosterde wortelen','Coleslaw','Wortelsap'],
  good:['Sla','Ui','Rozemarijn','Bieslook'],bad:['Dille','Venkel'],
  tip:'Losse grond is essentieel voor rechte wortels. Verwijder stenen. Zaai dun en verdun later.',
- ph_stages:['🌱','🌿','🥕','🌸'],cp:0,watered:Date.now()-86400000*3},
+ pests:[{naam:'Wortelvlieg',beschrijving:'Larven vreten gangen in de wortel, veroorzaken bruine tunnels.',voorkomen:'Gebruik insectengaas direct na zaaien, vermijd wortels beschadigen bij dunnen.'},{naam:'Wortelknobbelaaltje',beschrijving:'Microscopische wormen veroorzaken knobbels op de wortel, plant groeit slecht.',voorkomen:'Crop rotatie, plant Marigold als tussengewas, gebruik steriliseerde grond.'}],diseases:[{naam:'Wortelbrand (Rhizoctonia)',beschrijving:'Donkere ingezonken vlekken op de wortel.',voorkomen:'Losse grond zonder stenen, goed drainerend, vermijd zware grond.'},{naam:'Alternaria-bladziekte',beschrijving:'Donkere vlekken met gele rand op bladeren.',voorkomen:'Crop rotatie, verwijder aangetast loof, gebruik ziektevrij zaad.'}],ph_stages:['🌱','🌿','🥕','🌸'],cp:0,watered:Date.now()-86400000*3},
 
 {id:'aardappel',name:'Aardappel',lat:'Solanum tuberosum',care:'easy',
  photo:'https://picsum.photos/seed/potato/480/320',photo2:'https://picsum.photos/seed/potato/480/320',
@@ -2895,7 +2895,7 @@ const GROENTEN = [
  rec:['Aardappelsoep','Gratinering','Stamppot','Frietjes','Ovenaardappelen'],
  good:['Basilicum','Marigold','Bieslook'],bad:['Tomaat','Courgette'],
  tip:'Gebruik pootaardappelen (gecertificeerd), geen supermarktaardappelen. Oppieken (aanaardeilen) verhoogt de opbrengst sterk.',
- ph_stages:['🌱','🌿','🌸','🥔'],cp:0,watered:Date.now()-86400000*4},
+ pests:[{naam:'Coloradokever',beschrijving:'Geel-zwart gestreepte kever en larven die blad volledig kaalvreten.',voorkomen:'Handmatig verwijderen van eieren en larven, gebruik Bacillus thuringiensis spray.'},{naam:'Aardappelcystenaaltje',beschrijving:'Microscopische wormen die wortels aantasten, plant vergeelt en krimpt.',voorkomen:'Strikte crop rotatie (minimaal 4 jaar), gebruik resistent ras.'}],diseases:[{naam:'Phytophthora (aardappelziekte)',beschrijving:'Bruine vlekken op blad en knol, snelle verspreiding bij vochtig weer.',voorkomen:'Vermijd natte bladeren, gebruik resistent ras, verwijder aangetast loof.'},{naam:'Schurft',beschrijving:'Ruwe, korkerige vlekken op de schil van de knol.',voorkomen:'Houd grond gelijkmatig vochtig, vermijd kalk vóór aardappels, zuur houden (pH 5-6).'}],ph_stages:['🌱','🌿','🌸','🥔'],cp:0,watered:Date.now()-86400000*4},
 
 {id:'broccoli',name:'Broccoli',lat:'Brassica oleracea var. italica',care:'medium',
  photo:'https://picsum.photos/seed/broccoli/480/320',photo2:'https://picsum.photos/seed/broccoli/480/320',
@@ -2907,7 +2907,7 @@ const GROENTEN = [
  rec:['Broccolisoep','Geroosterde broccoli','Pasta met broccoli','Tempura','Wokgerechten'],
  good:['Sla','Dille','Kamille'],bad:['Tomaat','Paprika'],
  tip:'Na de hoofdkop oogsten, regelmatig kleine zijkoppen oogsten. Plant is meerdere weken productief.',
- ph_stages:['🌱','🌿','🥦','🌸'],cp:0,watered:Date.now()-86400000*2},
+ pests:[{naam:'Koolvlinder (rupsen)',beschrijving:'Groene rupsen van het koolwitje vreten grote gaten in het blad.',voorkomen:'Gebruik insectengaas, controleer bladonderzijde op eitjes, gebruik Bacillus thuringiensis.'},{naam:'Koolmot',beschrijving:'Kleine rups die in de bladstelen boort en groeipunt beschadigt.',voorkomen:'Insectengaas, crop rotatie, vernietig aangetaste plantdelen.'}],diseases:[{naam:'Knolvoet',beschrijving:'Wortels vormen knolvormige zwellingen, plant verwelkt en groeit slecht.',voorkomen:'Kalk grond op pH 7+, strikte crop rotatie (minimaal 5 jaar), gebruik gezond plantgoed.'},{naam:'Valse meeldauw',beschrijving:'Gele vlekken boven, grijs schimmellaagje onder het blad.',voorkomen:'Goede luchtcirculatie, giet aan de basis, gebruik resistent ras.'}],ph_stages:['🌱','🌿','🥦','🌸'],cp:0,watered:Date.now()-86400000*2},
 
 {id:'bloemkool',name:'Bloemkool',lat:'Brassica oleracea var. botrytis',care:'hard',
  photo:'https://picsum.photos/seed/cauliflower/480/320',photo2:'https://picsum.photos/seed/cauliflower/480/320',
@@ -2919,7 +2919,7 @@ const GROENTEN = [
  rec:['Bloemkoolsoep','Bloemkoolpizza','Geroosterde bloemkool','Curry','Cauliflower steak'],
  good:['Dille','Sla','Bieslook'],bad:['Tomaat','Aardappel'],
  tip:'Dek de kool af met de eigen bladeren zodra ze zichtbaar worden — dit houdt hem wit (bleken).',
- ph_stages:['🌱','🌿','🥦','🌸'],cp:0,watered:Date.now()-86400000*3},
+ pests:[{naam:'Koolvlinder (rupsen)',beschrijving:'Rupsen van het koolwitje vreten blad kaal en verontreinigen de kool.',voorkomen:'Insectengaas, handmatig verwijderen van eitjes, Bacillus thuringiensis spray.'},{naam:'Bladluis',beschrijving:'Grijze koolafluis nestelt zich diep in de bladoksels.',voorkomen:'Krachtig afspuiten met water, zeepwater spray, moedig sluipwespen aan.'}],diseases:[{naam:'Knolvoet',beschrijving:'Schimmelziekte die wortels doet opzwellen — plant verwelkt snel.',voorkomen:'pH boven 7 houden, geen koolsoorten terug op zelfde plek (5+ jaar).'},{naam:'Ringvlekkenziekte',beschrijving:'Donkere concentrische ringen op blad en kool.',voorkomen:'Crop rotatie, ziektevrij zaad, verwijder aangetast materiaal direct.'}],ph_stages:['🌱','🌿','🥦','🌸'],cp:0,watered:Date.now()-86400000*3},
 
 {id:'knoflook',name:'Knoflook',lat:'Allium sativum',care:'easy',
  photo:'https://picsum.photos/seed/garlic/480/320',photo2:'https://picsum.photos/seed/garlic/480/320',
@@ -2931,7 +2931,7 @@ const GROENTEN = [
  rec:['Aioli','Sofrito','Knoflookboter','Pasta aglio e olio','Pisto'],
  good:['Roos','Tomaat','Wortel','Bieslook'],bad:['Erwten','Bonen'],
  tip:'Plant teentjes in de herfst voor de beste oogst (overwintert). Verwijder bloemstelen (scapes) voor grotere bollen.',
- ph_stages:['🌱','🌿','🧄','🌸'],cp:0,watered:Date.now()-86400000*5},
+ pests:[{naam:'Uienvlieg',beschrijving:'Larven vreten aan de basis van de bol, plant vergaat.',voorkomen:'Gebruik insectengaas, vermijd beschadigen bij wieden, crop rotatie.'},{naam:'Stengelaaltje',beschrijving:'Microscopische wormen veroorzaken zacht rot en misvormde bollen.',voorkomen:'Gebruik gezond plantgoed, strikte crop rotatie, droog de bollen goed na de oogst.'}],diseases:[{naam:'Wit rot (Sclerotium)',beschrijving:'Witte schimmelgroei aan de basis van de bol, bol verrot.',voorkomen:'Crop rotatie (minimaal 8 jaar!), gebruik onbesmette grond, verwijder aangetaste planten met omliggende grond.'},{naam:'Knoflookroest',beschrijving:'Oranje-gele vlekken op het blad.',voorkomen:'Goede plantafstand, vermijd stikstofoverschot, verwijder aangetast blad.'}],ph_stages:['🌱','🌿','🧄','🌸'],cp:0,watered:Date.now()-86400000*5},
 
 {id:'ui',name:'Ui',lat:'Allium cepa',care:'easy',
  photo:'https://picsum.photos/seed/onion/480/320',photo2:'https://picsum.photos/seed/onion/480/320',
@@ -2943,7 +2943,7 @@ const GROENTEN = [
  rec:['Uiensoep','Ajvar','Sofrito','Caramelized onions','Pickles'],
  good:['Wortel','Bieslook','Sla'],bad:['Erwten','Asperge'],
  tip:'Plant slaats voor de makkelijkste start. Zet in rijen van 10 cm afstand.',
- ph_stages:['🌱','🌿','🧅','🌸'],cp:0,watered:Date.now()-86400000*4},
+ pests:[{naam:'Uienvlieg',beschrijving:'Larven vreten tunnels in de bol, plant vergaat van binnenuit.',voorkomen:'Insectengaas, crop rotatie, vermijd plantschade bij onderhoud.'},{naam:'Trips',beschrijving:'Kleine insecten die zilverwitte strepen op blad veroorzaken.',voorkomen:'Spuit met insectenzeep, verwijder onkruid rondom, gebruik reflecterend mulch.'}],diseases:[{naam:'Valse meeldauw',beschrijving:'Grijze sporen op bladeren bij vochtig koel weer, plant verzwakt.',voorkomen:'Ruime plantafstand, giet aan de basis, gebruik resistent ras.'},{naam:'Ui-halsrot (Botrytis)',beschrijving:'Zachte rot aan de hals van de ui tijdens bewaring.',voorkomen:'Droog de uien volledig (2–4 weken) vóór opslag, bewaar droog en koel.'}],ph_stages:['🌱','🌿','🧅','🌸'],cp:0,watered:Date.now()-86400000*4},
 
 {id:'erwten',name:'Erwten',lat:'Pisum sativum',care:'easy',
  photo:'https://picsum.photos/seed/peas/480/320',photo2:'https://picsum.photos/seed/peas/480/320',
@@ -2955,7 +2955,7 @@ const GROENTEN = [
  rec:['Erwtensoep','Risotto met erwten','Erwtenhummus','Pasta met erwten','Stamppot'],
  good:['Wortel','Radijs','Sla'],bad:['Ui','Knoflook'],
  tip:'Vroeg zaaien (april) geeft het beste resultaat. Klimplant — geef steun. Voeg nooit stikstofmeststof toe — maken het zelf!',
- ph_stages:['🌱','🌿','🫘','🌸'],cp:0,watered:Date.now()-86400000*2},
+ pests:[{naam:'Erwtenluis',beschrijving:'Grijsgroene luizen in kolonies op jonge scheuten en peulen.',voorkomen:'Spuit met zeepwater, plant naast munt of dille, moedig lieveheersbeestjes aan.'},{naam:'Erwtenkeverkever',beschrijving:'Larven boren in de zaden en eten ze van binnenuit op.',voorkomen:'Bedek met insectengaas bij bloei, verwijder aangetaste peulen direct.'}],diseases:[{naam:'Erwtenmeeldauw',beschrijving:'Wit poederachtig laagje op blad en stengel bij warm droog weer.',voorkomen:'Ruime plantafstand, giet aan de basis, kies meeldauwresistent ras.'},{naam:'Voetziekte (Fusarium)',beschrijving:'Bruine verkleuringen aan stengelbasis, plant verwelkt.',voorkomen:'Gebruik ziektevrij zaad, crop rotatie, vermijd wateroverlast.'}],ph_stages:['🌱','🌿','🫘','🌸'],cp:0,watered:Date.now()-86400000*2},
 
 {id:'sperzieboon',name:'Sperzieboon',lat:'Phaseolus vulgaris',care:'easy',
  photo:'https://picsum.photos/seed/greenbean/480/320',photo2:'https://picsum.photos/seed/greenbean/480/320',
@@ -2967,7 +2967,7 @@ const GROENTEN = [
  rec:['Boontjessalade','Nicoise salade','Wokgerechten','Geroosterde boontjes','Stamppot'],
  good:['Wortel','Komkommer','Radijs'],bad:['Ui','Knoflook','Venkel'],
  tip:'Houdt van warmte — plant pas na de ijsheiligen (15 mei). Struikboontjes zijn makkelijker dan stokboontjes.',
- ph_stages:['🌱','🌿','🫘','🌸'],cp:0,watered:Date.now()-86400000*2},
+ pests:[{naam:'Bonenvlieg',beschrijving:'Larven vreten zaad en jonge kiemen aan, kiemplanten verdwijnen.',voorkomen:'Zaai op warme grond (18°C+), gebruik insectengaas, niet te vroeg zaaien.'},{naam:'Spintmijt',beschrijving:'Gele spikkels op blad bij droogte, fijn spinseltje zichtbaar.',voorkomen:'Spuit regelmatig met water, verhoog luchtvochtigheid, gebruik roofmijten.'}],diseases:[{naam:'Bonenvlekkenvirus',beschrijving:'Mozaïekpatroon en misvorming van blad en peulen.',voorkomen:'Bestrijd bladluis (vector), gebruik ziektevrij zaad, verwijder aangetaste planten.'},{naam:'Schimmelrot (Sclerotinia)',beschrijving:'Wit watig schimmellaagje op stengels, plant sterft af.',voorkomen:'Crop rotatie, goede drainage, verwijder plantenresten na de oogst.'}],ph_stages:['🌱','🌿','🫘','🌸'],cp:0,watered:Date.now()-86400000*2},
 
 {id:'radijs',name:'Radijs',lat:'Raphanus sativus',care:'easy',
  photo:'https://picsum.photos/seed/radish/480/320',photo2:'https://picsum.photos/seed/radish/480/320',
@@ -2979,7 +2979,7 @@ const GROENTEN = [
  rec:['Salade','Tacos','Radijsboter','Japanse miso-salade','Inmaken'],
  good:['Sla','Komkommer','Wortel'],bad:['Kool'],
  tip:'Snelst groeiende groente! Zaai tussen andere planten als spacers. Geeft aan wanneer grond goed is.',
- ph_stages:['🌱','🌸','🌱','🌸'],cp:0,watered:Date.now()-86400000*1},
+ pests:[{naam:'Koolvlieg',beschrijving:'Larven vreten aan de wortel, radijsje wordt aangetast en oneetbaar.',voorkomen:'Gebruik insectengaas, crop rotatie, zaai niet te vroeg.'},{naam:'Aardvlo',beschrijving:'Kleine springende kevers maken kleine gaatjes in zaailingen en bladeren.',voorkomen:'Houd grond vochtig, gebruik insectengaas, bedek met mulch.'}],diseases:[{naam:'Knolvoet',beschrijving:'Wortels zwellen op door schimmel, groei stagneert.',voorkomen:'Crop rotatie, houd pH boven 7.'},{naam:'Meeldauw',beschrijving:'Wit poederachtig laagje op bladeren.',voorkomen:'Goede luchtcirculatie, giet aan de basis, oogst op tijd.'}],ph_stages:['🌱','🌸','🌱','🌸'],cp:0,watered:Date.now()-86400000*1},
 
 {id:'prei',name:'Prei',lat:'Allium ampeloprasum',care:'easy',
  photo:'https://picsum.photos/seed/leek/480/320',photo2:'https://picsum.photos/seed/leek/480/320',
@@ -2991,7 +2991,7 @@ const GROENTEN = [
  rec:['Vichyssoise','Preicquiche','Preivlaaien','Pasta met prei','Preisoep'],
  good:['Wortel','Sla','Selderie'],bad:['Erwten','Bonen'],
  tip:'Plant diep en aanaard regelmatig om het witte deel te verlengen. Winterprei is winterhard tot -15°C.',
- ph_stages:['🌱','🌿','🥬','🌸'],cp:0,watered:Date.now()-86400000*3},
+ pests:[{naam:'Preimot',beschrijving:'Rupsen boren in de schacht en veroorzaken bruine aantasting.',voorkomen:'Insectengaas van april tot oktober, verwijder aangetaste prei direct.'},{naam:'Trips',beschrijving:'Kleine insecten die zilverwitte strepen op de bladeren achterlaten.',voorkomen:'Spuit met insectenzeep, ruime plantafstand, verwijder onkruid.'}],diseases:[{naam:'Prei-roest',beschrijving:'Oranje-gele pustels op bladeren, vermindert de oogst.',voorkomen:'Ruime plantafstand, crop rotatie, verwijder aangetast blad.'},{naam:'Preischimmel (Botrytis)',beschrijving:'Grijze schimmelgroei op bladeren en schacht bij koud vochtig weer.',voorkomen:'Goede luchtcirculatie, vermijd natte bladeren, verwijder aangetast materiaal.'}],ph_stages:['🌱','🌿','🥬','🌸'],cp:0,watered:Date.now()-86400000*3},
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -3009,7 +3009,7 @@ const FRUIT = [
  rec:['Aardbeienjam','Aardbeientaart','Aardbeiensmoothe','Eton Mess','Aardbeien met room'],
  good:['Spinazie','Sla','Komkommerkruid'],bad:['Kool','Venkel'],
  tip:'Ververs planten om de 3–4 jaar voor de beste opbrengst. Leg stro onder de vruchten tegen rotting.',
- ph_stages:['🌱','🌿','🌸','🍓'],cp:0,watered:Date.now()-86400000*2},
+ pests:[{naam:'Aardbeisnuitkever',beschrijving:'Kever knipt de bloemstelen door vóór bloei, drastisch minder vruchten.',voorkomen:'Gebruik nematoden (Steinernema) in de grond, handmatig verwijderen.'},{naam:'Spintmijt',beschrijving:'Maakt grijze vlekken op blad bij warm droog weer, plant verzwakt.',voorkomen:'Spuit regelmatig met water, gebruik roofmijten, vermijd droogte.'}],diseases:[{naam:'Grauwe schimmel (Botrytis)',beschrijving:'Grijze schimmel op rijpe vruchten, snel dodelijk bij vochtig weer.',voorkomen:'Stro onder vruchten leggen, goede luchtcirculatie, oogst direct bij rijpheid.'},{naam:'Meeldauw',beschrijving:'Wit poederachtig laagje op blad en vruchten.',voorkomen:'Ruime plantafstand, verwijder aangetast blad, gebruik resistent ras.'}],ph_stages:['🌱','🌿','🌸','🍓'],cp:0,watered:Date.now()-86400000*2},
 
 {id:'framboos',name:'Framboos',lat:'Rubus idaeus',care:'medium',
  photo:'https://picsum.photos/seed/raspberry/480/320',photo2:'https://picsum.photos/seed/raspberry/480/320',
@@ -3022,7 +3022,7 @@ const FRUIT = [
  rec:['Frambozenconfiture','Frambozenmoussecake','Smoothie','Frambozenazijn','Cheesecake topping'],
  good:['Lavendel','Marigold'],bad:['Aardappel'],
  tip:'Snoeien is essentieel — verwijder na de oogst de tweejarige canes die al gedragen hebben. Laat nieuwe canes staan.',
- ph_stages:['🌱','🌿','🌸','🫐'],cp:0,watered:Date.now()-86400000*3},
+ pests:[{naam:'Frambozensnuitkever',beschrijving:'Larven vreten in de scheuten, stengels verwelken.',voorkomen:'Snoeien van aangetaste scheuten, gebruik nematoden in grond, handmatig verwijderen.'},{naam:'Frambozenkever',beschrijving:'Larven vreten in de vruchten — oogst wordt oneetbaar.',voorkomen:'Gebruik insectengaas bij de bloei, handmatig verwijderen van kevers in de ochtend.'}],diseases:[{naam:'Frambozenroest',beschrijving:'Oranje vlekken op de bladonderzijde, plant verzwakt langzaam.',voorkomen:'Verwijder aangetaste bladeren, goede luchtcirculatie, vermijd overbewatering.'},{naam:'Cane blight',beschrijving:'Scheuten sterven af met donkere vlekken aan de basis.',voorkomen:'Snoei diep genoeg (tot gezond hout), desinfecteer snoeischaar, verwijder dood hout.'}],ph_stages:['🌱','🌿','🌸','🫐'],cp:0,watered:Date.now()-86400000*3},
 
 {id:'blauwebei',name:'Blauwe Bes',lat:'Vaccinium corymbosum',care:'medium',
  photo:'https://picsum.photos/seed/blueberry/480/320',photo2:'https://picsum.photos/seed/blueberry/480/320',
@@ -3035,7 +3035,7 @@ const FRUIT = [
  rec:['Blauwebessentaart','Pancakes met bosbessen','Smoothie','Muffins','Jam'],
  good:['Rhododendron','Heide'],bad:['Planten met hoge pH'],
  tip:'Heeft absoluut zure grond nodig (pH 4–5.5). Gebruik rhododendronaarde of voeg zwavelzuur toe. Plant minstens 2 struiken voor kruisbestuiving.',
- ph_stages:['🌱','🌿','🌸','🫐'],cp:0,watered:Date.now()-86400000*4},
+ pests:[{naam:'Vogels',beschrijving:'Eten de rijpe bessen op voor je ze kunt oogsten.',voorkomen:'Dek af met fijnmazig vogelnet bij het rijpen, haal net eraf na de oogst.'},{naam:'Blauwebeimot',beschrijving:'Larven vreten in de bessen.',voorkomen:'Gebruik insectengaas bij de bloei, handmatig verwijderen.'}],diseases:[{naam:'Mummiebes (Mummy berry)',beschrijving:'Schimmelziekte — bessen verschrompelen en vallen af.',voorkomen:'Verwijder gevallen bessen direct, mulch rondom de struik, gebruik resistent ras.'},{naam:'Kanker (Phomopsis)',beschrijving:'Donkere kankers op scheuten, stengels sterven af.',voorkomen:'Goede drainage, verwijder dode scheuten, vermijd beschadiging bij snoei.'}],ph_stages:['🌱','🌿','🌸','🫐'],cp:0,watered:Date.now()-86400000*4},
 
 {id:'appel',name:'Appel',lat:'Malus domestica',care:'medium',
  photo:'https://picsum.photos/seed/apple/480/320',photo2:'https://picsum.photos/seed/apple/480/320',
@@ -3048,7 +3048,7 @@ const FRUIT = [
  rec:['Appeltaart','Appelmoes','Appelstroop','Calvados','Appelcider'],
  good:['Lavendel','Bieslook','Marigold'],bad:['Aardappel','Walnoot'],
  tip:'Kies zelf-bestuivende rassen voor kleine tuinen, of plant 2 rassen voor kruisbestuiving. Snoeien in winter is essentieel.',
- ph_stages:['🌱','🌿','🌸','🍎'],cp:0,watered:Date.now()-86400000*5},
+ pests:[{naam:'Appelzaagwesp',beschrijving:'Larven vreten in jonge vruchten die vroegtijdig vallen.',voorkomen:'Gebruik kaolinespray bij bloei, hang lijmvallen, handmatig aangetaste vruchten verwijderen.'},{naam:'Bloedluis',beschrijving:'Rode luizen vormen wolachtige kolonies op scheuten en wonden.',voorkomen:'Spuit met insectenzeep, snoeiwonden afdekken, moedig sluipwespen aan.'}],diseases:[{naam:'Appelschurft',beschrijving:'Bruingroene vlekken op blad en vrucht, verslechtert bewaarbaarheid.',voorkomen:'Verwijder gevallen bladeren (wintersporen), gebruik resistent ras, goede luchtcirculatie.'},{naam:'Vuurziekte (Erwinia)',beschrijving:'Scheuten sterven snel af alsof verbrand, bacteriële ziekte.',voorkomen:'Desinfecteer snoeischaar na elke knip, snoeien in droog weer, resistente onderstam.'}],ph_stages:['🌱','🌿','🌸','🍎'],cp:0,watered:Date.now()-86400000*5},
 
 {id:'peer',name:'Peer',lat:'Pyrus communis',care:'medium',
  photo:'https://picsum.photos/seed/pear/480/320',photo2:'https://picsum.photos/seed/pear/480/320',
@@ -3061,7 +3061,7 @@ const FRUIT = [
  rec:['Perentaart','Peer met chocolade','Perencompote','Peer-gorgonzola salade','Perencider'],
  good:['Lavendel','Bieslook'],bad:['Walnoot'],
  tip:'Peren hebben kruisbestuiving nodig — plant minstens 2 verschillende rassen. Perenroest is een veelvoorkomende schimmelziekte — gebruik resistente rassen.',
- ph_stages:['🌱','🌿','🌸','🍐'],cp:0,watered:Date.now()-86400000*4},
+ pests:[{naam:'Perenbladvlo',beschrijving:'Zuigende insecten die honingdauw produceren, leidt tot roetdauw.',voorkomen:'Spuit met kalkzwavel in de winter, gebruik roofwantsen als biologische bestrijding.'},{naam:'Perensnuitkever',beschrijving:'Larven vreten in de vruchten.',voorkomen:'Gebruik lijmringen rond de stam, handmatig verwijderen, lijmvallen hangen.'}],diseases:[{naam:'Perenrooster (Gymnosporangium)',beschrijving:'Oranje vlekken op bladeren, verspreidt via jeneverbes.',voorkomen:'Verwijder jeneverbesstruiken in de buurt, verwijder aangetast blad.'},{naam:'Vuurziekte (Erwinia)',beschrijving:'Scheuten sterven snel af — gevaarlijkste peerziekte.',voorkomen:'Desinfecteer snoeischaar, snoeien in droog weer, resistente onderstam kiezen.'}],ph_stages:['🌱','🌿','🌸','🍐'],cp:0,watered:Date.now()-86400000*4},
 
 {id:'kers',name:'Kers',lat:'Prunus avium',care:'medium',
  photo:'https://picsum.photos/seed/cherry/480/320',photo2:'https://picsum.photos/seed/cherry/480/320',
@@ -3074,7 +3074,7 @@ const FRUIT = [
  rec:['Kersenjam','Clafouti','Kersenvlaai','Kriekbier','Schwarzwälder Kirschtorte'],
  good:['Lavendel','Marigold'],bad:['Aardappel'],
  tip:'Zure kersen (morello) zijn makkelijker te kweken dan zoete kersen. Bescherm tegen vogels met net.',
- ph_stages:['🌱','🌿','🌸','🍒'],cp:0,watered:Date.now()-86400000*3},
+ pests:[{naam:'Vogels',beschrijving:'Eten de rijpe kersen op — de grootste plaag voor thuiskwekers.',voorkomen:'Dek af met fijnmazig vogelnet zodra kersen kleuren.'},{naam:'Kersenfruitvlieg',beschrijving:'Larven vreten in de vrucht — kersen worden oneetbaar.',voorkomen:'Hang gele lijmvallen, gebruik kaolinespray preventief.'}],diseases:[{naam:'Monilia (bruinrot)',beschrijving:'Vruchten krimpen en verschrompelen, bruine schimmel op de kersen.',voorkomen:'Verwijder alle mummievruchten, goede luchtcirculatie door snoei.'},{naam:'Scheutziekte (Pseudomonas)',beschrijving:'Donkere vlekken op blad en scheuten, takken sterven af.',voorkomen:'Snoei in droog zomerweer, desinfecteer gereedschap, vermijd wonden in de herfst.'}],ph_stages:['🌱','🌿','🌸','🍒'],cp:0,watered:Date.now()-86400000*3},
 
 {id:'pruim',name:'Pruim',lat:'Prunus domestica',care:'easy',
  photo:'https://picsum.photos/seed/plum/480/320',photo2:'https://picsum.photos/seed/plum/480/320',
@@ -3087,7 +3087,7 @@ const FRUIT = [
  rec:['Pruimenconfiture','Pruimentaart','Mirabellen-likeur','Pruimenchutney','Gedroogde pruimen'],
  good:['Lavendel','Marigold'],bad:['Aardappel'],
  tip:'Veel rassen zijn zelf-bestuivend. Pruimenbomen zijn de meest productieve en makkelijkste van alle fruitbomen.',
- ph_stages:['🌱','🌿','🌸','🫐'],cp:0,watered:Date.now()-86400000*4},
+ pests:[{naam:'Pruimenrietmot',beschrijving:'Larven boren in vruchten en scheuten.',voorkomen:'Gebruik feromoonvallen, handmatig verwijderen van aangetaste vruchten.'},{naam:'Bladluis (pruimenluis)',beschrijving:'Krult en vervormt jonge bladeren.',voorkomen:'Spuit met insectenzeep in het voorjaar, moedig lieveheersbeestjes aan.'}],diseases:[{naam:'Pruimenpokken (Plum pox)',beschrijving:'Gele ringen op blad en vruchten, vrucht wordt oneetbaar — quarantaineziekte.',voorkomen:'Gebruik gecertificeerd ziektevrij plantgoed, verwijder aangetaste bomen, meld bij NVWA.'},{naam:'Monilia (bruinrot)',beschrijving:'Bruine rotplek op vruchten, verspreidt snel.',voorkomen:'Verwijder mummievruchten, snoei voor goede luchtcirculatie.'}],ph_stages:['🌱','🌿','🌸','🫐'],cp:0,watered:Date.now()-86400000*4},
 
 {id:'druif',name:'Druif',lat:'Vitis vinifera',care:'hard',
  photo:'https://picsum.photos/seed/grape/480/320',photo2:'https://picsum.photos/seed/grape/480/320',
@@ -3100,7 +3100,7 @@ const FRUIT = [
  rec:['Druivenjam','Zelfgemaakte wijn','Druivensap','Druivensalades','Rozijnen'],
  good:['Rozemarijn','Lavendel'],bad:['Kool'],
  tip:'Snoei is het geheim van druiventeelt — terug tot 2 knoppen per scheut in de winter. Hebben een warme muur of pergola nodig.',
- ph_stages:['🌱','🌿','🌸','🍇'],cp:0,watered:Date.now()-86400000*5},
+ pests:[{naam:'Druifmot',beschrijving:'Rupsen vreten in de druiven, veroorzaken rotting.',voorkomen:'Gebruik feromoonvallen, verwijder aangetaste trossen, biologische bestrijding met Trichogramma.'},{naam:'Vogels en wespen',beschrijving:'Rijpe druiven worden aangetast nog voor de oogst.',voorkomen:'Dek trossen af met speciale druifzakjes of gebruik vogelnet.'}],diseases:[{naam:'Valse meeldauw (Plasmopara)',beschrijving:'Gele vlekken op blad met wit schimmellaagje onderzijde bij vochtig weer.',voorkomen:'Goede luchtcirculatie, verwijder aangetast blad, gebruik bordeauxse pap preventief.'},{naam:'Echte meeldauw (Oidium)',beschrijving:'Wit poeder op blad, scheuten en druiven bij warm droog weer.',voorkomen:'Goede luchtcirculatie door snoei, spuit met zwavel preventief.'}],ph_stages:['🌱','🌿','🌸','🍇'],cp:0,watered:Date.now()-86400000*5},
 
 {id:'citroen',name:'Citroen',lat:'Citrus limon',care:'hard',
  photo:'https://picsum.photos/seed/lemon/480/320',photo2:'https://picsum.photos/seed/lemon/480/320',
@@ -3113,7 +3113,7 @@ const FRUIT = [
  rec:['Limonade','Citroenijs','Lemon curd','Citroenconfiture','Limoncello'],
  good:['Lavendel','Rozemarijn'],bad:[],
  tip:'Overwinteren altijd binnen in onze klimaatzone. Speciale citrusgrond is essentieel. Vochtigheid laag houden in de winter.',
- ph_stages:['🌱','🌿','🌸','🍋'],cp:0,watered:Date.now()-86400000*3},
+ pests:[{naam:'Wolluis',beschrijving:'Witte wolachtige insecten in bladoksels en op jonge scheuten, produceren honingdauw.',voorkomen:'Spuit met 70% alcohol op een wattenstaafje, gebruik insectenzeep, verhoog luchtvochtigheid.'},{naam:'Citrusspintmijt',beschrijving:'Rode mijten veroorzaken geel gespikkeld blad.',voorkomen:'Spuit regelmatig de bladeren met water, gebruik roofmijten.'}],diseases:[{naam:'Citrusroet (Roetdauw)',beschrijving:'Zwart roetachtig laagje op bladeren na aanval van honingdauw-producerende insecten.',voorkomen:'Bestrijd de insecten (wolluis, bladluis), veeg blad af met vochtige doek.'},{naam:'Wortelrot (Phytophthora)',beschrijving:'Wortels rotten af bij wateroverlast, blad vergeelt en valt af.',voorkomen:'Gebruik goed drainerende citrusgrond, geef nooit te veel water, pot met drainagegat.'}],ph_stages:['🌱','🌿','🌸','🍋'],cp:0,watered:Date.now()-86400000*3},
 
 {id:'vijg',name:'Vijg',lat:'Ficus carica',care:'easy',
  photo:'https://picsum.photos/seed/fig/480/320',photo2:'https://picsum.photos/seed/fig/480/320',
@@ -3126,7 +3126,7 @@ const FRUIT = [
  rec:['Vijgenjam','Vijg met gorgonzola','Vijgen-honingtaart','Vijgenlikeur','Gedroogde vijgen'],
  good:['Rozemarijn','Lavendel'],bad:[],
  tip:'Winterhardheid varieert per ras. In gematigd klimaat planteten de vijg tegen een zuidmuur. Kan groot worden — regelmatig snoeien.',
- ph_stages:['🌱','🌿','🌸','🍈'],cp:0,watered:Date.now()-86400000*5},
+ pests:[{naam:'Vijgenzaagwesp',beschrijving:'Larven vreten in de vijgen.',voorkomen:'Handmatig verwijderen van aangetaste vruchten, gebruik insectengaas.'},{naam:'Vogels',beschrijving:'Pikken rijpe vijgen open.',voorkomen:'Dek de rijpende vruchten af met vogelnet of papieren zakjes.'}],diseases:[{naam:'Vijgenroest',beschrijving:'Oranje-bruine vlekken op de bladonderzijde in de zomer.',voorkomen:'Verwijder aangetast blad, rake gevallen bladeren op, goede luchtcirculatie.'},{naam:'Vijgenverwelkingsziekte (Botrytis)',beschrijving:'Vruchten rotten bij regenachtig weer.',voorkomen:'Pluk tijdig, goede luchtcirculatie, plant op warme beschutte plek.'}],ph_stages:['🌱','🌿','🌸','🍈'],cp:0,watered:Date.now()-86400000*5},
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -3197,7 +3197,7 @@ function openPlantModal(id, type) {
   const db = type === 'fruit' ? FRUIT : GROENTEN;
   const h = db.find(x => x.id === id);
   if (!h) return;
-  document.getElementById('modal-title').textContent = h.emoji + ' ' + h.name;
+  document.getElementById('modal-title').textContent = h.name;
   document.getElementById('modal-latin').textContent = h.lat;
   const heroSrc = h.photo2 || h.photo;
   const hero = document.getElementById('modal-hero');
@@ -3223,7 +3223,7 @@ function openPlantModal(id, type) {
     {id:'pinfo',label:'🌿 Info'},
     {id:'pkalender',label:'📅 Kalender & Oogst'},
     {id:'pbewaring',label:'📦 Bewaring'},
-    {id:'pnaast',label:'🤝 Buurtplanten'},
+    {id:'pnaast',label:'💡 Kweektips'},
   ];
   document.getElementById('tab-bar').innerHTML = tabs.map((t,i) =>
     '<button class="tab-btn' + (i===0?' active':'') + '" onclick="switchTab(\'' + t.id + '\',this)">' + t.label + '</button>'
@@ -3240,14 +3240,29 @@ function openPlantModal(id, type) {
     '</div>' +
     '<div class="section-h">🌿 Voordelen & gebruik</div>' +
     '<ul class="benefit-list">' + (h.ben||[]).map(b => '<li>'+b+'</li>').join('') + '</ul>' +
-    '<div class="section-h">🍽 Gerechten & Soepen</div>' +
-    '<div class="herb-tags">' + (h.rec||[]).map(r => {
-      const hasR = !!RECEPTEN_DB[r];
-      const esc = r.replace(/'/g, "\\'");
-      return '<span class="tag gold' + (hasR?' has-recept':'') + '" style="cursor:pointer" onclick="openReceptDetail(\'' + id + '\',\'' + esc + '\')">🍴 ' + r + '</span>';
-    }).join('') + '</div>' +
-    '<div class="section-h">💡 Kweektip</div>' +
-    '<p style="color:var(--text2);font-size:.88rem;line-height:1.65">' + (h.tip||'') + '</p>' +
+    (function() {
+      const drankKeywords = /limonade|cider|wijn|likeur|smoothie|sap|bier|azijn|siroop|drank|ijsthee|karkadeh/i;
+      const koken = (h.rec||[]).filter(r => !drankKeywords.test(r));
+      const dranken = (h.rec||[]).filter(r => drankKeywords.test(r));
+      let html = '';
+      if (koken.length) {
+        html += '<div class="section-h">🍽 Koken & verwerken</div>' +
+          '<div class="herb-tags">' + koken.map(r => {
+            const hasR = !!RECEPTEN_DB[r];
+            const esc = r.replace(/'/g, "\\'");
+            return '<span class="tag gold' + (hasR?' has-recept':'') + '" style="cursor:pointer" onclick="openReceptDetail(\'' + id + '\',\'' + esc + '\')">🍴 ' + r + '</span>';
+          }).join('') + '</div>';
+      }
+      if (dranken.length) {
+        html += '<div class="section-h">🥤 Dranken</div>' +
+          '<div class="herb-tags">' + dranken.map(r => {
+            const hasR = !!RECEPTEN_DB[r];
+            const esc = r.replace(/'/g, "\\'");
+            return '<span class="tag gold' + (hasR?' has-recept':'') + '" style="cursor:pointer" onclick="openReceptDetail(\'' + id + '\',\'' + esc + '\')">🥤 ' + r + '</span>';
+          }).join('') + '</div>';
+      }
+      return html;
+    })() +
     '</div>';
 
   // Calendar panel
@@ -3276,16 +3291,52 @@ function openPlantModal(id, type) {
     '<h3 style="font-family:\'Playfair Display\',serif;font-size:1.05rem;color:var(--accent3);margin-bottom:.75rem">📦 Bewaar- en conserveringsmethodes</h3>' +
     bewaringHtml + '</div>';
 
-  // Companion panel
+  // Kweektips panel (tip + companions + pests + diseases)
+  const pests_p  = h.pests    || [];
+  const diseases_p = h.diseases || [];
   const naastPanel = '<div class="tab-content" id="panel-pnaast">' +
-    '<div class="section-h" style="margin-top:0">🤝 Goede buurtplanten</div>' +
+
+    // Kweektip
+    '<div class="section-h" style="margin-top:0">💡 Kweektip</div>' +
+    '<div class="harvest-box">' + (h.tip || 'Geen specifieke kweektip.') + '</div>' +
+
+    // Companions
+    '<div class="section-h">🤝 Goede buurtplanten</div>' +
     '<div class="companion-list" style="margin-bottom:1rem">' +
     ((h.good||[]).length ? (h.good||[]).map(g => '<span class="companion good">✓ ' + g + '</span>').join('') : '<span style="color:var(--text2);font-size:.85rem">Geen specifieke voorkeur</span>') +
     '</div>' +
     '<div class="section-h">⚠️ Slechte buurtplanten</div>' +
-    '<div class="companion-list">' +
+    '<div class="companion-list" style="margin-bottom:1.25rem">' +
     ((h.bad||[]).length ? (h.bad||[]).map(b => '<span class="companion bad">✗ ' + b + '</span>').join('') : '<span style="color:var(--text2);font-size:.85rem">Geen bekende slechte buren</span>') +
-    '</div></div>';
+    '</div>' +
+
+    // Pests
+    '<div class="section-h">🐛 Gevoelig voor insecten & plagen</div>' +
+    (pests_p.length
+      ? '<div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.5rem">' +
+        pests_p.map(p =>
+          '<div class="pest-card">' +
+          '<div class="pest-name">🐛 ' + p.naam + '</div>' +
+          '<div class="pest-desc">' + p.beschrijving + '</div>' +
+          '<div class="pest-prevent"><strong>Voorkomen:</strong> ' + p.voorkomen + '</div>' +
+          '</div>'
+        ).join('') + '</div>'
+      : '<p style="color:var(--text2);font-size:.85rem;margin-bottom:.75rem">Geen bekende specifieke plagen.</p>') +
+
+    // Diseases
+    '<div class="section-h">🍂 Gevoelig voor ziektes</div>' +
+    (diseases_p.length
+      ? '<div style="display:flex;flex-direction:column;gap:.5rem">' +
+        diseases_p.map(d =>
+          '<div class="pest-card" style="border-color:rgba(200,169,110,.25);background:rgba(200,169,110,.07)">' +
+          '<div class="pest-name" style="color:var(--accent2)">🍂 ' + d.naam + '</div>' +
+          '<div class="pest-desc">' + d.beschrijving + '</div>' +
+          '<div class="pest-prevent"><strong>Voorkomen:</strong> ' + d.voorkomen + '</div>' +
+          '</div>'
+        ).join('') + '</div>'
+      : '<p style="color:var(--text2);font-size:.85rem">Geen bekende specifieke ziektes.</p>') +
+
+    '</div>';
 
   document.getElementById('tab-panels').innerHTML = infoPanel + calPanel + storagePanel + naastPanel;
   document.getElementById('modal-overlay').classList.add('open');
@@ -3615,6 +3666,63 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.warn('SW registration failed:', err));
   });
 }
+</script>
+
+<!-- Firebase: laad extra/gewijzigde planten vanuit Firestore -->
+<script type="module">
+import { initializeApp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, getDocs }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyCIbxp7FemPmockRtH2Dx06yZ4_wBEfJkg",
+  authDomain:        "herbalroot.firebaseapp.com",
+  projectId:         "herbalroot",
+  storageBucket:     "herbalroot.firebasestorage.app",
+  messagingSenderId: "613071845588",
+  appId:             "1:613071845588:web:4f06139e25abeda9bee341"
+};
+
+async function loadFirebaseData() {
+  try {
+    const app = initializeApp(firebaseConfig, 'herbalroot-reader');
+    const db  = getFirestore(app);
+
+    const map = { kruiden: HERBS, groenten: GROENTEN, fruit: FRUIT };
+
+    for (const [col, arr] of Object.entries(map)) {
+      const snap = await getDocs(collection(db, col));
+      snap.docs.forEach(d => {
+        const data = { ...d.data(), id: d.id };
+        // Zet cp en watered goed
+        data.cp      = data.cp      ?? 0;
+        data.watered = data.watered ?? Date.now();
+        data.ph_stages = data.ph_stages ?? ['🌱','🌿','🌸','🌼'];
+
+        const idx = arr.findIndex(p => p.id === data.id);
+        if (idx >= 0) {
+          // Bestaande plant overschrijven met Firebase-versie
+          arr[idx] = data;
+        } else {
+          // Nieuwe plant toevoegen
+          arr.push(data);
+        }
+      });
+    }
+
+    // Herrender de actieve sectie
+    renderHerbs();
+    renderGroenten();
+    renderFruit();
+    console.log('Firebase data geladen ✓');
+  } catch(e) {
+    // Stilletjes falen — app werkt gewoon met lokale data
+    console.log('Firebase niet beschikbaar, lokale data wordt gebruikt.');
+  }
+}
+
+loadFirebaseData();
 </script>
 <!-- RECEPT MODAL -->
 <div class="modal-overlay" id="recept-modal-overlay" onclick="if(event.target===this)closeReceptModal()">
