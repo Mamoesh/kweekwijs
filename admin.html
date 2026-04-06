@@ -382,7 +382,12 @@ let editingRecept = null;
 async function loadRecepten() {
   const snap = await getDocs(collection(db, 'recepten'));
   allRecepten = {};
-  snap.docs.forEach(d => { allRecepten[d.id] = d.data(); });
+  snap.docs.forEach(d => {
+    const data = d.data();
+    // Gebruik de opgeslagen naam als key, anders het doc-ID
+    const key = data.naam || d.id.replace(/_sl_/g,'/').replace(/_bs_/g,'\\').replace(/_dt_/g,'.').replace(/_/g,' ');
+    allRecepten[key] = data;
+  });
 }
 
 function renderRecepten() {
@@ -468,7 +473,9 @@ window.saveRecept = async () => {
   const get = id => (document.getElementById(id)||{}).value||'';
   const naam = get('re-naam').trim();
   if (!naam) { toast('Vul een naam in.','err'); return; }
+  const safeId = naam.replace(/\//g,'_sl_').replace(/\\/g,'_bs_').replace(/\./g,'_dt_').replace(/\s+/g,'_').substring(0,500);
   const data = {
+    naam,
     cat:          get('re-cat'),
     herbId:       get('re-herbid'),
     tijd:         get('re-tijd'),
@@ -480,7 +487,7 @@ window.saveRecept = async () => {
     tip:          get('re-tip'),
   };
   try {
-    await setDoc(doc(db, 'recepten', naam), data);
+    await setDoc(doc(db, 'recepten', safeId), data);
     allRecepten[naam] = data;
     closeReceptEditor();
     renderRecepten();
@@ -490,8 +497,9 @@ window.saveRecept = async () => {
 
 window.deleteRecept = async (naam) => {
   if (!confirm(`"${naam}" verwijderen?`)) return;
+  const safeId = naam.replace(/\//g,'_sl_').replace(/\\/g,'_bs_').replace(/\./g,'_dt_').replace(/\s+/g,'_').substring(0,500);
   try {
-    await deleteDoc(doc(db, 'recepten', naam));
+    await deleteDoc(doc(db, 'recepten', safeId));
     delete allRecepten[naam];
     renderRecepten();
     toast(`${naam} verwijderd`, 'ok');
@@ -734,23 +742,43 @@ window.importAllPlants = async () => {
     // Recepten importeren
     progress.innerHTML += `<div class="prog-line">📤 Recepten importeren…</div>`;
     try {
-      // Extract RECEPTEN_DB object
+      // Zoek RECEPTEN_DB — gebruik veilige markers
       const receptStart = html.indexOf('const RECEPTEN_DB = {');
-      const receptEnd   = html.indexOf('\n// ═══════════════════════════════════\n// GEOLOCATION', receptStart);
-      const receptRaw   = html.slice(receptStart, receptEnd + 1);
-      const receptObj   = new Function(receptRaw + '\nreturn RECEPTEN_DB;')();
-      let receptOk = 0;
-      for (const [naam, data] of Object.entries(receptObj)) {
+      const receptEnd   = html.indexOf('// ═══════════════════════════════════════\n// GEOLOCATION', receptStart);
+
+      if (receptStart === -1) throw new Error('RECEPTEN_DB niet gevonden in index.html');
+      if (receptEnd   === -1) throw new Error('Einde van RECEPTEN_DB niet gevonden — marker mismatch');
+
+      const receptRaw = html.slice(receptStart, receptEnd).trim();
+      const receptObj = new Function(receptRaw + '\nreturn RECEPTEN_DB;')();
+      const entries   = Object.entries(receptObj);
+      progress.innerHTML += `<div class="prog-line">🔍 ${entries.length} recepten gevonden…</div>`;
+
+      let receptOk = 0, receptErr = 0;
+      for (const [naam, data] of entries) {
+        // Firestore staat geen /, \, ., .., of speciale chars toe in doc IDs
+        // Gebruik een veilige ID: encode speciale tekens
+        const safeId = naam
+          .replace(/\//g, '_sl_')
+          .replace(/\\/g, '_bs_')
+          .replace(/\./g, '_dt_')
+          .replace(/\s+/g, '_')
+          .substring(0, 500); // max 500 chars
         try {
-          await setDoc(doc(db, 'recepten', naam), data);
-          allRecepten[naam] = data;
+          // Sla de originele naam op als veld zodat we hem kunnen terugvinden
+          await setDoc(doc(db, 'recepten', safeId), { ...data, naam });
+          allRecepten[naam] = { ...data, naam };
           receptOk++;
-        } catch(e) { totalErr++; }
+        } catch(e) {
+          console.error('Recept fout:', naam, e.message);
+          receptErr++;
+          totalErr++;
+        }
       }
       totalOk += receptOk;
-      progress.innerHTML += `<div class="prog-line prog-ok">✓ ${receptOk} recepten opgeslagen</div>`;
+      progress.innerHTML += `<div class="prog-line prog-ok">✓ ${receptOk} recepten opgeslagen${receptErr ? ` · ${receptErr} fouten` : ''}</div>`;
     } catch(e) {
-      progress.innerHTML += `<div class="prog-line prog-err">⚠️ Recepten overgeslagen: ${e.message}</div>`;
+      progress.innerHTML += `<div class="prog-line prog-err">⚠️ Recepten mislukt: ${e.message}</div>`;
     }
 
     // Community seed posts importeren
