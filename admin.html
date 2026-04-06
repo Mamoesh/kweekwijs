@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HerbalRoot – Beheer</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script type="module">
+import { initializeApp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ════════════════════════════════════════════════════════════════
+//  🔧 JOUW FIREBASE CONFIG — vul dit in (zie handleiding.html)
+//     Firebase Console → Project Settings → Jouw web app → Config
+// ════════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "AIzaSyCIbxp7FemPmockRtH2Dx06yZ4_wBEfJkg",
+  authDomain:        "herbalroot.firebaseapp.com",
+  projectId:         "herbalroot",
+  storageBucket:     "herbalroot.firebasestorage.app",
+  messagingSenderId: "613071845588",
+  appId:             "1:613071845588:web:4f06139e25abeda9bee341"
+};
+// ════════════════════════════════════════════════════════════════
+
+const configured = firebaseConfig.apiKey !== 'JOUW_API_KEY';
+
+let app, auth, db, provider;
+if (configured) {
+  app      = initializeApp(firebaseConfig);
+  auth     = getAuth(app);
+  db       = getFirestore(app);
+  provider = new GoogleAuthProvider();
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('config-warning').style.display = 'flex';
+    document.getElementById('login-screen').style.display  = 'none';
+  });
+}
+
+// ── State ─────────────────────────────────────────────────────
+let currentSection = 'kruiden';
+let allPlants = { kruiden:[], groenten:[], fruit:[] };
+let editingId = null, editingType = null, themeVars = {};
+
+// ── Auth ──────────────────────────────────────────────────────
+if (configured) {
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display   = 'flex';
+      document.getElementById('user-name').textContent  = user.displayName || user.email;
+      document.getElementById('user-email').textContent = user.email;
+      if (user.photoURL) {
+        document.getElementById('user-avatar').src = user.photoURL;
+        document.getElementById('user-avatar').style.display = 'block';
+      }
+      loadAllData();
+      loadTheme();
+    } else {
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('app-screen').style.display   = 'none';
+    }
+  });
+}
+
+window.loginWithGoogle = async () => {
+  const btn = document.getElementById('google-btn');
+  const err = document.getElementById('login-err');
+  btn.disabled = true;
+  btn.textContent = 'Even wachten…';
+  err.textContent = '';
+  try {
+    await signInWithPopup(auth, provider);
+  } catch(e) {
+    let msg = e.message;
+    if (e.code === 'auth/popup-blocked')       msg = 'Pop-up geblokkeerd — sta pop-ups toe voor deze pagina.';
+    if (e.code === 'auth/unauthorized-domain')  msg = 'Dit domein is niet toegestaan in Firebase. Zie handleiding stap 3.';
+    if (e.code === 'auth/cancelled-popup-request') msg = 'Inloggen geannuleerd.';
+    err.textContent = msg;
+    btn.disabled = false;
+    btn.textContent = '🔑  Aanmelden met Google';
+  }
+};
+
+window.doLogout = async () => {
+  if (confirm('Uitloggen?')) await signOut(auth);
+};
+
+// ── Data laden ────────────────────────────────────────────────
+async function loadAllData() {
+  toast('Data laden…','info');
+  for (const type of ['kruiden','groenten','fruit']) {
+    const snap = await getDocs(collection(db, type));
+    allPlants[type] = snap.docs.map(d => ({...d.data(), id: d.id}));
+  }
+  renderSection(currentSection);
+  toast('Data geladen ✓','ok');
+}
+
+async function loadTheme() {
+  try {
+    const snap = await getDocs(collection(db,'settings'));
+    snap.docs.forEach(d => { if (d.id==='theme') themeVars = d.data(); });
+    applyThemeToPage(themeVars);
+  } catch(e){}
+}
+
+function applyThemeToPage(vars) {
+  Object.entries(vars).forEach(([k,v]) => document.documentElement.style.setProperty(k,v));
+}
+
+// ── Navigatie ─────────────────────────────────────────────────
+window.switchSection = s => {
+  currentSection = s;
+  document.querySelectorAll('.nav-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.section === s));
+  const main = document.getElementById('main-panel');
+  main.innerHTML = '';
+  if (s === 'thema')  { renderThema(); return; }
+  renderSection(s);
+};
+
+// ── Plant raster ──────────────────────────────────────────────
+function renderSection(type) {
+  const plants = allPlants[type] || [];
+  const label  = {kruiden:'Kruiden', groenten:'Groenten', fruit:'Fruit'}[type];
+  const singular = {kruiden:'kruid', groenten:'groente', fruit:'fruitsoort'}[type];
+  document.getElementById('main-panel').innerHTML = `
+    <div class="panel-header">
+      <div>
+        <h2>${label} <span class="badge">${plants.length}</span></h2>
+        <p class="panel-sub">Klik op een plant om te bewerken, of voeg een nieuwe toe.</p>
+      </div>
+      <button class="btn-primary" onclick="openEditor(null,'${type}')">+ Nieuwe ${singular}</button>
+    </div>
+    <div class="plant-grid" id="plant-grid"></div>`;
+
+  const grid = document.getElementById('plant-grid');
+  if (!plants.length) {
+    grid.innerHTML = '<p class="empty-msg">Nog geen planten. Klik op "+ Nieuw" om te beginnen.</p>';
+    return;
+  }
+  grid.innerHTML = plants.map(p => `
+    <div class="plant-card">
+      <div class="pcard-img">
+        ${p.photo
+          ? `<img src="${p.photo}" alt="${p.name}" loading="lazy">`
+          : `<div class="pcard-emoji">${p.emoji||'🌿'}</div>`}
+        <span class="care-dot care-${p.care}" title="${{easy:'Weinig zorg',medium:'Matige zorg',hard:'Veel zorg'}[p.care]||''}"></span>
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-name">${p.name||p.id}</div>
+        <div class="pcard-lat">${p.lat||''}</div>
+      </div>
+      <div class="pcard-actions">
+        <button class="btn-edit" onclick="openEditor('${p.id}','${type}')">✏️ Bewerken</button>
+        <button class="btn-del"  onclick="deletePlant('${p.id}','${type}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Editor ────────────────────────────────────────────────────
+window.openEditor = (id, type) => {
+  editingId = id; editingType = type;
+  const p = id ? (allPlants[type]||[]).find(x=>x.id===id)||{} : {};
+  document.getElementById('editor-overlay').classList.add('open');
+  document.getElementById('editor-title').textContent =
+    id ? `${p.name||id} bewerken` : `Nieuwe ${type.slice(0,-2).toLowerCase()} toevoegen`;
+
+  const set = (elId, val) => { const el=document.getElementById(elId); if(el) el.value=val??''; };
+  set('ed-id',          p.id||'');
+  set('ed-name',        p.name||'');
+  set('ed-lat',         p.lat||'');
+  set('ed-emoji',       p.emoji||'🌿');
+  set('ed-care',        p.care||'easy');
+  set('ed-sun',         p.sun||'');
+  set('ed-temp',        p.temp||'');
+  set('ed-ph',          p.ph||'');
+  set('ed-soil',        p.soil||'');
+  set('ed-wf',          p.wf||3);
+  set('ed-tip',         p.tip||'');
+  set('ed-oogst_hoe',   p.oogst_hoe||'');
+  set('ed-stek_hoe',    p.stek_hoe||'');
+  set('ed-bewaring',    p.bewaring||'');
+  set('ed-ben',         (p.ben||[]).join('\n'));
+  set('ed-rec',         (p.rec||[]).join('\n'));
+  set('ed-good',        (p.good||[]).join(', '));
+  set('ed-bad',         (p.bad||[]).join(', '));
+  set('ed-cat',         (p.cat||[]).join(', '));
+  set('ed-zaai_binnen', (p.zaai_binnen||[]).join(', '));
+  set('ed-zaai_buiten', (p.zaai_buiten||[]).join(', '));
+  set('ed-uitplanten',  (p.uitplanten||[]).join(', '));
+  set('ed-oogst',       (p.oogst||[]).join(', '));
+  set('ed-stek',        (p.stek||[]).join(', '));
+  set('ed-photo-url',   p.photo||'');
+  set('ed-pests',       JSON.stringify(p.pests||[], null, 2));
+  set('ed-diseases',    JSON.stringify(p.diseases||[], null, 2));
+  document.getElementById('ed-id').disabled = !!id;
+
+  const prev = document.getElementById('photo-preview');
+  prev.innerHTML = p.photo
+    ? `<img src="${p.photo}" style="max-height:130px;border-radius:8px;object-fit:cover">`
+    : '<span class="no-photo">Geen foto</span>';
+
+  switchEtab('basis', document.querySelector('.etab'));
+};
+
+window.closeEditor = () => {
+  document.getElementById('editor-overlay').classList.remove('open');
+  editingId = null; editingType = null;
+};
+
+window.savePlant = async () => {
+  const get = id => (document.getElementById(id)||{}).value||'';
+  const id  = get('ed-id').trim().toLowerCase().replace(/\s+/g,'-');
+  if (!id) { toast('Vul een ID in.','err'); return; }
+
+  const months = s => s.split(',').map(x=>parseInt(x.trim())).filter(n=>!isNaN(n)&&n>=1&&n<=12);
+  const lines  = s => s.split('\n').map(x=>x.trim()).filter(Boolean);
+  const csv    = s => s.split(',').map(x=>x.trim()).filter(Boolean);
+  let pests=[], diseases=[];
+  try { pests    = JSON.parse(get('ed-pests')||'[]'); }    catch(e){}
+  try { diseases = JSON.parse(get('ed-diseases')||'[]'); } catch(e){}
+
+  const data = {
+    id, name:get('ed-name'), lat:get('ed-lat'), emoji:get('ed-emoji'),
+    care:get('ed-care'), sun:get('ed-sun'), temp:get('ed-temp'),
+    ph:get('ed-ph'), soil:get('ed-soil'), wf:parseInt(get('ed-wf'))||3,
+    tip:get('ed-tip'), oogst_hoe:get('ed-oogst_hoe'), stek_hoe:get('ed-stek_hoe'),
+    bewaring:get('ed-bewaring'),
+    ben:lines(get('ed-ben')), rec:lines(get('ed-rec')),
+    good:csv(get('ed-good')), bad:csv(get('ed-bad')), cat:csv(get('ed-cat')),
+    zaai_binnen:months(get('ed-zaai_binnen')), zaai_buiten:months(get('ed-zaai_buiten')),
+    uitplanten:months(get('ed-uitplanten')), oogst:months(get('ed-oogst')), stek:months(get('ed-stek')),
+    photo:get('ed-photo-url'), pests, diseases,
+    ph_stages:['🌱','🌿','🌸','🌼'], cp:0, watered:Date.now()
+  };
+
+  try {
+    await setDoc(doc(db, editingType, id), data);
+    const idx = (allPlants[editingType]||[]).findIndex(p=>p.id===id);
+    if (idx>=0) allPlants[editingType][idx]=data; else allPlants[editingType].push(data);
+    renderSection(editingType);
+    closeEditor();
+    toast(`${data.name||id} opgeslagen ✓`,'ok');
+  } catch(e) { toast('Fout: '+e.message,'err'); }
+};
+
+window.deletePlant = async (id, type) => {
+  const p = (allPlants[type]||[]).find(x=>x.id===id);
+  if (!confirm(`"${p?.name||id}" permanent verwijderen?`)) return;
+  try {
+    await deleteDoc(doc(db, type, id));
+    allPlants[type] = (allPlants[type]||[]).filter(x=>x.id!==id);
+    renderSection(type);
+    toast(`${p?.name||id} verwijderd`,'ok');
+  } catch(e) { toast('Fout: '+e.message,'err'); }
+};
+
+// ── Foto zoeken via Unsplash (gratis, geen Storage nodig) ────
+window.searchUnsplash = async () => {
+  const query = document.getElementById('ed-name').value.trim()
+             || document.getElementById('ed-id').value.trim()
+             || 'plant herb';
+  const results = document.getElementById('unsplash-results');
+  results.innerHTML = '<span style="color:var(--text2);font-size:.8rem">Zoeken…</span>';
+
+  // Gebruik Unsplash source API — geen API key nodig
+  const suggestions = [
+    `https://source.unsplash.com/480x320/?${encodeURIComponent(query)},plant`,
+    `https://source.unsplash.com/480x320/?${encodeURIComponent(query)},herb,garden`,
+    `https://source.unsplash.com/480x320/?${encodeURIComponent(query)},nature,green`,
+    `https://source.unsplash.com/480x320/?${encodeURIComponent(query)},food,fresh`,
+  ];
+
+  results.innerHTML = suggestions.map((url, i) => `
+    <div class="unsplash-thumb" onclick="selectPhoto('${url}')">
+      <img src="${url}&sig=${Date.now()+i}" alt="optie ${i+1}"
+        onerror="this.parentElement.style.display='none'">
+      <div class="unsplash-pick">✓ Kiezen</div>
+    </div>`).join('');
+};
+
+window.selectPhoto = (url) => {
+  document.getElementById('ed-photo-url').value = url;
+  document.getElementById('photo-preview').innerHTML =
+    `<img src="${url}" style="max-height:130px;border-radius:8px;object-fit:cover">`;
+  document.getElementById('unsplash-results').innerHTML =
+    '<span style="color:var(--accent);font-size:.8rem">✓ Foto geselecteerd</span>';
+};
+
+window.previewPhotoUrl = () => {
+  const url = document.getElementById('ed-photo-url').value.trim();
+  document.getElementById('photo-preview').innerHTML = url
+    ? `<img src="${url}" style="max-height:130px;border-radius:8px;object-fit:cover"
+         onerror="this.parentElement.innerHTML='<span class=no-photo>URL niet geldig</span>'">`
+    : '<span class="no-photo">Geen foto</span>';
+};
+
+// ── Thema ─────────────────────────────────────────────────────
+function renderThema() {
+  const vars = {
+    '--bg':'Achtergrond', '--surface':'Kaart achtergrond',
+    '--surface2':'Invoer achtergrond', '--border':'Randkleur',
+    '--accent':'Hoofdkleur (groen)', '--accent2':'Accentkleur (goud)',
+    '--accent3':'Titelkleur', '--text':'Hoofdtekst',
+    '--text2':'Subtekst', '--danger':'Waarschuwingskleur'
+  };
+  const defaults = {
+    '--bg':'#0f1a0f','--surface':'#162016','--surface2':'#1e2e1e',
+    '--border':'#2a3d2a','--accent':'#7ec87e','--accent2':'#c8a96e',
+    '--accent3':'#e8d5a3','--text':'#e8f0e8','--text2':'#9ab09a','--danger':'#c87e7e'
+  };
+  const cur = {...defaults, ...themeVars};
+  document.getElementById('main-panel').innerHTML = `
+    <div class="panel-header">
+      <div><h2>🎨 Thema & Kleuren</h2>
+        <p class="panel-sub">Wijzigingen worden live getoond en opgeslagen in Firebase.</p></div>
+      <button class="btn-primary" onclick="saveTheme()">💾 Opslaan</button>
+    </div>
+    <div class="theme-grid">
+      ${Object.entries(vars).map(([v,label]) => `
+        <div class="theme-row">
+          <div class="theme-label">${label}<span>${v}</span></div>
+          <div class="theme-inputs">
+            <input type="color" id="tc${v}" value="${cur[v]||'#000000'}"
+              oninput="liveColor('${v}',this.value)">
+            <input type="text"  id="tt${v}" value="${cur[v]||''}"
+              oninput="liveColor('${v}',this.value)">
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="theme-preview">
+      <div style="font-family:'Playfair Display',serif;color:var(--accent3);margin-bottom:.75rem;font-size:1.1rem">Voorbeeldweergave</div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem">
+        <button class="btn-primary" style="pointer-events:none">Knop</button>
+        <span class="badge">Badge</span>
+        <span style="background:var(--accent);color:#0f1a0f;padding:.25rem .75rem;border-radius:100px;font-size:.78rem">Tag</span>
+        <span style="color:var(--danger);font-size:.82rem">⚠️ Waarschuwing</span>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem">
+        <div style="color:var(--accent3);font-size:.95rem;font-weight:500">Plantnaam</div>
+        <div style="color:var(--text2);font-size:.78rem;font-style:italic">Latijnse naam</div>
+        <div style="color:var(--text);font-size:.85rem;margin-top:.4rem">Beschrijving...</div>
+      </div>
+    </div>`;
+}
+
+window.liveColor = (varName, value) => {
+  document.documentElement.style.setProperty(varName, value);
+  const t = document.getElementById('tt'+varName);
+  const c = document.getElementById('tc'+varName);
+  if (document.activeElement !== t) t.value = value;
+  try { if (document.activeElement !== c) c.value = value; } catch(e){}
+};
+
+window.saveTheme = async () => {
+  const vars = ['--bg','--surface','--surface2','--border','--accent','--accent2','--accent3','--text','--text2','--danger'];
+  const data = {};
+  vars.forEach(v => { const el=document.getElementById('tt'+v); if(el) data[v]=el.value.trim(); });
+  try {
+    await setDoc(doc(db,'settings','theme'), data);
+    themeVars = data;
+    toast('Thema opgeslagen ✓','ok');
+  } catch(e) { toast('Fout: '+e.message,'err'); }
+};
+
+// ── Toast ─────────────────────────────────────────────────────
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast show toast-${type}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.classList.remove('show'), 3000);
+}
+window.showToast = toast;
+</script>
+
+<style>
+:root{
+  --bg:#0f1a0f;--surface:#162016;--surface2:#1e2e1e;--border:#2a3d2a;
+  --accent:#7ec87e;--accent2:#c8a96e;--accent3:#e8d5a3;
+  --text:#e8f0e8;--text2:#9ab09a;--danger:#c87e7e;
+  --sidebar:230px;--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── Config warning ── */
+#config-warning{display:none;position:fixed;inset:0;z-index:999;background:var(--bg);
+  flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;}
+.config-box{background:var(--surface);border:1px solid var(--accent2);border-radius:16px;
+  padding:2.5rem;max-width:560px;width:100%;}
+.config-box h2{font-family:'Playfair Display',serif;color:var(--accent3);margin-bottom:.75rem;}
+.config-box p{color:var(--text2);font-size:.9rem;line-height:1.7;margin-bottom:.75rem;}
+.config-box code{background:var(--surface2);padding:.15rem .4rem;border-radius:4px;
+  color:var(--accent2);font-size:.82rem;}
+.config-box a{color:var(--accent);text-decoration:none;}
+.config-box a:hover{text-decoration:underline;}
+
+/* ── Login ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:2.5rem;max-width:380px;width:100%;text-align:center;}
+.login-logo{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--accent);margin-bottom:.2rem;}
+.login-logo span{color:var(--accent3);font-style:italic;}
+.login-sub{color:var(--text2);font-size:.82rem;margin-bottom:2rem;}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:.75rem;width:100%;
+  padding:.85rem;background:#fff;color:#1f1f1f;border:none;border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:500;cursor:pointer;transition:all .2s;}
+.btn-google:hover{background:#f0f0f0;transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.2);}
+.btn-google:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.google-icon{width:20px;height:20px;}
+.login-err{color:var(--danger);font-size:.8rem;margin-top:.75rem;min-height:1.1rem;line-height:1.5;}
+.login-help{margin-top:1.25rem;font-size:.75rem;color:var(--text2);}
+.login-help a{color:var(--accent);text-decoration:none;}
+
+/* ── App layout ── */
+#app-screen{display:none;min-height:100vh;}
+.sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:10;}
+.sidebar-logo{padding:1.25rem 1rem 1rem;border-bottom:1px solid var(--border);}
+.sidebar-logo .logo-text{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--accent);}
+.sidebar-logo .logo-text span{color:var(--accent3);font-style:italic;}
+.sidebar-logo .logo-sub{font-size:.65rem;color:var(--text2);margin-top:.1rem;}
+.sidebar-nav{flex:1;padding:.5rem 0;overflow-y:auto;}
+.nav-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--text2);padding:.6rem .9rem .2rem;}
+.nav-item{display:flex;align-items:center;gap:.6rem;padding:.6rem .9rem;
+  cursor:pointer;font-size:.85rem;color:var(--text2);transition:all .2s;
+  border-left:3px solid transparent;}
+.nav-item:hover{color:var(--text);background:var(--surface2);}
+.nav-item.active{color:var(--accent);background:rgba(126,200,126,.08);border-left-color:var(--accent);}
+.sidebar-user{padding:.9rem 1rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.6rem;}
+#user-avatar{width:30px;height:30px;border-radius:50%;object-fit:cover;display:none;}
+.user-avatar-fallback{width:30px;height:30px;border-radius:50%;background:var(--surface2);
+  display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.user-info-text{flex:1;min-width:0;}
+.user-info-name{font-size:.78rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-info-email{font-size:.65rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.btn-logout{background:none;border:none;color:var(--text2);cursor:pointer;font-size:.9rem;
+  padding:.2rem;flex-shrink:0;transition:color .2s;}
+.btn-logout:hover{color:var(--danger);}
+
+.main-content{margin-left:var(--sidebar);padding:2rem;min-height:100vh;}
+
+/* ── Panel header ── */
+.panel-header{display:flex;justify-content:space-between;align-items:flex-start;
+  margin-bottom:1.5rem;gap:1rem;flex-wrap:wrap;}
+.panel-header h2{font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--accent3);}
+.panel-sub{color:var(--text2);font-size:.83rem;margin-top:.2rem;}
+.badge{display:inline-block;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text2);border-radius:100px;padding:.1rem .55rem;font-size:.72rem;margin-left:.4rem;}
+.empty-msg{color:var(--text2);padding:2rem 0;font-size:.9rem;}
+
+/* ── Buttons ── */
+.btn-primary{background:var(--accent);color:#0f1a0f;border:none;border-radius:100px;
+  padding:.7rem 1.4rem;font-family:'DM Sans',sans-serif;font-weight:500;font-size:.88rem;
+  cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn-primary:hover{background:#9ed89e;transform:translateY(-1px);}
+
+/* ── Plant grid ── */
+.plant-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:1rem;}
+.plant-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;transition:border .2s;}
+.plant-card:hover{border-color:var(--accent);}
+.pcard-img{height:110px;overflow:hidden;background:var(--surface2);display:flex;
+  align-items:center;justify-content:center;position:relative;}
+.pcard-img img{width:100%;height:100%;object-fit:cover;}
+.pcard-emoji{font-size:2.8rem;}
+.care-dot{position:absolute;top:8px;right:8px;width:10px;height:10px;border-radius:50%;}
+.care-easy{background:#7ec87e;}.care-medium{background:#c8a96e;}.care-hard{background:#c87e7e;}
+.pcard-body{padding:.6rem .85rem .4rem;}
+.pcard-name{font-size:.88rem;font-weight:500;color:var(--text);}
+.pcard-lat{font-size:.7rem;color:var(--text2);font-style:italic;margin-top:.1rem;}
+.pcard-actions{display:flex;gap:.4rem;padding:.4rem .6rem .65rem;}
+.btn-edit{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text2);
+  border-radius:7px;padding:.4rem;font-size:.75rem;cursor:pointer;transition:all .2s;}
+.btn-edit:hover{border-color:var(--accent);color:var(--accent);}
+.btn-del{background:transparent;border:1px solid var(--border);color:var(--text2);
+  border-radius:7px;padding:.4rem .55rem;font-size:.78rem;cursor:pointer;transition:all .2s;}
+.btn-del:hover{border-color:var(--danger);color:var(--danger);}
+
+/* ── Editor overlay ── */
+.editor-overlay{display:none;position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(6px);
+  align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto;}
+.editor-overlay.open{display:flex;}
+.editor-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  width:100%;max-width:800px;margin:auto;}
+.editor-head{display:flex;justify-content:space-between;align-items:center;
+  padding:1.25rem 1.75rem;border-bottom:1px solid var(--border);}
+.editor-head h3{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--accent3);}
+.close-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);
+  width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:.95rem;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.close-btn:hover{color:var(--text);}
+.editor-body{padding:1.25rem 1.75rem 1rem;}
+
+/* Editor tabs */
+.etabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.25rem;gap:0;overflow-x:auto;}
+.etab{padding:.45rem .85rem;border:none;background:none;color:var(--text2);
+  font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .2s;}
+.etab:hover{color:var(--text);}
+.etab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.etab-panel{display:none;}.etab-panel.active{display:block;}
+
+/* Form */
+.fg{display:flex;flex-direction:column;gap:.28rem;margin-bottom:.7rem;}
+.fg label{font-size:.73rem;color:var(--text2);}
+.fg input,.fg select,.fg textarea{
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;
+  padding:.58rem .85rem;outline:none;transition:border .2s;width:100%;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--accent);}
+.fg textarea{resize:vertical;min-height:72px;}
+.fg .hint{font-size:.67rem;color:var(--text2);}
+.fg select option{background:var(--surface2);}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1rem;}
+.fgrid .full{grid-column:1/-1;}
+
+/* Photo */
+.photo-wrap{display:flex;gap:1rem;align-items:flex-start;}
+#photo-preview{flex-shrink:0;width:130px;min-height:90px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;
+  justify-content:center;overflow:hidden;}
+.no-photo{color:var(--text2);font-size:.75rem;padding:.5rem;}
+.photo-fields{flex:1;}
+
+/* Editor footer */
+.editor-foot{display:flex;justify-content:flex-end;gap:.6rem;
+  padding:.9rem 1.75rem 1.4rem;border-top:1px solid var(--border);margin-top:.75rem;}
+.btn-cancel{background:transparent;border:1px solid var(--border);color:var(--text2);
+  border-radius:100px;padding:.65rem 1.25rem;font-size:.86rem;cursor:pointer;transition:all .2s;}
+.btn-cancel:hover{border-color:var(--text);color:var(--text);}
+
+/* ── Theme ── */
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem;margin-bottom:1.25rem;}
+.theme-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:.85rem 1rem;display:flex;justify-content:space-between;align-items:center;gap:.75rem;}
+.theme-label{font-size:.82rem;color:var(--text);line-height:1.4;}
+.theme-label span{display:block;font-size:.67rem;color:var(--text2);margin-top:.1rem;}
+.theme-inputs{display:flex;align-items:center;gap:.5rem;}
+.theme-inputs input[type=color]{width:38px;height:30px;border:none;border-radius:6px;
+  cursor:pointer;background:none;padding:0;}
+.theme-inputs input[type=text]{width:82px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;color:var(--text);font-size:.78rem;padding:.3rem .5rem;outline:none;}
+.theme-preview{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:1.25rem;right:1.25rem;background:var(--surface);
+  border:1px solid var(--border);border-radius:10px;padding:.65rem 1.1rem;
+  font-size:.83rem;color:var(--text);z-index:999;pointer-events:none;
+  transform:translateY(12px);opacity:0;transition:all .22s;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.toast-ok{border-color:var(--accent);color:var(--accent);}
+.toast.toast-err{border-color:var(--danger);color:var(--danger);}
+.toast.toast-info{border-color:var(--accent2);color:var(--accent2);}
+
+.unsplash-thumb{position:relative;border-radius:8px;overflow:hidden;cursor:pointer;
+  border:2px solid var(--border);transition:border .2s;aspect-ratio:3/2;}
+.unsplash-thumb:hover{border-color:var(--accent);}
+.unsplash-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.unsplash-pick{position:absolute;inset:0;background:rgba(0,0,0,.45);color:#fff;
+  font-size:.75rem;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .2s;}
+.unsplash-thumb:hover .unsplash-pick{opacity:1;}
+
+@media(max-width:700px){
+  .sidebar{display:none;}
+  .main-content{margin-left:0;padding:1.25rem;}
+  .fgrid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- Config warning (als Firebase nog niet ingevuld is) -->
+<div id="config-warning">
+  <div class="config-box">
+    <h2>🔧 Firebase config ontbreekt</h2>
+    <p>Open <code>admin.html</code> in een teksteditor en vul jouw Firebase-configuratie in bovenaan het bestand (vervang de <code>JOUW_…</code> waarden).</p>
+    <p>Heb je nog geen Firebase project? Lees de <a href="handleiding.html" target="_blank">handleiding.html</a> stap voor stap door.</p>
+  </div>
+</div>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🌿 Herbal<span>Root</span></div>
+    <div class="login-sub">Beheerderspaneel — log in met je Google-account</div>
+    <button class="btn-google" id="google-btn" onclick="loginWithGoogle()">
+      <svg class="google-icon" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      Aanmelden met Google
+    </button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-help">Nog geen Firebase project? <a href="handleiding.html" target="_blank">Bekijk de handleiding</a></div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app-screen">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text">🌿 Herbal<span>Root</span></div>
+      <div class="logo-sub">Beheerderspaneel</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Planten beheren</div>
+      <div class="nav-item active" data-section="kruiden" onclick="switchSection('kruiden')">🌱 Kruiden</div>
+      <div class="nav-item" data-section="groenten" onclick="switchSection('groenten')">🥦 Groenten</div>
+      <div class="nav-item" data-section="fruit" onclick="switchSection('fruit')">🍎 Fruit</div>
+      <div class="nav-label" style="margin-top:.5rem">Instellingen</div>
+      <div class="nav-item" data-section="thema" onclick="switchSection('thema')">🎨 Thema & Kleuren</div>
+    </nav>
+    <div class="sidebar-user">
+      <img id="user-avatar" alt="avatar">
+      <div class="user-avatar-fallback" id="user-fallback">👤</div>
+      <div class="user-info-text">
+        <div class="user-info-name" id="user-name"></div>
+        <div class="user-info-email" id="user-email"></div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()" title="Uitloggen">↩</button>
+    </div>
+  </aside>
+  <main class="main-content" id="main-panel"></main>
+</div>
+
+<!-- Editor overlay -->
+<div class="editor-overlay" id="editor-overlay">
+  <div class="editor-box">
+    <div class="editor-head">
+      <h3 id="editor-title">Plant bewerken</h3>
+      <button class="close-btn" onclick="closeEditor()">✕</button>
+    </div>
+    <div class="editor-body">
+      <div class="etabs">
+        <button class="etab active" onclick="switchEtab('basis',this)">🌿 Basis</button>
+        <button class="etab" onclick="switchEtab('kweek',this)">📅 Kweek</button>
+        <button class="etab" onclick="switchEtab('inhoud',this)">📝 Inhoud</button>
+        <button class="etab" onclick="switchEtab('foto',this)">📸 Foto</button>
+        <button class="etab" onclick="switchEtab('plagen',this)">🐛 Plagen</button>
+      </div>
+
+      <div class="etab-panel active" id="etab-basis">
+        <div class="fgrid">
+          <div class="fg"><label>ID *</label>
+            <input id="ed-id" placeholder="bijv. basilicum">
+            <span class="hint">Kleine letters, geen spaties. Niet wijzigen na aanmaken.</span></div>
+          <div class="fg"><label>Emoji</label><input id="ed-emoji" placeholder="🌿"></div>
+          <div class="fg"><label>Naam</label><input id="ed-name" placeholder="Basilicum"></div>
+          <div class="fg"><label>Latijnse naam</label><input id="ed-lat" placeholder="Ocimum basilicum"></div>
+          <div class="fg"><label>Verzorgingsniveau</label>
+            <select id="ed-care">
+              <option value="easy">⚡ Weinig zorg</option>
+              <option value="medium">🌱 Matige zorg</option>
+              <option value="hard">🌳 Veel zorg</option>
+            </select></div>
+          <div class="fg"><label>Categorieën</label>
+            <input id="ed-cat" placeholder="thee, koken, insecten">
+            <span class="hint">Komma-gescheiden</span></div>
+          <div class="fg"><label>Goede buurtplanten</label>
+            <input id="ed-good" placeholder="Tomaat, Basilicum"></div>
+          <div class="fg"><label>Slechte buurtplanten</label>
+            <input id="ed-bad" placeholder="Peterselie, Salie"></div>
+        </div>
+      </div>
+
+      <div class="etab-panel" id="etab-kweek">
+        <div class="fgrid">
+          <div class="fg"><label>Zonlicht</label><input id="ed-sun" placeholder="Volle zon – halfschaduw"></div>
+          <div class="fg"><label>Temperatuur</label><input id="ed-temp" placeholder="15–30°C"></div>
+          <div class="fg"><label>pH grond</label><input id="ed-ph" placeholder="6.0–7.0"></div>
+          <div class="fg"><label>Grondtype</label><input id="ed-soil" placeholder="Lichte, drainerende grond"></div>
+          <div class="fg"><label>Watergift (elke X dagen)</label><input id="ed-wf" type="number" min="1" max="30"></div>
+          <div class="fg"><label>Zaaien binnen (maanden 1–12)</label>
+            <input id="ed-zaai_binnen" placeholder="2, 3, 4">
+            <span class="hint">Maandnummers, komma-gescheiden</span></div>
+          <div class="fg"><label>Zaaien buiten</label><input id="ed-zaai_buiten" placeholder="4, 5"></div>
+          <div class="fg"><label>Uitplanten</label><input id="ed-uitplanten" placeholder="5, 6"></div>
+          <div class="fg"><label>Oogst</label><input id="ed-oogst" placeholder="6, 7, 8, 9"></div>
+          <div class="fg"><label>Stekken</label><input id="ed-stek" placeholder="4, 5, 6"></div>
+          <div class="fg full"><label>Hoe oogsten?</label><textarea id="ed-oogst_hoe" rows="3"></textarea></div>
+          <div class="fg full"><label>Hoe stekken?</label><textarea id="ed-stek_hoe" rows="3"></textarea></div>
+        </div>
+      </div>
+
+      <div class="etab-panel" id="etab-inhoud">
+        <div class="fgrid">
+          <div class="fg full"><label>Kweektip</label><textarea id="ed-tip" rows="3"></textarea></div>
+          <div class="fg full"><label>Bewaring</label>
+            <textarea id="ed-bewaring" rows="4" placeholder="Gebruik &lt;strong&gt;Label&lt;/strong&gt;&lt;br&gt; voor secties"></textarea></div>
+          <div class="fg"><label>Voordelen (één per regel)</label><textarea id="ed-ben" rows="5"></textarea></div>
+          <div class="fg"><label>Recepten (één per regel)</label><textarea id="ed-rec" rows="5"></textarea></div>
+        </div>
+      </div>
+
+      <div class="etab-panel" id="etab-foto">
+        <div class="photo-wrap">
+          <div id="photo-preview"><span class="no-photo">Geen foto</span></div>
+          <div class="photo-fields">
+            <div class="fg">
+              <label>Foto-URL plakken</label>
+              <input id="ed-photo-url" placeholder="https://..." oninput="previewPhotoUrl()">
+              <span class="hint">Directe link naar een afbeelding (jpg, png, webp)</span>
+            </div>
+            <button class="btn-primary" style="margin-top:.5rem;width:100%;font-size:.82rem"
+              onclick="searchUnsplash()">🔍 Zoek foto's op Unsplash</button>
+            <span class="hint" style="display:block;margin-top:.3rem">Zoekt automatisch op de naam van de plant — gratis en zonder account</span>
+          </div>
+        </div>
+        <div id="unsplash-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.6rem;margin-top:1rem"></div>
+      </div>
+
+      <div class="etab-panel" id="etab-plagen">
+        <div class="fg"><label>🐛 Insecten & plagen (JSON)</label>
+          <textarea id="ed-pests" rows="8" style="font-family:monospace;font-size:.76rem"
+            placeholder='[{"naam":"Bladluis","beschrijving":"Groene luizen op jonge scheuten.","voorkomen":"Spuit met zeepwater."}]'></textarea></div>
+        <div class="fg"><label>🍂 Ziektes (JSON)</label>
+          <textarea id="ed-diseases" rows="8" style="font-family:monospace;font-size:.76rem"
+            placeholder='[{"naam":"Meeldauw","beschrijving":"Wit poeder op blad.","voorkomen":"Goede luchtcirculatie."}]'></textarea></div>
+      </div>
+    </div>
+    <div class="editor-foot">
+      <button class="btn-cancel" onclick="closeEditor()">Annuleren</button>
+      <button class="btn-primary" onclick="savePlant()">💾 Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function switchEtab(id, btn) {
+  document.querySelectorAll('.etab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.etab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('etab-'+id).classList.add('active');
+}
+</script>
+</body>
+</html>
