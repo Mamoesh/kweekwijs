@@ -279,6 +279,12 @@ select option{background:var(--surface2);}
 .upload-btn-area:hover{border-color:var(--accent);color:var(--accent);}
 .upload-btn-area .upload-icon{font-size:2rem;margin-bottom:.5rem;}
 
+/* ── MIJN MOESTUIN ── */
+.moestuin-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .25s;position:relative;}
+.moestuin-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:var(--shadow);}
+.moestuin-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(126,200,126,.35);}
+.moestuin-card .moestuin-check{position:absolute;top:10px;left:10px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#0f1a0f;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;opacity:0;transition:opacity .2s;z-index:5;}
+.moestuin-card.selected .moestuin-check{opacity:1;}
 /* ── COMMUNITY ── */
 .community-layout{display:grid;grid-template-columns:1fr 300px;gap:1.5rem;}
 @media(max-width:768px){.community-layout{grid-template-columns:1fr;}}
@@ -322,6 +328,7 @@ select option{background:var(--surface2);}
     <button onclick="go('kruiden')" id="nav-kruiden">🌱 <span>Kruiden</span></button>
     <button onclick="go('recepten')" id="nav-recepten">🍳 <span>Recepten</span></button>
     <button onclick="go('community')" id="nav-community">🌿 <span>Community</span></button>
+    <button onclick="go('moestuin')" id="nav-moestuin">🥕 <span>Mijn Moestuin</span></button>
     <div style="flex:1"></div>
     <button onclick="go('profiel')" id="nav-profiel" style="margin-left:auto">👤 <span>Profiel</span></button>
   </nav>
@@ -444,10 +451,10 @@ select option{background:var(--surface2);}
         <h2>🌳 Kweekomgeving</h2><p class="sub">Hoe ziet jouw groeiruimte eruit?</p>
         <label>Type ruimte</label>
         <div class="toggle-group" id="tg-type">
-          <div class="toggle" onclick="tmSpace(this)">🌳 Tuin</div>
-          <div class="toggle" onclick="tmSpace(this)">🏗 Balkon</div>
-          <div class="toggle" onclick="tmSpace(this)">🏠 Serre</div>
-          <div class="toggle" onclick="tmSpace(this)">🌤 Vensterbank</div>
+          <div class="toggle" onclick="tmSpace(this)">Tuin</div>
+          <div class="toggle" onclick="tmSpace(this)">Balkon</div>
+          <div class="toggle" onclick="tmSpace(this)">Serre</div>
+          <div class="toggle" onclick="tmSpace(this)">Vensterbank</div>
         </div>
         <div id="space-m2-fields" style="margin-top:.75rem;display:none"></div>
         <label>Oriëntatie</label>
@@ -492,7 +499,7 @@ select option{background:var(--surface2);}
         <h2>Jouw profiel is klaar!</h2>
         <p class="sub" style="margin-top:.5rem">We hebben de beste kruiden voor jou geselecteerd.</p>
         <div id="profile-summary" style="text-align:left;background:var(--surface2);border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.9rem;line-height:2;color:var(--text2)"></div>
-        <button class="btn" onclick="go('kruiden');renderHerbs();renderSpaceSuggestions()" id="view-moestuin-btn">Bekijk mijn moestuin →</button>
+        <button class="btn" onclick="go('moestuin');renderMoestuin()" id="view-moestuin-btn">Bekijk mijn moestuin →</button>
       </div>
     </div>
   </div>
@@ -571,6 +578,34 @@ select option{background:var(--surface2);}
 </div>
 
 
+
+<!-- MIJN MOESTUIN -->
+<div class="screen" id="screen-moestuin">
+  <div id="moestuin-empty-state" style="text-align:center;padding:4rem 2rem;display:none">
+    <div style="font-size:4rem;margin-bottom:1rem">🥕</div>
+    <h2 style="font-family:'Playfair Display',serif;color:var(--accent3);margin-bottom:.5rem">Nog geen moestuin aangemaakt</h2>
+    <p style="color:var(--text2);max-width:440px;margin:0 auto 1.5rem;line-height:1.65">Vul eerst het profiel-formulier in om gepersonaliseerde plantenaanbevelingen te ontvangen.</p>
+    <button class="btn" onclick="startSetup();go('home')">Aan de slag →</button>
+  </div>
+  <div id="moestuin-content" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+      <div>
+        <div class="section-title">🌿 Mijn Moestuin</div>
+        <div class="section-sub">Klik op een plant om hem toe te voegen aan jouw moestuin. Jouw selectie wordt bewaard.</div>
+      </div>
+      <button class="btn btn-outline" onclick="clearMoestuin()" style="font-size:.8rem;padding:.5rem 1rem">🗑 Selectie wissen</button>
+    </div>
+    <!-- Suggestions per ruimte -->
+    <div id="moestuin-suggestions"></div>
+    <!-- Mijn geselecteerde planten -->
+    <div id="moestuin-my-plants-section" style="margin-top:2.5rem;display:none">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
+        <div class="section-title" style="margin-bottom:0">✅ Mijn gekozen planten <span class="count-badge" id="moestuin-count">0</span></div>
+      </div>
+      <div class="herb-grid" id="moestuin-selected-grid"></div>
+    </div>
+  </div>
+</div>
 
 <!-- PROFIEL -->
 <div class="screen" id="screen-profiel">
@@ -1318,6 +1353,7 @@ function go(id){
   if(id==='fruit')renderFruit();
   if(id==='profiel')renderProfiel();
   if(id==='community')renderCommunity();
+  if(id==='moestuin')renderMoestuin();
 }
 
 // ═══════════════════════════════════════
@@ -1398,8 +1434,16 @@ function buildSum(){
 document.getElementById('s-land').addEventListener('change',function(){document.getElementById('s-klimaat').value=KL[this.value]||'';});
 function ts(el,gid){document.querySelectorAll('#'+gid+' .toggle').forEach(t=>t.classList.remove('selected'));el.classList.add('selected');}
 function tm(el){el.classList.toggle('selected');}
-function gs(gid){const s=document.querySelector('#'+gid+' .toggle.selected');return s?s.textContent.trim().replace(/^.\s*/,''):'';}
-function gms(gid){return[...document.querySelectorAll('#'+gid+' .toggle.selected')].map(t=>t.textContent.trim().replace(/^.\s*/,''));}
+function stripToggleEmoji(s){
+  // Strip leading emoji (codePoint > 0x2000) and trailing space
+  const arr=Array.from(s.trim());
+  let i=0;
+  while(i<arr.length&&(arr[i].codePointAt(0)>0x2000||arr[i]===' '))i++;
+  const result=arr.slice(i).join('').trim();
+  return result||s.trim();
+}
+function gs(gid){const s=document.querySelector('#'+gid+' .toggle.selected');return s?stripToggleEmoji(s.textContent):'';}
+function gms(gid){return[...document.querySelectorAll('#'+gid+' .toggle.selected')].map(t=>stripToggleEmoji(t.textContent));}
 
 // ═══════════════════════════════════════
 // HERB GRID
@@ -3604,7 +3648,7 @@ const PLANT_SPACE_FIT = {
   'aardbei':['Tuin','Balkon','Serre'], 'framboos':['Tuin'],
   'blauwebei':['Tuin','Balkon'], 'appel':['Tuin'], 'peer':['Tuin'],
   'kers':['Tuin'], 'pruim':['Tuin'], 'druif':['Tuin','Serre'],
-  'vijg':['Tuin','Serre'], 'citroen':['Serre'],
+  'vijg':['Tuin','Serre'],
 };
 
 function getDefaultSpaces(plantId) {
@@ -3612,7 +3656,7 @@ function getDefaultSpaces(plantId) {
 }
 
 function renderSpaceSuggestions() {
-  if (!UP.types || UP.types.length < 2) return; // Only show when multiple spaces selected
+  if (!UP.types || UP.types.length < 2) return;
   const container = document.getElementById('space-suggestions');
   if (!container) return;
   container.innerHTML = '';
@@ -3622,13 +3666,13 @@ function renderSpaceSuggestions() {
     const cleanSpace = spaceType.replace(/^[^\w\s]*\s*/,'').trim();
     const suited = allPlants.filter(p => {
       const fits = getDefaultSpaces(p.id);
-      return fits.some(f => spaceType.includes(f) || f === cleanSpace);
+      return fits.some(f => f === cleanSpace || f === spaceType);
     });
     if (!suited.length) return;
     const m2 = UP.spaceM2 ? UP.spaceM2[spaceType] : 4;
     const section = document.createElement('div');
     section.style.cssText = 'margin-bottom:2rem';
-    section.innerHTML = '<div class="section-title" style="font-size:1.2rem">' + spaceType + ' <span class="count-badge">' + m2 + ' m²</span></div>' +
+    section.innerHTML = '<div class="section-title" style="font-size:1.2rem">' + cleanSpace + ' <span class="count-badge">' + m2 + ' m²</span></div>' +
       '<div class="section-sub">Aanbevolen voor deze ruimte</div>' +
       '<div class="herb-grid">' +
       suited.slice(0,12).map(h => '<div class="herb-card" onclick="openAnyModal(\'' + h.id + '\')" style="cursor:pointer">' +
@@ -3658,6 +3702,143 @@ function openAnyModal(id) {
 
 renderHerbs();
 
+// ═══════════════════════════════════════════════════════════════
+// MIJN MOESTUIN
+// ═══════════════════════════════════════════════════════════════
+
+function getMoetuinSelections() {
+  if (!currentUser) return [];
+  try { return JSON.parse(localStorage.getItem('hr_moestuin_' + currentUser.email) || '[]'); } catch(e) { return []; }
+}
+function saveMoetuinSelections(ids) {
+  if (!currentUser) return;
+  localStorage.setItem('hr_moestuin_' + currentUser.email, JSON.stringify(ids));
+}
+
+function toggleMoetuinPlant(id) {
+  let sel = getMoetuinSelections();
+  if (sel.includes(id)) {
+    sel = sel.filter(x => x !== id);
+  } else {
+    sel.push(id);
+  }
+  saveMoetuinSelections(sel);
+  // Update card visuals without full re-render
+  const card = document.querySelector('.moestuin-card[data-id="' + id + '"]');
+  if (card) card.classList.toggle('selected', sel.includes(id));
+  // Update selected panel
+  renderMoetuinSelected();
+  showToast(sel.includes(id) ? '✅ Toegevoegd aan moestuin' : '🗑 Verwijderd uit moestuin');
+}
+
+function clearMoestuin() {
+  if (!confirm('Wil je alle geselecteerde planten verwijderen?')) return;
+  saveMoetuinSelections([]);
+  renderMoestuin();
+}
+
+function renderMoetuinSelected() {
+  const sel = getMoetuinSelections();
+  const section = document.getElementById('moestuin-my-plants-section');
+  const grid = document.getElementById('moestuin-selected-grid');
+  const countEl = document.getElementById('moestuin-count');
+  if (!section || !grid) return;
+  if (!sel.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  if (countEl) countEl.textContent = sel.length;
+  const allPlants = [...HERBS, ...GROENTEN, ...FRUIT];
+  grid.innerHTML = sel.map(id => {
+    const h = allPlants.find(x => x.id === id);
+    if (!h) return '';
+    const src = h.photo2 || h.photo;
+    const careBadge = {easy:'badge-easy',medium:'badge-medium',hard:'badge-hard'}[h.care]||'badge-easy';
+    const careLabel = {easy:'Weinig zorg',medium:'Matige zorg',hard:'Veel zorg'}[h.care]||'';
+    return '<div class="herb-card moestuin-card selected" data-id="' + h.id + '" onclick="toggleMoetuinPlant(\'' + h.id + '\')">' +
+      '<div class="moestuin-check">✓</div>' +
+      '<div class="herb-card-img">' +
+      (src ? '<img src="' + src + '" alt="' + h.name + '" loading="lazy" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">' : '') +
+      '<div class="herb-img-fallback" style="' + (src?'display:none;':'') + 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3rem">' + h.emoji + '</div>' +
+      '<div class="herb-badge ' + careBadge + '">' + careLabel + '</div>' +
+      '</div>' +
+      '<div class="herb-card-body"><h3>' + h.name + '</h3><div class="herb-lat">' + h.lat + '</div>' +
+      '<div style="font-size:.75rem;color:var(--text2);margin-top:.5rem">💧 Om de ' + h.wf + 'd · ☀️ ' + h.sun.split('–')[0].trim() + '</div>' +
+      '</div></div>';
+  }).join('');
+}
+
+function renderMoestuin() {
+  const emptyState = document.getElementById('moestuin-empty-state');
+  const content = document.getElementById('moestuin-content');
+  if (!emptyState || !content) return;
+
+  if (!UP.done) {
+    emptyState.style.display = 'block';
+    content.style.display = 'none';
+    return;
+  }
+  emptyState.style.display = 'none';
+  content.style.display = 'block';
+
+  const sel = getMoetuinSelections();
+  const container = document.getElementById('moestuin-suggestions');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const allPlants = [...HERBS, ...GROENTEN, ...FRUIT];
+  const spaces = UP.types && UP.types.length ? UP.types : (UP.type ? [UP.type] : ['Tuin']);
+
+  spaces.forEach(spaceType => {
+    // Match plain name (no emoji)
+    const cleanSpace = spaceType.replace(/^[^\w\s]*\s*/,'').trim();
+    const suited = allPlants.filter(p => {
+      const fits = getDefaultSpaces(p.id);
+      return fits.some(f => f === cleanSpace || f === spaceType);
+    });
+    if (!suited.length) return;
+
+    const m2 = UP.spaceM2 ? (UP.spaceM2[spaceType] || 4) : 4;
+
+    const section = document.createElement('div');
+    section.style.cssText = 'margin-bottom:2.5rem';
+
+    const headerHtml = '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">' +
+      '<div>' +
+        '<div class="section-title" style="font-size:1.2rem;margin-bottom:.1rem">🌱 ' + cleanSpace + ' <span class="count-badge">' + m2 + ' m²</span></div>' +
+        '<div class="section-sub" style="margin-bottom:0">Klik op een plant om ze toe te voegen aan jouw moestuin</div>' +
+      '</div>' +
+    '</div>';
+
+    const cardsHtml = '<div class="herb-grid">' +
+      suited.map(h => {
+        const src = h.photo2 || h.photo;
+        const isSelected = sel.includes(h.id);
+        const careBadge = {easy:'badge-easy',medium:'badge-medium',hard:'badge-hard'}[h.care]||'badge-easy';
+        const careLabel = {easy:'Weinig zorg',medium:'Matige zorg',hard:'Veel zorg'}[h.care]||'';
+        return '<div class="herb-card moestuin-card' + (isSelected?' selected':'') + '" data-id="' + h.id + '" onclick="toggleMoetuinPlant(\'' + h.id + '\')">' +
+          '<div class="moestuin-check">✓</div>' +
+          '<div class="herb-card-img">' +
+          (src ? '<img src="' + src + '" alt="' + h.name + '" loading="lazy" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">' : '') +
+          '<div class="herb-img-fallback" style="' + (src?'display:none;':'') + 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3rem">' + h.emoji + '</div>' +
+          '<div class="herb-badge ' + careBadge + '">' + careLabel + '</div>' +
+          '</div>' +
+          '<div class="herb-card-body"><h3>' + h.name + '</h3><div class="herb-lat">' + h.lat + '</div>' +
+          '<div style="font-size:.75rem;color:var(--text2);margin-top:.5rem">💧 Om de ' + h.wf + 'd · ☀️ ' + h.sun.split('–')[0].trim() + '</div>' +
+          '</div></div>';
+      }).join('') +
+    '</div>';
+
+    section.innerHTML = headerHtml + cardsHtml;
+    container.appendChild(section);
+  });
+
+  // If no spaces matched, show a generic list
+  if (!container.children.length) {
+    container.innerHTML = '<p style="color:var(--text2)">Geen passende planten gevonden voor jouw ruimte. Pas je profiel aan.</p>';
+  }
+
+  renderMoetuinSelected();
+}
+
 // ── PWA: Register Service Worker ──────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -3666,72 +3847,6 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.warn('SW registration failed:', err));
   });
 }
-</script>
-
-<!-- Firebase: laad extra/gewijzigde planten vanuit Firestore -->
-<script type="module">
-import { initializeApp }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, getDocs }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-const firebaseConfig = {
-  apiKey:            "AIzaSyCIbxp7FemPmockRtH2Dx06yZ4_wBEfJkg",
-  authDomain:        "herbalroot.firebaseapp.com",
-  projectId:         "herbalroot",
-  storageBucket:     "herbalroot.firebasestorage.app",
-  messagingSenderId: "613071845588",
-  appId:             "1:613071845588:web:4f06139e25abeda9bee341"
-};
-
-async function loadFirebaseData() {
-  try {
-    const app = initializeApp(firebaseConfig, 'herbalroot-reader');
-    const db  = getFirestore(app);
-
-    const map = { kruiden: HERBS, groenten: GROENTEN, fruit: FRUIT };
-
-    for (const [col, arr] of Object.entries(map)) {
-      const snap = await getDocs(collection(db, col));
-      snap.docs.forEach(d => {
-        const data = { ...d.data(), id: d.id };
-        data.cp      = data.cp      ?? 0;
-        data.watered = data.watered ?? Date.now();
-        data.ph_stages = data.ph_stages ?? ['🌱','🌿','🌸','🌼'];
-        const idx = arr.findIndex(p => p.id === data.id);
-        if (idx >= 0) arr[idx] = data; else arr.push(data);
-      });
-    }
-
-    // Recepten laden vanuit Firebase
-    const receptSnap = await getDocs(collection(db, 'recepten'));
-    if (!receptSnap.empty) {
-      receptSnap.docs.forEach(d => {
-        RECEPTEN_DB[d.id] = d.data();
-      });
-    }
-
-    // Community posts laden vanuit Firebase
-    const postSnap = await getDocs(collection(db, 'community'));
-    if (!postSnap.empty) {
-      const fbPosts = postSnap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a,b) => (b.ts||0) - (a.ts||0));
-      // Sla op in localStorage zodat de community-render ze oppikt
-      localStorage.setItem('hr_posts', JSON.stringify(fbPosts));
-    }
-
-    // Herrender alles
-    renderHerbs();
-    renderGroenten();
-    renderFruit();
-    console.log('Firebase data geladen ✓');
-  } catch(e) {
-    console.log('Firebase niet beschikbaar, lokale data wordt gebruikt.');
-  }
-}
-
-loadFirebaseData();
 </script>
 <!-- RECEPT MODAL -->
 <div class="modal-overlay" id="recept-modal-overlay" onclick="if(event.target===this)closeReceptModal()">
