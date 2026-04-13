@@ -317,6 +317,68 @@ select option{background:var(--surface2);}
 .com-tag{font-size:.72rem;padding:.2rem .6rem;border-radius:100px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .2s;}
 .com-tag:hover,.com-tag.active{border-color:var(--accent);color:var(--accent);}
 </style>
+
+<!-- Firebase: laad plantendata live vanuit Firestore -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyCIbxp7FemPmockRtH2Dx06yZ4_wBEfJkg",
+  authDomain:        "herbalroot.firebaseapp.com",
+  projectId:         "herbalroot",
+  storageBucket:     "herbalroot.firebasestorage.app",
+  messagingSenderId: "613071845588",
+  appId:             "1:613071845588:web:4f06139e25abeda9bee341"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// Laad alle plantendata uit Firebase en overschrijf de lokale arrays
+async function loadFirebaseData() {
+  try {
+    const [kruSnap, groSnap, frSnap] = await Promise.all([
+      getDocs(collection(db, 'kruiden')),
+      getDocs(collection(db, 'groenten')),
+      getDocs(collection(db, 'fruit')),
+    ]);
+
+    const kruiden  = kruSnap.docs.map(d => ({...d.data(), id: d.id}));
+    const groenten = groSnap.docs.map(d => ({...d.data(), id: d.id}));
+    const fruit    = frSnap.docs.map(d => ({...d.data(), id: d.id}));
+
+    // Overschrijf de lokale arrays als Firebase data heeft
+    if (kruiden.length)  { HERBS.length = 0;   kruiden.forEach(p => HERBS.push(p)); }
+    if (groenten.length) { GROENTEN.length = 0; groenten.forEach(p => GROENTEN.push(p)); }
+    if (fruit.length)    { FRUIT.length = 0;    fruit.forEach(p => FRUIT.push(p)); }
+
+    // Herrender de actieve pagina met nieuwe data
+    const activeScreen = document.querySelector('.screen.active');
+    if (activeScreen) {
+      const id = activeScreen.id.replace('screen-', '');
+      if (id === 'kruiden')  { if(typeof renderHerbs    === 'function') renderHerbs(); }
+      if (id === 'groenten') { if(typeof renderGroenten === 'function') renderGroenten(); }
+      if (id === 'fruit')    { if(typeof renderFruit    === 'function') renderFruit(); }
+      if (id === 'home')     { if(typeof renderHerbs    === 'function') renderHerbs(); }
+      if (id === 'moestuin') { if(typeof renderMoestuin === 'function') renderMoestuin(); }
+    }
+
+    // Ook de herb grid op de startpagina updaten
+    if (typeof renderHerbs === 'function') renderHerbs();
+
+    console.log('✅ Firebase data geladen:', kruiden.length, 'kruiden,', groenten.length, 'groenten,', fruit.length, 'fruit');
+  } catch(e) {
+    console.warn('⚠️ Firebase niet beschikbaar, lokale data wordt gebruikt:', e.message);
+  }
+}
+
+// Wacht tot de pagina klaar is, laad dan Firebase data
+window.addEventListener('DOMContentLoaded', () => {
+  // Kleine vertraging zodat de lokale arrays eerst geïnitialiseerd zijn
+  setTimeout(loadFirebaseData, 500);
+});
+</script>
 </head>
 <body>
 <header>
