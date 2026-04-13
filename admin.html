@@ -13,6 +13,8 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChang
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getStorage, ref, uploadBytes, getDownloadURL }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const firebaseConfig = {
   apiKey:            "AIzaSyCIbxp7FemPmockRtH2Dx06yZ4_wBEfJkg",
@@ -24,12 +26,13 @@ const firebaseConfig = {
 };
 
 const configured = firebaseConfig.apiKey !== 'JOUW_API_KEY';
-let app, auth, db, provider;
+let app, auth, db, provider, storage;
 if (configured) {
   app      = initializeApp(firebaseConfig);
   auth     = getAuth(app);
   db       = getFirestore(app);
   provider = new GoogleAuthProvider();
+  storage = getStorage(app);
 } else {
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('config-warning').style.display = 'flex';
@@ -61,11 +64,8 @@ if (configured) {
         document.getElementById('user-avatar').style.display = 'block';
         document.getElementById('user-fallback').style.display = 'none';
       }
-      loadAllData();
       loadTheme();
-      loadRecepten();
-      loadCommunity();
-      loadPages();
+      loadAllData();
     } else {
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('app-screen').style.display   = 'none';
@@ -89,20 +89,36 @@ window.doLogout = async () => { if(confirm('Uitloggen?')) await signOut(auth); }
 
 // ── Data laden ────────────────────────────────────────────────
 async function loadAllData() {
-  for (const type of ['kruiden','groenten','fruit']) {
-    const snap = await getDocs(collection(db, type));
-    allPlants[type] = snap.docs.map(d => ({...d.data(), id:d.id}));
-  }
+  // Laad alles parallel zodat dashboard alle cijfers heeft
+  await Promise.all([
+    (async () => {
+      for (const type of ['kruiden','groenten','fruit']) {
+        const snap = await getDocs(collection(db, type));
+        allPlants[type] = snap.docs.map(d => ({...d.data(), id:d.id}));
+      }
+    })(),
+    (async () => {
+      const snap = await getDocs(collection(db,'recepten'));
+      allRecepten = {};
+      snap.docs.forEach(d => {
+        const data = d.data();
+        const key = data.naam || d.id.replace(/_sl_/g,'/').replace(/_bs_/g,'\\').replace(/_dt_/g,'.').replace(/_/g,' ');
+        allRecepten[key] = data;
+      });
+    })(),
+    (async () => {
+      const snap = await getDocs(collection(db,'community'));
+      allPosts = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.ts||0)-(a.ts||0));
+    })(),
+    (async () => {
+      try {
+        const snap = await getDocs(collection(db,'pages'));
+        pages = snap.docs.map(d=>({id:d.id,...d.data()}));
+      } catch(e){ pages=[]; }
+    })(),
+  ]);
   if (currentSection === 'dashboard') renderDashboard();
   else renderSection(currentSection);
-}
-
-async function loadTheme() {
-  try {
-    const snap = await getDocs(collection(db,'settings'));
-    snap.docs.forEach(d => { if(d.id==='theme') themeVars = d.data(); });
-    Object.entries(themeVars).forEach(([k,v]) => document.documentElement.style.setProperty(k,v));
-  } catch(e){}
 }
 
 async function loadRecepten() {
@@ -120,12 +136,12 @@ async function loadCommunity() {
   allPosts = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.ts||0)-(a.ts||0));
 }
 
-// ── Pages laden ───────────────────────────────────────────────
-async function loadPages() {
+async function loadTheme() {
   try {
-    const snap = await getDocs(collection(db,'pages'));
-    pages = snap.docs.map(d=>({id:d.id,...d.data()}));
-  } catch(e){ pages=[]; }
+    const snap = await getDocs(collection(db,'settings'));
+    snap.docs.forEach(d => { if(d.id==='theme') themeVars = d.data(); });
+    Object.entries(themeVars).forEach(([k,v]) => document.documentElement.style.setProperty(k,v));
+  } catch(e){}
 }
 
 // ── Navigatie ─────────────────────────────────────────────────
@@ -151,62 +167,97 @@ window.switchSection = s => {
 
 // ── Dashboard ─────────────────────────────────────────────────
 function renderDashboard() {
-  const total = (allPlants.kruiden?.length||0) + (allPlants.groenten?.length||0) + (allPlants.fruit?.length||0);
   document.getElementById('main-panel').innerHTML = `
     <div class="page-title">Dashboard</div>
+    <div class="dash-section-title" style="margin-bottom:.65rem">📊 Overzicht</div>
     <div class="stat-grid">
       <div class="stat-card" onclick="switchSection('kruiden')">
         <div class="stat-icon">🌱</div>
-        <div class="stat-num">${allPlants.kruiden?.length||0}</div>
+        <div class="stat-num">\${allPlants.kruiden?.length||0}</div>
         <div class="stat-label">Kruiden</div>
       </div>
       <div class="stat-card" onclick="switchSection('groenten')">
         <div class="stat-icon">🥦</div>
-        <div class="stat-num">${allPlants.groenten?.length||0}</div>
+        <div class="stat-num">\${allPlants.groenten?.length||0}</div>
         <div class="stat-label">Groenten</div>
       </div>
       <div class="stat-card" onclick="switchSection('fruit')">
         <div class="stat-icon">🍎</div>
-        <div class="stat-num">${allPlants.fruit?.length||0}</div>
+        <div class="stat-num">\${allPlants.fruit?.length||0}</div>
         <div class="stat-label">Fruit</div>
       </div>
       <div class="stat-card" onclick="switchSection('recepten')">
         <div class="stat-icon">🍳</div>
-        <div class="stat-num">${Object.keys(allRecepten).length}</div>
+        <div class="stat-num">\${Object.keys(allRecepten).length}</div>
         <div class="stat-label">Recepten</div>
       </div>
       <div class="stat-card" onclick="switchSection('community')">
         <div class="stat-icon">💬</div>
-        <div class="stat-num">${allPosts.length}</div>
+        <div class="stat-num">\${allPosts.length}</div>
         <div class="stat-label">Community posts</div>
       </div>
       <div class="stat-card" onclick="switchSection('paginas')">
         <div class="stat-icon">📄</div>
-        <div class="stat-num">${pages.length}</div>
+        <div class="stat-num">\${pages.length}</div>
         <div class="stat-label">Pagina's</div>
       </div>
+      <div class="stat-card stat-card-info">
+        <div class="stat-icon">🥕</div>
+        <div class="stat-num">∞</div>
+        <div class="stat-label">Mijn Moestuin</div>
+        <div class="stat-sub">Beheerd door gebruikers</div>
+      </div>
+      <div class="stat-card stat-card-info">
+        <div class="stat-icon">👤</div>
+        <div class="stat-num">∞</div>
+        <div class="stat-label">Profielen</div>
+        <div class="stat-sub">Beheerd door gebruikers</div>
+      </div>
     </div>
-    <div class="dash-actions">
-      <div class="dash-section-title">Snelle acties</div>
-      <div class="quick-actions">
-        <button class="qa-btn" onclick="switchSection('kruiden');setTimeout(()=>openEditor(null,'kruiden'),50)">
-          <span class="qa-icon">🌱</span><span>Nieuw kruid</span>
-        </button>
-        <button class="qa-btn" onclick="switchSection('groenten');setTimeout(()=>openEditor(null,'groenten'),50)">
-          <span class="qa-icon">🥦</span><span>Nieuwe groente</span>
-        </button>
-        <button class="qa-btn" onclick="switchSection('fruit');setTimeout(()=>openEditor(null,'fruit'),50)">
-          <span class="qa-icon">🍎</span><span>Nieuw fruit</span>
-        </button>
-        <button class="qa-btn" onclick="switchSection('paginas');setTimeout(()=>openPageEditor(null),100)">
-          <span class="qa-icon">📄</span><span>Nieuwe pagina</span>
-        </button>
-        <button class="qa-btn" onclick="switchSection('recepten');setTimeout(()=>openReceptEditor(null),50)">
-          <span class="qa-icon">🍳</span><span>Nieuw recept</span>
-        </button>
-        <button class="qa-btn" onclick="window.open('index.html','_blank')">
-          <span class="qa-icon">👁</span><span>Bekijk website</span>
-        </button>
+
+    <div class="dash-two-col">
+      <div>
+        <div class="dash-section-title">⚡ Snelle acties</div>
+        <div class="quick-actions">
+          <button class="qa-btn" onclick="switchSection('kruiden');setTimeout(()=>openEditor(null,'kruiden'),50)">
+            <span class="qa-icon">🌱</span><span>Nieuw kruid</span>
+          </button>
+          <button class="qa-btn" onclick="switchSection('groenten');setTimeout(()=>openEditor(null,'groenten'),50)">
+            <span class="qa-icon">🥦</span><span>Nieuwe groente</span>
+          </button>
+          <button class="qa-btn" onclick="switchSection('fruit');setTimeout(()=>openEditor(null,'fruit'),50)">
+            <span class="qa-icon">🍎</span><span>Nieuw fruit</span>
+          </button>
+          <button class="qa-btn" onclick="switchSection('paginas');setTimeout(()=>openPageEditor(null),100)">
+            <span class="qa-icon">📄</span><span>Nieuwe pagina</span>
+          </button>
+          <button class="qa-btn" onclick="switchSection('recepten');setTimeout(()=>openReceptEditor(null),50)">
+            <span class="qa-icon">🍳</span><span>Nieuw recept</span>
+          </button>
+          <button class="qa-btn" onclick="window.open('index.html','_blank')">
+            <span class="qa-icon">👁</span><span>Bekijk website</span>
+          </button>
+        </div>
+      </div>
+      <div>
+        <div class="dash-section-title">📸 Foto uploaden naar Firebase Storage</div>
+        <div class="upload-dash-box">
+          <div class="upload-drop-area" id="dash-drop-area"
+            ondragover="event.preventDefault();this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')"
+            ondrop="dashHandleDrop(event)">
+            <div class="upload-drop-icon">📁</div>
+            <p>Sleep een foto hierheen<br>of klik om te bladeren</p>
+            <input type="file" id="dash-file-input" accept="image/*" style="display:none" onchange="dashHandleFile(this.files[0])">
+            <button class="btn-outline-sm" style="margin-top:.5rem" onclick="document.getElementById('dash-file-input').click()">Bestand kiezen</button>
+          </div>
+          <div id="dash-upload-preview" style="display:none">
+            <img id="dash-preview-img" style="max-height:120px;border-radius:8px;object-fit:cover;margin-bottom:.5rem">
+            <div id="dash-file-name" style="font-size:.75rem;color:var(--text-muted);margin-bottom:.5rem"></div>
+            <button class="btn-primary" style="width:100%" onclick="dashUploadToStorage()">⬆️ Uploaden naar Firebase</button>
+          </div>
+          <div id="dash-upload-result" style="margin-top:.75rem"></div>
+        </div>
       </div>
     </div>`;
 }
@@ -1067,6 +1118,68 @@ window.importAllPlants=async()=>{
   }catch(e){progress.innerHTML+=`<div class="prog-err">❌ Fout: ${e.message}</div>`;btn.disabled=false;btn.textContent='🚀 Opnieuw proberen';}
 };
 
+// ── Firebase Storage Upload ────────────────────────────────────
+let dashFileToUpload = null;
+
+window.dashHandleDrop = (e) => {
+  e.preventDefault();
+  document.getElementById('dash-drop-area').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) dashShowPreview(file);
+};
+
+window.dashHandleFile = (file) => {
+  if (file && file.type.startsWith('image/')) dashShowPreview(file);
+};
+
+function dashShowPreview(file) {
+  dashFileToUpload = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('dash-preview-img').src = e.target.result;
+    document.getElementById('dash-file-name').textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+    document.getElementById('dash-drop-area').style.display = 'none';
+    document.getElementById('dash-upload-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+window.dashUploadToStorage = async () => {
+  if (!dashFileToUpload || !storage) { toast('Geen bestand of Storage niet beschikbaar','err'); return; }
+  const result = document.getElementById('dash-upload-result');
+  result.innerHTML = '<span style="color:var(--text-muted);font-size:.82rem">⏳ Uploaden…</span>';
+  try {
+    const fileName = Date.now() + '_' + dashFileToUpload.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const storageRef = ref(storage, 'uploads/' + fileName);
+    await uploadBytes(storageRef, dashFileToUpload);
+    const url = await getDownloadURL(storageRef);
+    result.innerHTML = '<div class="upload-success">' +
+      '<div style="font-size:.75rem;font-weight:600;color:var(--green);margin-bottom:.35rem">✅ Upload gelukt!</div>' +
+      '<div style="font-size:.7rem;color:var(--text-muted);margin-bottom:.4rem">Kopieer deze URL naar het fotoveld van een plant:</div>' +
+      '<div class="upload-url-row">' +
+        '<input type="text" value="' + url + '" readonly id="upload-url-field" class="prop-input" style="font-size:.68rem">' +
+        '<button class="btn-outline-sm" onclick="copyUploadUrl()">📋</button>' +
+      '</div>' +
+      '<img src="' + url + '" style="margin-top:.5rem;max-height:80px;border-radius:6px;object-fit:cover">' +
+    '</div>';
+    toast('Foto geüpload ✓','ok');
+    // Reset
+    dashFileToUpload = null;
+    document.getElementById('dash-drop-area').style.display = 'block';
+    document.getElementById('dash-upload-preview').style.display = 'none';
+    document.getElementById('dash-file-input').value = '';
+  } catch(e) {
+    result.innerHTML = '<span style="color:var(--red);font-size:.8rem">❌ Fout: ' + e.message + '</span>';
+    toast('Upload mislukt','err');
+  }
+};
+
+window.copyUploadUrl = () => {
+  const field = document.getElementById('upload-url-field');
+  if (!field) return;
+  navigator.clipboard.writeText(field.value).then(() => toast('URL gekopieerd ✓','ok'));
+};
+
 // ── Toast ──────────────────────────────────────────────────────
 function toast(msg,type='ok'){
   const el=document.getElementById('toast');el.textContent=msg;
@@ -1202,7 +1315,20 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .status-badge.draft{background:var(--bg);border:1px solid var(--border);color:var(--text-muted);}
 
 /* ══ Dashboard ═══════════════════════════════════════════════════ */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem;margin-bottom:2rem;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem;}
+.stat-card-info{opacity:.7;cursor:default;}
+.stat-card-info:hover{transform:none;box-shadow:none;border-color:var(--border);}
+.stat-sub{font-size:.65rem;color:var(--text-muted);margin-top:.2rem;line-height:1.3;}
+.dash-two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.25rem;}
+@media(max-width:900px){.dash-two-col{grid-template-columns:1fr;}}
+.upload-dash-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;}
+.upload-drop-area{border:2px dashed var(--border2);border-radius:var(--radius);padding:1.5rem 1rem;
+  text-align:center;cursor:pointer;transition:all .15s;color:var(--text-muted);}
+.upload-drop-area:hover,.upload-drop-area.drag-over{border-color:var(--green);background:var(--green-light);}
+.upload-drop-icon{font-size:2rem;margin-bottom:.4rem;}
+.upload-drop-area p{font-size:.78rem;line-height:1.6;margin-bottom:.25rem;}
+.upload-success{background:var(--green-light);border:1px solid rgba(22,163,74,.2);border-radius:var(--radius);padding:.75rem;}
+.upload-url-row{display:flex;gap:.35rem;align-items:center;}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
   padding:1.25rem 1rem;cursor:pointer;transition:all .15s;text-align:center;}
 .stat-card:hover{border-color:var(--green);box-shadow:var(--shadow-md);transform:translateY(-2px);}
