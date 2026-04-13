@@ -1051,7 +1051,7 @@ window.importAllPlants=async()=>{
     function extractArray(html,start,end){const s=html.indexOf(start);const e=html.indexOf(end,s);if(s===-1||e===-1)return[];let raw=html.slice(s+start.length,e).trim().replace(/,\s*$/,'');try{return new Function(`const now=${Date.now()};return [${raw}];`)().filter(p=>p&&p.id).map(p=>{const c={};Object.keys(p).forEach(k=>{const v=p[k];if(typeof v!=='function'&&(typeof v!=='number'||isFinite(v)))c[k]=v;});c.watered=Date.now();return c;});}catch(e){console.error('Parse error:',e);return[];}}
     const herbs=extractArray(html,'const HERBS=[','const GROENTEN');
     const groenten=extractArray(html,'const GROENTEN = [','const FRUIT');
-    const fruit=extractArray(html,'const FRUIT = [','// ═══════════════════════════════════════════════════════════════\n// GROENTEN & FRUIT STATE');
+    const fruit=extractArray(html,'const FRUIT = [','// GROENTEN & FRUIT STATE + RENDERING');
     progress.innerHTML+=`<div class="prog-line">✅ ${herbs.length} kruiden, ${groenten.length} groenten, ${fruit.length} fruit gevonden</div>`;
     let totalOk=0,totalErr=0;
     for(const cat of [{name:'kruiden',data:herbs,label:'kruiden'},{name:'groenten',data:groenten,label:'groenten'},{name:'fruit',data:fruit,label:'fruitsoorten'}]){
