@@ -316,18 +316,80 @@ window.deletePlant=async(id,type)=>{
 };
 
 window.searchUnsplash=async()=>{
-  const query=document.getElementById('ed-name').value.trim()||document.getElementById('ed-id').value.trim()||'plant herb';
+  const name=document.getElementById('ed-name').value.trim();
+  const id=document.getElementById('ed-id').value.trim();
+  const query=name||id||'plant';
   const results=document.getElementById('unsplash-results');
-  results.innerHTML='<span style="color:var(--text-muted);font-size:.8rem">Zoeken…</span>';
-  const suggestions=[
-    `https://source.unsplash.com/480x320/?${encodeURIComponent(query)},plant`,
-    `https://source.unsplash.com/480x320/?${encodeURIComponent(query)},herb,garden`,
-    `https://source.unsplash.com/480x320/?${encodeURIComponent(query)},nature,green`,
-    `https://source.unsplash.com/480x320/?${encodeURIComponent(query)},food,fresh`,
-  ];
-  results.innerHTML=suggestions.map((url,i)=>`
-    <div class="unsplash-thumb" onclick="selectPhoto('${url}')">
-      <img src="${url}&sig=${Date.now()+i}" alt="optie ${i+1}" onerror="this.parentElement.style.display='none'">
+  results.innerHTML='<span style="color:var(--text-muted);font-size:.8rem">🔍 Zoeken op Wikimedia…</span>';
+
+  // Zoekterm varianten om meer resultaten te vinden
+  const searchTerms=[query, query+' plant', query+' herb', query+' food'];
+  const found=[];
+
+  for(const term of searchTerms){
+    if(found.length>=6) break;
+    try{
+      const res=await fetch(
+        'https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch='+
+        encodeURIComponent(term)+'&srnamespace=6&srlimit=3&format=json&origin=*',
+        {headers:{Accept:'application/json'}}
+      );
+      const data=await res.json();
+      const titles=(data.query?.search||[]).map(s=>s.title.replace('File:',''));
+      for(const title of titles){
+        if(found.length>=6) break;
+        try{
+          const r2=await fetch(
+            'https://en.wikipedia.org/w/api.php?action=query&titles=File:'+
+            encodeURIComponent(title)+'&prop=imageinfo&iiprop=url&iiurlwidth=480&format=json&origin=*'
+          );
+          const d2=await r2.json();
+          const pages=Object.values(d2.query?.pages||{});
+          const url=pages[0]?.imageinfo?.[0]?.thumburl;
+          if(url&&url.match(/\.(jpg|jpeg|png|webp)/i)&&!found.includes(url)){
+            found.push(url);
+          }
+        }catch(e){}
+      }
+    }catch(e){}
+  }
+
+  // Fallback: Wikipedia page summary afbeelding
+  if(found.length<3){
+    try{
+      const res=await fetch(
+        'https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(query),
+        {headers:{Accept:'application/json'}}
+      );
+      const data=await res.json();
+      const img=data.originalimage?.source||data.thumbnail?.source;
+      if(img&&!img.match(/\.svg/i)&&!found.includes(img)) found.push(img);
+    }catch(e){}
+    // Probeer ook Latijnse naam als fallback
+    const lat=document.getElementById('ed-lat')?.value.trim();
+    if(lat&&found.length<4){
+      try{
+        const res=await fetch(
+          'https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(lat),
+          {headers:{Accept:'application/json'}}
+        );
+        const data=await res.json();
+        const img=data.originalimage?.source||data.thumbnail?.source;
+        if(img&&!img.match(/\.svg/i)&&!found.includes(img)) found.push(img);
+      }catch(e){}
+    }
+  }
+
+  if(!found.length){
+    results.innerHTML='<span style="color:var(--text-muted);font-size:.8rem">Geen foto\'s gevonden — plak een URL handmatig.</span>';
+    return;
+  }
+
+  results.innerHTML=found.map((url,i)=>`
+    <div class="unsplash-thumb" onclick="selectPhoto(decodeURIComponent('${encodeURIComponent(url)}'))">
+      <img src="${url}" alt="optie ${i+1}" loading="lazy"
+        onerror="this.parentElement.style.display='none'"
+        style="width:100%;height:100%;object-fit:cover;display:block">
       <div class="unsplash-pick">✓ Kiezen</div>
     </div>`).join('');
 };
@@ -1535,7 +1597,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
               <input id="ed-photo-url" placeholder="https://..." oninput="previewPhotoUrl()">
               <span class="hint">Directe link naar een afbeelding (jpg, png, webp)</span>
             </div>
-            <button class="btn-primary" style="width:100%;font-size:.78rem;margin-top:.4rem" onclick="searchUnsplash()">🔍 Zoek foto's op Unsplash</button>
+            <button class="btn-primary" style="width:100%;font-size:.78rem;margin-top:.4rem" onclick="searchUnsplash()">🔍 Zoek foto's op Wikimedia</button>
           </div>
         </div>
         <div id="unsplash-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.5rem;margin-top:.85rem"></div>
