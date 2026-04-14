@@ -1035,30 +1035,23 @@ function renderImport(){
         <div style="background:var(--green-light);border:1px solid rgba(22,163,74,.25);border-radius:8px;padding:.85rem 1rem">
           <div style="font-size:.85rem;font-weight:600;color:var(--green-dark);margin-bottom:.25rem">✅ Aanbevolen: Enkel nieuwe toevoegen</div>
           <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.65rem">Bestaande planten die je al bewerkt hebt worden <strong>niet overschreven</strong>. Enkel ontbrekende planten worden toegevoegd.</div>
-          <button class="btn-primary" id="import-btn" onclick="importAllPlants(false)">🚀 Importeer enkel nieuwe planten</button>
+          <button class="btn-primary" id="import-btn" onclick="importAllPlants()">🚀 Importeer nieuwe planten naar Firebase</button>
         </div>
-        <div style="background:var(--red-light);border:1px solid rgba(220,38,38,.2);border-radius:8px;padding:.85rem 1rem">
-          <div style="font-size:.85rem;font-weight:600;color:var(--red);margin-bottom:.25rem">⚠️ Alles overschrijven (reset)</div>
-          <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.65rem">Alle planten worden teruggezet naar de originele versie. <strong>Al jouw aanpassingen gaan verloren!</strong></div>
-          <button class="btn-outline-sm danger" id="import-overwrite-btn" onclick="importAllPlants(true)">🔄 Alles overschrijven</button>
-        </div>
+
       </div>
       <div id="import-progress" style="margin-top:1.25rem"></div>
     </div>`;
 }
 
-window.importAllPlants=async(overwrite)=>{
+window.importAllPlants=async()=>{
+  const overwrite=false;
   const btn = document.getElementById(overwrite ? 'import-overwrite-btn' : 'import-btn');
   const progress = document.getElementById('import-progress');
-  const allBtns = document.querySelectorAll('#import-btn,#import-overwrite-btn');
+  const allBtns = document.querySelectorAll('#import-btn');
   allBtns.forEach(b=>b.disabled=true);
   btn.textContent='⏳ Bezig…';
 
-  if (overwrite && !confirm('Weet je zeker dat je ALLE planten wil overschrijven? Al jouw aanpassingen gaan verloren!')) {
-    allBtns.forEach(b=>b.disabled=false);
-    btn.textContent = overwrite ? '🔄 Alles overschrijven' : '🚀 Importeer enkel nieuwe planten';
-    return;
-  }
+
 
   try{
     progress.innerHTML='<div class="prog-line">📄 index.html ophalen…</div>';
@@ -1096,12 +1089,11 @@ window.importAllPlants=async(overwrite)=>{
         ? 'Alle planten zijn teruggezet naar de originele versie.'
         : 'Jouw bestaande aanpassingen zijn bewaard. Enkel ontbrekende planten zijn toegevoegd.'}
     </div>`;
-    btn.textContent = overwrite ? '✅ Reset voltooid' : '✅ Import voltooid';
-    allBtns.forEach(b=>{ if(b!==btn) b.disabled=false; });
+    btn.textContent = '✅ Import voltooid';
   }catch(e){
     progress.innerHTML+=`<div class="prog-err">❌ Fout: ${e.message}</div>`;
     allBtns.forEach(b=>b.disabled=false);
-    btn.textContent = overwrite ? '🔄 Alles overschrijven' : '🚀 Importeer enkel nieuwe planten';
+    btn.textContent = '🚀 Importeer nieuwe planten naar Firebase';
   }
 };
 
