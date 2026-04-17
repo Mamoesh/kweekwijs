@@ -1,4 +1,4 @@
-const CACHE_NAME = 'herbalroot-v2';
+const CACHE_NAME = 'herbalroot-v3';
 
 const PRECACHE_URLS = [
   './manifest.json',
