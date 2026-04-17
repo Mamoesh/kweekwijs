@@ -2496,6 +2496,8 @@ function initAuth() {
       updateNavUser();
       applyLanguage(currentUser.lang||'nl');
       renderHerbs();
+      // Laad Firebase data na succesvolle auth
+      if (typeof loadFromFirebase === 'function') loadFromFirebase();
     } catch(e) {
       localStorage.removeItem('hr_current_user');
       showAuthOverlay();
@@ -2544,6 +2546,7 @@ function doLogin() {
   updateNavUser();
   applyLanguage(currentUser.lang||'nl');
   renderHerbs();
+  if (typeof loadFromFirebase === 'function') loadFromFirebase();
 }
 
 function doRegister() {
@@ -2568,6 +2571,7 @@ function doRegister() {
   updateNavUser();
   applyLanguage(selectedRegLang);
   renderHerbs();
+  if (typeof loadFromFirebase === 'function') loadFromFirebase();
 }
 
 function doLogout() {
@@ -3842,65 +3846,68 @@ function renderMoestuin() {
 }
 
 // ── Firebase: laad live plantendata ──────────────────────────────
-(function() {
-  // Laad Firebase via dynamische import zodat de lokale arrays al bestaan
-  const firebaseConfig = {
-    apiKey:            "AIzaSyCIbxp7FemPmockRtH2Dx06yZ4_wBEfJkg",
-    authDomain:        "herbalroot.firebaseapp.com",
-    projectId:         "herbalroot",
-    storageBucket:     "herbalroot.firebasestorage.app",
-    messagingSenderId: "613071845588",
-    appId:             "1:613071845588:web:4f06139e25abeda9bee341"
-  };
+const firebaseConfig = {
+  apiKey:            "AIzaSyCIbxp7FemPmockRtH2Dx06yZ4_wBEfJkg",
+  authDomain:        "herbalroot.firebaseapp.com",
+  projectId:         "herbalroot",
+  storageBucket:     "herbalroot.firebasestorage.app",
+  messagingSenderId: "613071845588",
+  appId:             "1:613071845588:web:4f06139e25abeda9bee341"
+};
 
-  async function loadFromFirebase() {
-    try {
-      const { initializeApp, getApps, getApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-      const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+// Globale variabele zodat we Firebase kunnen hergebruiken
+let _fbApp = null;
+let _fbDb  = null;
 
-      // Gebruik bestaande app instantie als die al bestaat, anders maak een nieuwe aan
-      const existingApps = getApps();
-      const appName = 'herbalroot-main';
-      let app;
-      try {
-        app = getApp(appName);
-      } catch(e) {
-        app = initializeApp(firebaseConfig, appName);
-      }
-      const db = getFirestore(app);
-
-      const [kruSnap, groSnap, frSnap] = await Promise.all([
-        getDocs(collection(db, 'kruiden')),
-        getDocs(collection(db, 'groenten')),
-        getDocs(collection(db, 'fruit')),
-      ]);
-
-      const kruiden  = kruSnap.docs.map(d => ({...d.data(), id: d.id}));
-      const groenten = groSnap.docs.map(d => ({...d.data(), id: d.id}));
-      const fruit    = frSnap.docs.map(d => ({...d.data(), id: d.id}));
-
-      // Overschrijf de lokale arrays met Firebase data
-      if (kruiden.length)  { HERBS.length = 0;   kruiden.forEach(p => HERBS.push(p)); }
-      if (groenten.length) { GROENTEN.length = 0; groenten.forEach(p => GROENTEN.push(p)); }
-      if (fruit.length)    { FRUIT.length = 0;    fruit.forEach(p => FRUIT.push(p)); }
-
-      // Herrender de actieve pagina
-      const activeId = (document.querySelector('.screen.active')?.id || '').replace('screen-', '');
-      if (activeId === 'groenten') renderGroenten();
-      else if (activeId === 'fruit') renderFruit();
-      else if (activeId === 'moestuin') { if(typeof renderMoestuin==='function') renderMoestuin(); }
-      // Altijd kruiden/home updaten (startpagina)
-      renderHerbs();
-
-      console.log('✅ Firebase geladen:', kruiden.length, 'kruiden,', groenten.length, 'groenten,', fruit.length, 'fruit');
-    } catch(e) {
-      console.warn('⚠️ Firebase fout:', e.message);
-    }
+async function initFirebase() {
+  if (_fbDb) return _fbDb;
+  try {
+    const { initializeApp, getApps, getApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const { getFirestore } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const apps = getApps();
+    _fbApp = apps.find(a => a.name === 'herbalroot-main') || initializeApp(firebaseConfig, 'herbalroot-main');
+    _fbDb  = getFirestore(_fbApp);
+  } catch(e) {
+    console.warn('Firebase init fout:', e.message);
   }
+  return _fbDb;
+}
 
-  // Start laden zodra het script klaar is (arrays zijn al gedefinieerd op dit punt)
-  loadFromFirebase();
-})();
+async function loadFromFirebase() {
+  try {
+    const db = await initFirebase();
+    if (!db) return;
+    const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+
+    const [kruSnap, groSnap, frSnap] = await Promise.all([
+      getDocs(collection(db, 'kruiden')),
+      getDocs(collection(db, 'groenten')),
+      getDocs(collection(db, 'fruit')),
+    ]);
+
+    const kruiden  = kruSnap.docs.map(d => ({...d.data(), id: d.id}));
+    const groenten = groSnap.docs.map(d => ({...d.data(), id: d.id}));
+    const fruit    = frSnap.docs.map(d => ({...d.data(), id: d.id}));
+
+    if (kruiden.length)  { HERBS.length = 0;   kruiden.forEach(p => HERBS.push(p)); }
+    if (groenten.length) { GROENTEN.length = 0; groenten.forEach(p => GROENTEN.push(p)); }
+    if (fruit.length)    { FRUIT.length = 0;    fruit.forEach(p => FRUIT.push(p)); }
+
+    // Herrender de actieve pagina
+    const activeId = (document.querySelector('.screen.active')?.id || '').replace('screen-', '');
+    if      (activeId === 'groenten') renderGroenten();
+    else if (activeId === 'fruit')    renderFruit();
+    else if (activeId === 'moestuin') { if(typeof renderMoestuin==='function') renderMoestuin(); }
+    renderHerbs();
+
+    console.log('✅ Firebase geladen:', kruiden.length, 'kruiden,', groenten.length, 'groenten,', fruit.length, 'fruit');
+  } catch(e) {
+    console.warn('⚠️ Firebase fout:', e.message);
+  }
+}
+
+// Start Firebase laden direct (arrays zijn al gedefinieerd hierboven)
+loadFromFirebase();
 
 // ── PWA: Register Service Worker ──────────────────────────────────
 if ('serviceWorker' in navigator) {
