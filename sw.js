@@ -1,4 +1,5 @@
-const CACHE_NAME = 'herbalroot-v3';
+// v4 — HTML nooit cachen, altijd vers van netwerk
+const CACHE_NAME = 'herbalroot-v4';
 
 const PRECACHE_URLS = [
   './manifest.json',
@@ -6,7 +7,6 @@ const PRECACHE_URLS = [
   './icons/icon-512x512.png',
 ];
 
-// ── Install: pre-cache enkel de assets (niet index.html) ──────────
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -15,87 +15,64 @@ self.addEventListener('install', event => {
   );
 });
 
-// ── Activate: verwijder oude caches ───────────────────────────────
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
-      )
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
 
-// ── Fetch: network-first voor HTML, cache-first voor assets ───────
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-
   if (event.request.method !== 'GET') return;
   if (url.protocol === 'chrome-extension:') return;
 
-  // Firebase, Wikipedia, ipapi — altijd via netwerk, nooit cachen
-  const networkOnlyHosts = [
-    'firestore.googleapis.com',
-    'firebase.googleapis.com',
-    'identitytoolkit.googleapis.com',
-    'securetoken.googleapis.com',
-    'en.wikipedia.org',
-    'ipapi.co',
-    'nominatim.openstreetmap.org',
-    'picsum.photos',
+  // Nooit cachen: Firebase, Wikipedia, externe APIs
+  const neverCache = [
+    'firestore.googleapis.com','firebase.googleapis.com',
+    'identitytoolkit.googleapis.com','securetoken.googleapis.com',
+    'en.wikipedia.org','ipapi.co','nominatim.openstreetmap.org','picsum.photos'
   ];
-  if (networkOnlyHosts.some(h => url.hostname.includes(h))) return;
+  if (neverCache.some(h => url.hostname.includes(h))) return;
+
+  // HTML — altijd van netwerk, nooit uit cache
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname === '/') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  // JS en JSON — altijd van netwerk (zodat updates meteen zichtbaar zijn)
+  if (url.pathname.endsWith('.js') || url.pathname.endsWith('.json')) {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
   // Google Fonts — cache na eerste fetch
   if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
     event.respondWith(
       caches.open(CACHE_NAME).then(cache =>
-        cache.match(event.request).then(cached => {
-          if (cached) return cached;
-          return fetch(event.request).then(response => {
-            cache.put(event.request, response.clone());
-            return response;
-          });
-        })
+        cache.match(event.request).then(cached => cached ||
+          fetch(event.request).then(res => { cache.put(event.request, res.clone()); return res; })
+        )
       )
     );
     return;
   }
 
-  // HTML pagina's — ALTIJD network-first zodat wijzigingen meteen zichtbaar zijn
-  if (event.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          // Sla nieuwe versie op in cache
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => {
-          // Offline fallback
-          return caches.match('./index.html');
-        })
-    );
-    return;
-  }
-
-  // Alle andere assets (CSS, JS, afbeeldingen) — cache-first
+  // Overige assets (icons, afbeeldingen) — cache first
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        if (response.ok && url.origin === self.location.origin) {
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, response.clone()));
+    caches.match(event.request).then(cached => cached ||
+      fetch(event.request).then(res => {
+        if (res.ok && url.origin === self.location.origin) {
+          caches.open(CACHE_NAME).then(c => c.put(event.request, res.clone()));
         }
-        return response;
-      }).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
-      });
-    })
+        return res;
+      }).catch(() => caches.match('./index.html'))
+    )
   );
 });
