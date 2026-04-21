@@ -1580,7 +1580,7 @@ function openModal(id){
       <div class="info-item"><div class="info-label">Aarde</div><div class="info-val">🌍 ${h.soil}</div></div>
       <div class="info-item"><div class="info-label">Verzorging</div><div class="info-val">${cl[h.care]}</div></div>
       ${h.levensduur ? `<div class="info-item" style="grid-column:1/-1">
-        <div class="info-label">🔄 Levensduur</div>
+        <div class="info-label">Levensduur</div>
         <div class="info-val">
           ${h.levensduur === 'vast' ? '🌳 Vaste plant' : h.levensduur === 'twee' ? '📅 Tweejarige plant' : '📅 Eenjarige plant'}
           ${h.levensduur === 'een' && h.zelfzaaiend ? ' · 🌱 Zelfzaaiend' : ''}
@@ -3292,7 +3292,7 @@ function openPlantModal(id, type) {
     '<div class="info-item"><div class="info-label">pH grond</div><div class="info-val">⚗️ ' + h.ph + '</div></div>' +
     '<div class="info-item"><div class="info-label">Aarde</div><div class="info-val">🌍 ' + h.soil + '</div></div>' +
     '<div class="info-item"><div class="info-label">Verzorging</div><div class="info-val">' + cl[h.care] + '</div></div>' +
-    (h.levensduur ? '<div class="info-item" style="grid-column:1/-1"><div class="info-label">🔄 Levensduur</div><div class="info-val">' +
+    (h.levensduur ? '<div class="info-item" style="grid-column:1/-1"><div class="info-label">Levensduur</div><div class="info-val">' +
       (h.levensduur === 'vast' ? '🌳 Vaste plant' : h.levensduur === 'twee' ? '📅 Tweejarige plant' : '📅 Eenjarige plant') +
       (h.levensduur === 'een' && h.zelfzaaiend ? ' · 🌱 Zelfzaaiend' : '') +
       (h.levensduur === 'een' && h.zelfzaaiend === false ? ' · ✋ Niet zelfzaaiend' : '') +
