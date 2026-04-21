@@ -291,6 +291,9 @@ window.openEditor = (id, type) => {
   const set=(elId,val)=>{const el=document.getElementById(elId);if(el)el.value=val??'';};
   set('ed-id',p.id||''); set('ed-name',p.name||''); set('ed-lat',p.lat||'');
   set('ed-emoji',p.emoji||'🌿'); set('ed-care',p.care||'easy');
+  set('ed-levensduur', p.levensduur||'');
+  const zelfEl = document.getElementById('ed-zelfzaaiend');
+  if(zelfEl) zelfEl.value = p.zelfzaaiend===true ? 'ja' : p.zelfzaaiend===false ? 'nee' : '';
   set('ed-sun',p.sun||''); set('ed-temp',p.temp||''); set('ed-ph',p.ph||'');
   set('ed-soil',p.soil||''); set('ed-wf',p.wf||3); set('ed-tip',p.tip||'');
   set('ed-oogst_hoe',p.oogst_hoe||''); set('ed-stek_hoe',p.stek_hoe||'');
@@ -334,7 +337,12 @@ window.savePlant = async () => {
   let pests=[],diseases=[];
   try{pests=JSON.parse(get('ed-pests')||'[]');}catch(e){}
   try{diseases=JSON.parse(get('ed-diseases')||'[]');}catch(e){}
+  const levensduurVal = get('ed-levensduur');
+  const zelfzaaiendRaw = get('ed-zelfzaaiend');
+  const zelfzaaiendVal = zelfzaaiendRaw === 'ja' ? true : zelfzaaiendRaw === 'nee' ? false : undefined;
   const data={id,name:get('ed-name'),lat:get('ed-lat'),emoji:get('ed-emoji'),care:get('ed-care'),
+    ...(levensduurVal ? {levensduur: levensduurVal} : {}),
+    ...(zelfzaaiendVal !== undefined ? {zelfzaaiend: zelfzaaiendVal} : {}),
     sun:get('ed-sun'),temp:get('ed-temp'),ph:get('ed-ph'),soil:get('ed-soil'),wf:parseInt(get('ed-wf'))||3,
     tip:get('ed-tip'),oogst_hoe:get('ed-oogst_hoe'),stek_hoe:get('ed-stek_hoe'),bewaring:get('ed-bewaring'),
     ben:lines(get('ed-ben')),rec:lines(get('ed-rec')),good:csv(get('ed-good')),bad:csv(get('ed-bad')),cat:csv(get('ed-cat')),
@@ -1673,6 +1681,19 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
           <div class="fg"><label>Latijnse naam</label><input id="ed-lat" placeholder="Ocimum basilicum"></div>
           <div class="fg"><label>Verzorgingsniveau</label>
             <select id="ed-care"><option value="easy">⚡ Weinig zorg</option><option value="medium">🌱 Matige zorg</option><option value="hard">🌳 Veel zorg</option></select></div>
+          <div class="fg"><label>Levensduur</label>
+            <select id="ed-levensduur">
+              <option value="">— Kies levensduur —</option>
+              <option value="vast">🌳 Vaste plant</option>
+              <option value="een">📅 Eenjarige plant</option>
+              <option value="twee">📅 Tweejarige plant</option>
+            </select></div>
+          <div class="fg"><label>Zelfzaaiend (enkel bij eenjarige)</label>
+            <select id="ed-zelfzaaiend">
+              <option value="">— Niet van toepassing —</option>
+              <option value="ja">🌱 Ja, zelfzaaiend</option>
+              <option value="nee">✋ Nee, niet zelfzaaiend</option>
+            </select></div>
           <div class="fg"><label>Categorieën</label><input id="ed-cat" placeholder="thee, koken, insecten"><span class="hint">Komma-gescheiden</span></div>
           <div class="fg"><label>Goede buurtplanten</label><input id="ed-good" placeholder="Tomaat, Basilicum"></div>
           <div class="fg"><label>Slechte buurtplanten</label><input id="ed-bad" placeholder="Peterselie"></div>
