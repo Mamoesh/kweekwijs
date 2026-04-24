@@ -200,7 +200,7 @@ select option{background:var(--surface2);}
 .recept-section{margin-bottom:2rem;}
 .recept-section-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--accent3);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);}
 .recept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;}
-.recept-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;cursor:pointer;transition:all .2s;}
+.recept-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
 .recept-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow);}
 .recept-card.has-detail{border-color:rgba(126,200,126,.3);}
 .tag.has-recept{border-color:rgba(126,200,126,.4)!important;background:rgba(126,200,126,.15)!important;}
@@ -212,6 +212,8 @@ select option{background:var(--surface2);}
 .recept-tag.drank{background:rgba(100,180,230,.1);color:#7ecce8;border:1px solid rgba(100,180,230,.2);}
 .recept-tag.thee{background:rgba(200,169,110,.1);color:var(--accent2);border:1px solid rgba(200,169,110,.2);}
 .recept-tag.dessert{background:rgba(200,126,180,.1);color:#d4a0c8;border:1px solid rgba(200,126,180,.2);}
+.recept-tag.verzorging{background:rgba(180,130,220,.1);color:#c8a0e8;border:1px solid rgba(180,130,220,.2);}
+.tag.purple{background:rgba(180,130,220,.12);color:#c8a0e8;border:1px solid rgba(180,130,220,.25);}
 
 .ingr-list{list-style:none;margin:.5rem 0 1rem;}
 .ingr-list li{padding:.28rem 0;font-size:.88rem;color:var(--text2);display:flex;gap:.5rem;align-items:baseline;}
@@ -340,7 +342,7 @@ select option{background:var(--surface2);}
 <div class="auth-overlay" id="auth-overlay">
   <div class="auth-box">
     <div class="auth-logo">🌿 Herbal<span>Root</span></div>
-    <div class="auth-sub">Jouw persoonlijk kruidentuin-assistent</div>
+    <div class="auth-sub">Jouw persoonlijk moestuin-assistent</div>
     <div class="auth-tabs">
       <div class="auth-tab active" onclick="switchAuthTab('login')">Aanmelden</div>
       <div class="auth-tab" onclick="switchAuthTab('register')">Registreren</div>
@@ -364,7 +366,6 @@ select option{background:var(--surface2);}
         <div class="toggle-group" id="tg-lang" style="margin-top:.4rem">
           <div class="toggle selected" onclick="selectLang(this,'nl')">🇧🇪 Nederlands</div>
           <div class="toggle" onclick="selectLang(this,'en')">🇬🇧 English</div>
-          <div class="toggle" onclick="selectLang(this,'fr')">🇫🇷 Français</div>
         </div>
       </div>
       <div class="tc-box">
@@ -431,11 +432,10 @@ select option{background:var(--surface2);}
           <label>Land / Regio</label>
           <select id="s-land">
             <option value="">— Kies jouw land —</option>
-            <option value="be">🇧🇪 België</option><option value="nl">🇳🇱 Nederland</option>
-            <option value="fr">🇫🇷 Frankrijk</option><option value="de">🇩🇪 Duitsland</option>
-            <option value="es">🇪🇸 Spanje</option><option value="it">🇮🇹 Italië</option>
-            <option value="uk">🇬🇧 Verenigd Koninkrijk</option><option value="pt">🇵🇹 Portugal</option>
-            <option value="gr">🇬🇷 Griekenland</option>
+            <option value="be">🇧🇪 België</option>
+            <option value="nl">🇳🇱 Nederland</option>
+            <option value="de">🇩🇪 Duitsland</option>
+            <option value="fr">🇫🇷 Frankrijk</option>
           </select>
           <label>Klimaatzone</label>
           <input type="text" id="s-klimaat" readonly placeholder="Wordt ingevuld na landkeuze" style="color:var(--text2)">
@@ -575,6 +575,7 @@ select option{background:var(--surface2);}
     <button class="filter-btn" onclick="filterRecepten('drank',this)">🥤 Dranken</button>
     <button class="filter-btn" onclick="filterRecepten('thee',this)">🍵 Thee</button>
     <button class="filter-btn" onclick="filterRecepten('dessert',this)">🍰 Desserts</button>
+    <button class="filter-btn" onclick="filterRecepten('verzorging',this)">✨ Verzorging</button>
   </div>
   <div id="recepten-grid"></div>
 </div>
@@ -623,7 +624,7 @@ select option{background:var(--surface2);}
     </div>
   </div>
 
-  <div class="section-title">🌱 Mijn Kruidentuin</div>
+  <div class="section-title">🌱 Mijn Moestuin</div>
   <div class="section-sub" style="margin-bottom:1rem">Upload foto's van jouw planten en houd bij wat je kweekt.</div>
 
   <div class="plant-upload-grid" id="plant-upload-grid">
@@ -1593,17 +1594,18 @@ function openModal(id){
     ${(() => {
       // Split all recipes by category
       const allRec = h.rec || [];
-      const koken   = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='gerecht' || cat==='soep'; });
-      const dranken = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='drank'; });
-      const desserts= allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='dessert'; });
-      const thee    = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='thee'; });
+      const koken      = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='gerecht' || cat==='soep'; });
+      const dranken    = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='drank'; });
+      const desserts   = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='dessert'; });
+      const thee       = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='thee'; });
+      const verzorging = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='verzorging'; });
       // Add thee_combos to thee section
       const theeCombos = h.thee_combos || [];
 
       function makeTag(r, emoji, colorClass) {
         const hasR = !!RECEPTEN_DB[r];
         const esc = r.replace(/'/g, "\'");
-        return '<span class="tag '+colorClass+(hasR?' has-recept':'')+'" style="cursor:pointer" onclick="openReceptDetail(\'' + h.id + '\',\''+esc+'\')">'+emoji+' '+r+'</span>';
+        return '<span class="tag '+colorClass+' has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\'' + h.id + '\',\''+esc+'\')" title="Bekijk recept">'+emoji+' '+r+'</span>';
       }
       function makeComboTag(tc) {
         const hasR = !!RECEPTEN_DB[tc.naam];
@@ -1621,6 +1623,7 @@ function openModal(id){
         html += theeCombos.map(tc=>makeComboTag(tc)).join('');
         html += '</div>';
       }
+      if (verzorging.length) html += '<div class="section-h">✨ Verzorgingsproducten</div><div class="herb-tags">'+verzorging.map(r=>makeTag(r,'✨','purple')).join('')+'</div>';
       return html || '<div class="section-h">🍽 Gerechten & Soepen</div><div class="herb-tags"><span style="color:var(--text2);font-size:.85rem">Geen recepten.</span></div>';
     })()}
     ${h.skin ? `
@@ -2287,7 +2290,12 @@ function setGeoResult(countryCode, city, countryName, lat, lon) {
 
 // Classify each recipe into a category
 function classifyRecept(name, herbId) {
+  // Check RECEPTEN_DB first — als cat daar al ingesteld is, gebruik die
+  if (typeof RECEPTEN_DB !== 'undefined' && RECEPTEN_DB[name] && RECEPTEN_DB[name].cat) {
+    return RECEPTEN_DB[name].cat;
+  }
   const n = name.toLowerCase();
+  if (n.match(/gel|balsem|zalf|serum|masker|scrub|peeling|verzorging|huidcrème|tonic|oogcrème|lippenbalsem|shampoo|conditioner|deodorant|spray|oil blend|aromatherapy|badolie|bodybutter|bodylotion/)) return 'verzorging';
   if (n.match(/thee|infusie|blend|tisane/)) return 'thee';
   if (n.match(/cocktail|mojito|gin|bier|wijn|limonade|siroop|drank|smoothie|drankje|lemonade|ijsthee|karkadeh/)) return 'drank';
   if (n.match(/soep|bouillon|potage|velouté|bisque|gazpacho|vichyssoise/)) return 'soep';
@@ -2298,29 +2306,41 @@ function classifyRecept(name, herbId) {
 // Build recipe database from HERBS
 function buildReceptenDB() {
   const db = [];
-  HERBS.forEach(herb => {
-    // Standard recipes
+  const allPlants = [...HERBS, ...GROENTEN, ...FRUIT];
+  allPlants.forEach(herb => {
     (herb.rec||[]).forEach(recept => {
       db.push({
         naam: recept,
         herbId: herb.id,
         herbNaam: herb.name,
-        herbEmoji: herb.emoji,
+        herbEmoji: herb.emoji||'🌿',
         cat: classifyRecept(recept, herb.id),
         tip: ''
       });
     });
-    // Thee combos
     (herb.thee_combos||[]).forEach(tc => {
       db.push({
         naam: tc.naam,
         herbId: herb.id,
         herbNaam: herb.name,
-        herbEmoji: herb.emoji,
+        herbEmoji: herb.emoji||'🌿',
         cat: 'thee',
         tip: tc.voordeel
       });
     });
+  });
+  // Merge with Firebase recepten (RECEPTEN_DB) — add any that aren't already in db
+  Object.entries(RECEPTEN_DB||{}).forEach(([naam, r]) => {
+    if (!db.find(x => x.naam === naam)) {
+      db.push({
+        naam,
+        herbId: r.herbId||'',
+        herbNaam: r.herbId||'',
+        herbEmoji: '🍳',
+        cat: r.cat||'gerecht',
+        tip: r.intro||''
+      });
+    }
   });
   // Deduplicate by name
   const seen = new Set();
@@ -2342,11 +2362,12 @@ function renderRecepten() {
   const filtered = activeReceptFilter === 'all' ? db : db.filter(r => r.cat === activeReceptFilter);
 
   const groups = {
-    gerecht: { label:'🍽 Gerechten',          icon:'🍽', items:[] },
-    soep:    { label:'🥣 Soepen',              icon:'🥣', items:[] },
-    drank:   { label:'🥤 Dranken & Cocktails', icon:'🥤', items:[] },
-    thee:    { label:'🍵 Thee & Infusies',     icon:'🍵', items:[] },
-    dessert: { label:'🍰 Desserts & Zoetwaren', icon:'🍰', items:[] },
+    gerecht:   { label:'🍽 Gerechten',            icon:'🍽', items:[] },
+    soep:      { label:'🥣 Soepen',               icon:'🥣', items:[] },
+    drank:     { label:'🥤 Dranken & Cocktails',  icon:'🥤', items:[] },
+    thee:      { label:'🍵 Thee & Infusies',      icon:'🍵', items:[] },
+    dessert:   { label:'🍰 Desserts & Zoetwaren', icon:'🍰', items:[] },
+    verzorging:{ label:'✨ Verzorgingsproducten',  icon:'✨', items:[] },
   };
   filtered.forEach(r => {
     if (groups[r.cat]) groups[r.cat].items.push(r);
@@ -2365,7 +2386,8 @@ function renderRecepten() {
         ${g.items.map(r => {
           const hasDetail = !!RECEPTEN_DB[r.naam];
           const esc = r.naam.replace(/'/g, "\'");
-          return '<div class="recept-card'+(hasDetail?' has-detail':'')+'" onclick="openReceptDetail(\'' + esc + '\',\''+r.herbId+'\')">'+
+          return '<div class="recept-card has-detail" onclick="openReceptDetail(\'' + esc + '\',\''+r.herbId+'\')">'+
+            (!hasDetail ? '<span style="position:absolute;top:8px;right:8px;font-size:.6rem;background:var(--accent2);color:#0f1a0f;padding:.15rem .4rem;border-radius:100px">In opmaak</span>' : '')+
             '<h3>'+r.naam+''+'</h3>'+
             '<div class="recept-herb">'+r.herbEmoji+' '+r.herbNaam+'</div>'+
             (r.tip ? '<div class="recept-desc">'+r.tip+'</div>' : '')+
@@ -2397,9 +2419,10 @@ function filterReceptenBySearch() {
     drank:{label:'🥤 Dranken',icon:'🥤',items:[]},
     thee:{label:'🍵 Thee',icon:'🍵',items:[]},
     dessert:{label:'🍰 Desserts',icon:'🍰',items:[]},
+    verzorging:{label:'✨ Verzorgingsproducten',icon:'✨',items:[]},
   };
   filtered.forEach(r => { if(groups[r.cat]) groups[r.cat].items.push(r); });
-  const catOrder = ['gerecht','soep','drank','thee','dessert'];
+  const catOrder = ['gerecht','soep','drank','thee','dessert','verzorging'];
   const html = catOrder.map(cat => {
     const g = groups[cat];
     if(!g.items.length) return '';
@@ -2431,7 +2454,18 @@ function openReceptDetail(a, b) {
   const herbId = RECEPTEN_DB[a] ? b : a;
   const recept = RECEPTEN_DB[naam];
   if (!recept) {
-    openModal(herbId || naam);
+    // Toon een "in opmaak" melding in plaats van modal te sluiten
+    const herb = [...HERBS,...GROENTEN,...FRUIT].find(h => h.id === herbId) || {};
+    document.getElementById('recept-modal-title').textContent = naam;
+    document.getElementById('recept-modal-meta').textContent = (herb.emoji||'🍳') + ' ' + (herb.name||herbId||'') + ' — Recept';
+    document.getElementById('recept-modal-body').innerHTML =
+      '<div style="text-align:center;padding:2rem 1rem">' +
+      '<div style="font-size:3rem;margin-bottom:1rem">🍳</div>' +
+      '<h3 style="color:var(--accent3);font-family:var(--font-serif,serif);margin-bottom:.5rem">' + naam + '</h3>' +
+      '<p style="color:var(--text2);line-height:1.7;margin-bottom:1rem">Het recept voor <strong>' + naam + '</strong> wordt binnenkort toegevoegd.</p>' +
+      '<p style="color:var(--text2);font-size:.82rem">Kom later terug of voeg het toe via de beheerpagina.</p>' +
+      '</div>';
+    document.getElementById('recept-modal-overlay').classList.add('open');
     return;
   }
   const herb = HERBS.find(h => h.id === herbId) || {};
@@ -2475,18 +2509,47 @@ function goToHuidRecept(herbId, receptTitel) {
 }
 
 function goToRecept(herbId, receptNaam) {
-  // If we have a detailed recipe, open it directly
   if (RECEPTEN_DB[receptNaam]) {
     openReceptDetail(receptNaam, herbId);
     return;
   }
-  // Otherwise navigate to recepten screen
   closeModal();
   go('recepten');
   activeReceptFilter = 'all';
   document.querySelectorAll('#recept-filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('#recept-filter-bar .filter-btn').classList.add('active');
   renderRecepten();
+}
+
+// Navigeer vanuit inhoudmodal naar receptenpagina + scroll naar/open het juiste recept
+function goToReceptFromModal(herbId, receptNaam) {
+  closeModal();
+  go('recepten');
+  activeReceptFilter = 'all';
+  document.querySelectorAll('#recept-filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
+  const firstBtn = document.querySelector('#recept-filter-bar .filter-btn');
+  if (firstBtn) firstBtn.classList.add('active');
+  renderRecepten();
+
+  // Wacht even tot recepten gerenderd zijn, open dan het recept direct
+  setTimeout(() => {
+    if (RECEPTEN_DB[receptNaam]) {
+      // Recept bestaat al — open het meteen
+      openReceptDetail(receptNaam, herbId);
+    } else {
+      // Recept bestaat nog niet — scroll naar de kaart en highlight
+      const cards = document.querySelectorAll('.recept-card');
+      for (const card of cards) {
+        if (card.querySelector('h3')?.textContent?.trim() === receptNaam) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.style.outline = '2px solid var(--accent)';
+          card.style.outlineOffset = '3px';
+          setTimeout(() => { card.style.outline = ''; card.style.outlineOffset = ''; }, 2000);
+          break;
+        }
+      }
+    }
+  }, 150);
 }
 
 
@@ -3310,7 +3373,7 @@ function openPlantModal(id, type) {
           '<div class="herb-tags">' + koken.map(r => {
             const hasR = !!RECEPTEN_DB[r];
             const esc = r.replace(/'/g, "\\'");
-            return '<span class="tag gold' + (hasR?' has-recept':'') + '" style="cursor:pointer" onclick="openReceptDetail(\'' + id + '\',\'' + esc + '\')">🍴 ' + r + '</span>';
+            return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\''+id+'\',\''+esc+'\'" title="Bekijk recept">🍴 ' + r + '</span>';
           }).join('') + '</div>';
       }
       if (dranken.length) {
@@ -3318,7 +3381,7 @@ function openPlantModal(id, type) {
           '<div class="herb-tags">' + dranken.map(r => {
             const hasR = !!RECEPTEN_DB[r];
             const esc = r.replace(/'/g, "\\'");
-            return '<span class="tag gold' + (hasR?' has-recept':'') + '" style="cursor:pointer" onclick="openReceptDetail(\'' + id + '\',\'' + esc + '\')">🥤 ' + r + '</span>';
+            return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\''+id+'\',\''+esc+'\'" title="Bekijk recept">🥤 ' + r + '</span>';
           }).join('') + '</div>';
       }
       return html;
@@ -3492,7 +3555,7 @@ const TRANSLATIONS = {
     sec_voordelen:'🌿 Voordelen & gebruik', sec_koken:'🍳 Koken', sec_dranken:'🥤 Dranken',
     sec_desserts:'🍰 Desserts', sec_thee:'🍵 Thee', sec_tip:'💡 Kweektip',
     sec_stekken:'✂️ Hoe stekken?', sec_oogsten:'🌾 Hoe oogsten?',
-    profile_title:'Mijn Kruidentuin', profile_sub:'Upload foto\'s van jouw planten.',
+    profile_title:'Mijn Moestuin', profile_sub:'Upload foto\'s van jouw planten.',
     community_title:'Community', recepten_title:'Recepten & Dranken',
     bewaar_title:'📦 Bewaar- en conserveringsmethodes',
     care_easy:'⚡ Weinig zorg', care_medium:'🌱 Matige zorg', care_hard:'🌳 Veel zorg',
