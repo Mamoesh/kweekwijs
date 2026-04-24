@@ -1,7 +1,7 @@
 {
-  "name": "HerbalRoot – Kweek je eigen kruiden",
+  "name": "HerbalRoot – Jouw persoonlijke moestuin",
   "short_name": "HerbalRoot",
-  "description": "Persoonlijk kwekerijadvies voor kruiden, groenten en fruit — van zaad tot bloei.",
+  "description": "Persoonlijk moestuin-advies voor kruiden, groenten en fruit — van zaad tot bloei.",
   "start_url": ".",
   "display": "standalone",
   "orientation": "portrait",
