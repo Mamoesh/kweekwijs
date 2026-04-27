@@ -4096,10 +4096,10 @@ function renderPickerGrid(cat) {
   grid.innerHTML = plants.map(p => {
     const src = p.photo||p.photo2||'';
     const count = entryCounts[p.id]||0;
-    return '<div class="picker-card' + (count>0?' picked':'') + '" onclick="addPickerPlant('' + p.id + '','' + cat + '')" data-id="' + p.id + '">' +
+    return '<div class="picker-card' + (count>0?' picked':'') + '" onclick="addPickerPlant(\'' + p.id + '\',\'' + cat + '\')" data-id="' + p.id + '">' +
       '<div class="picker-check">' + (count>1 ? count : '✓') + '</div>' +
       '<div class="picker-img">' +
-        (src ? '<img src="' + src + '" referrerpolicy="no-referrer" onerror="this.style.display='none'">' : '<span style="font-size:1.8rem">' + (p.emoji||'🌿') + '</span>') +
+        (src ? '<img src="' + src + '" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">' : '<span style="font-size:1.8rem">' + (p.emoji||'🌿') + '</span>') +
       '</div>' +
       '<div class="picker-name">' + (p.name||p.id) + '</div>' +
       (count>0 ? '<div style="font-size:.62rem;color:var(--accent);text-align:center;padding:.1rem .3rem .3rem">+ nog een locatie</div>' : '') +
@@ -4112,7 +4112,7 @@ function addPickerPlant(plantId, cat) {
   // Show location picker dialog
   const plant = [...HERBS,...GROENTEN,...FRUIT].find(p=>p.id===plantId);
   const locHtml = LOCATIES.map((l,i) =>
-    '<button onclick="confirmAddPlant('' + plantId + '','' + cat + '','' + l + '')" style="padding:.5rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.82rem;transition:all .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">' + l + '</button>'
+    '<button onclick="confirmAddPlant(\'' + plantId + '\',\'' + cat + '\',\'' + l + '\')" style="padding:.5rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-family:sans-serif;font-size:.82rem;transition:all .2s">' + l + '</button>'
   ).join('');
   const existing = moetuinData.filter(e=>e.plantId===plantId);
   const existingHtml = existing.length ? '<div style="font-size:.75rem;color:var(--text2);margin-bottom:.75rem">Al toegevoegd: ' + existing.map(e=>e.locatie).join(', ') + '</div>' : '';
@@ -4121,11 +4121,11 @@ function addPickerPlant(plantId, cat) {
   const tempDiv = document.createElement('div');
   tempDiv.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:1rem';
   tempDiv.innerHTML = '<div style="background:var(--surface);border-radius:var(--radius);padding:1.5rem;max-width:320px;width:100%">' +
-    '<div style="font-family:'Playfair Display',serif;color:var(--accent3);margin-bottom:.5rem">' + (plant?.emoji||'🌿') + ' ' + (plant?.name||plantId) + '</div>' +
+    '<div style="font-family:var(--font-serif,serif);color:var(--accent3);margin-bottom:.5rem">' + (plant?.emoji||'🌿') + ' ' + (plant?.name||plantId) + '</div>' +
     '<div style="font-size:.82rem;color:var(--text2);margin-bottom:.75rem">Kies de locatie:</div>' +
     existingHtml +
     '<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem">' + locHtml + '</div>' +
-    '<button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Annuleren</button>' +
+    '<button onclick="this.closest(\"[style*=fixed]\").remove()" style="width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);cursor:pointer;font-family:sans-serif">Annuleren</button>' +
   '</div>';
   document.body.appendChild(tempDiv);
 }
@@ -4163,7 +4163,7 @@ function renderProfielMoestuin() {
     return '<div class="moestuin-plant-card" id="mpc-' + eid + '">' +
       '<div class="moestuin-plant-card-header">' +
         '<div class="moestuin-plant-card-img">' +
-          (src ? '<img src="' + src + '" referrerpolicy="no-referrer" onerror="this.style.display='none'">' : (p.emoji||'🌿')) +
+          (src ? '<img src="' + src + '" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">' : (p.emoji||'🌿')) +
         '</div>' +
         '<div style="flex:1">' +
           '<div class="moestuin-plant-card-name">' + p.name + '</div>' +
