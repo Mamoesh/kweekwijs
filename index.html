@@ -4109,36 +4109,107 @@ function renderPickerGrid(cat) {
 }
 
 function addPickerPlant(plantId, cat) {
-  // Show location picker dialog
   const plant = [...HERBS,...GROENTEN,...FRUIT].find(p=>p.id===plantId);
-  const locHtml = LOCATIES.map((l,i) =>
-    '<button onclick="confirmAddPlant(\'' + plantId + '\',\'' + cat + '\',\'' + l + '\')" style="padding:.5rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-family:sans-serif;font-size:.82rem;transition:all .2s">' + l + '</button>'
-  ).join('');
   const existing = moetuinData.filter(e=>e.plantId===plantId);
-  const existingHtml = existing.length ? '<div style="font-size:.75rem;color:var(--text2);margin-bottom:.75rem">Al toegevoegd: ' + existing.map(e=>e.locatie).join(', ') + '</div>' : '';
-  // Show in a mini modal inside the popup
-  const body = document.getElementById('picker-grid');
-  const tempDiv = document.createElement('div');
-  tempDiv.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:1rem';
-  tempDiv.innerHTML = '<div style="background:var(--surface);border-radius:var(--radius);padding:1.5rem;max-width:320px;width:100%">' +
-    '<div style="font-family:var(--font-serif,serif);color:var(--accent3);margin-bottom:.5rem">' + (plant?.emoji||'🌿') + ' ' + (plant?.name||plantId) + '</div>' +
-    '<div style="font-size:.82rem;color:var(--text2);margin-bottom:.75rem">Kies de locatie:</div>' +
-    existingHtml +
-    '<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem">' + locHtml + '</div>' +
-    '<button onclick="this.closest(\"[style*=fixed]\").remove()" style="width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);cursor:pointer;font-family:sans-serif">Annuleren</button>' +
-  '</div>';
-  document.body.appendChild(tempDiv);
+
+  // Remove any existing location dialog
+  const existingDialog = document.getElementById('locatie-dialog');
+  if (existingDialog) existingDialog.remove();
+
+  // Build dialog using DOM (no innerHTML onclick strings)
+  const overlay = document.createElement('div');
+  overlay.id = 'locatie-dialog';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:1rem';
+
+  const box = document.createElement('div');
+  box.style.cssText = 'background:var(--surface);border-radius:var(--radius);padding:1.5rem;max-width:320px;width:100%';
+
+  // Title
+  const title = document.createElement('div');
+  title.style.cssText = 'font-size:1rem;font-weight:600;color:var(--accent3);margin-bottom:.35rem';
+  title.textContent = (plant?.emoji||'🌿') + ' ' + (plant?.name||plantId);
+  box.appendChild(title);
+
+  // Already added info
+  if (existing.length) {
+    const info = document.createElement('div');
+    info.style.cssText = 'font-size:.75rem;color:var(--text2);margin-bottom:.65rem';
+    info.textContent = 'Al toegevoegd: ' + existing.map(e=>e.locatie).join(', ');
+    box.appendChild(info);
+  }
+
+  // Subtitle
+  const sub = document.createElement('div');
+  sub.style.cssText = 'font-size:.82rem;color:var(--text2);margin-bottom:.75rem';
+  sub.textContent = 'Kies de locatie:';
+  box.appendChild(sub);
+
+  // Location buttons
+  const btnWrap = document.createElement('div');
+  btnWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem';
+  LOCATIES.forEach(locatie => {
+    const btn = document.createElement('button');
+    btn.textContent = locatie;
+    btn.style.cssText = 'padding:.5rem 1rem;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:.82rem;transition:all .2s';
+    btn.onmouseover = () => btn.style.borderColor = 'var(--accent)';
+    btn.onmouseout  = () => { if(!btn.classList.contains('sel')) btn.style.borderColor = 'var(--border)'; };
+    btn.addEventListener('click', () => {
+      // Highlight selected
+      btnWrap.querySelectorAll('button').forEach(b => {
+        b.style.borderColor = 'var(--border)';
+        b.style.background = 'var(--surface2)';
+        b.classList.remove('sel');
+      });
+      btn.style.borderColor = 'var(--accent)';
+      btn.style.background = 'rgba(126,200,126,.12)';
+      btn.classList.add('sel');
+      confirmBtn.dataset.locatie = locatie;
+      confirmBtn.disabled = false;
+      confirmBtn.style.opacity = '1';
+    });
+    btnWrap.appendChild(btn);
+  });
+  box.appendChild(btnWrap);
+
+  // Confirm button
+  const confirmBtn = document.createElement('button');
+  confirmBtn.textContent = '✓ Toevoegen aan moestuin';
+  confirmBtn.disabled = true;
+  confirmBtn.style.cssText = 'width:100%;padding:.6rem;background:var(--accent);color:#0f1a0f;border:none;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;margin-bottom:.4rem;opacity:.4;transition:opacity .2s';
+  confirmBtn.addEventListener('click', () => {
+    const locatie = confirmBtn.dataset.locatie;
+    if (!locatie) return;
+    overlay.remove();
+    const entryId = plantId + '_' + Date.now();
+    moetuinData.push({ entryId, plantId, cat, locatie, zaaidatum:'', uitplantdatum:'', oogstdatum:'', waterdatum:'', notities:'', foto:'', publiek:false });
+    saveMoetuinToFirebase();
+    renderPickerGrid(pickerCurrentCat);
+    showToast('✓ ' + (plant?.name||plantId) + ' (' + locatie + ') toegevoegd!', 'ok');
+  });
+  box.appendChild(confirmBtn);
+
+  // Cancel button
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Annuleren';
+  cancelBtn.style.cssText = 'width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);cursor:pointer;font-size:.82rem';
+  cancelBtn.addEventListener('click', () => overlay.remove());
+  box.appendChild(cancelBtn);
+
+  overlay.appendChild(box);
+  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 }
 
 function confirmAddPlant(plantId, cat, locatie) {
-  // Remove location dialog
-  document.querySelectorAll('[style*="position:fixed"][style*="z-index:400"]').forEach(el => el.remove());
-  const entryId = plantId + '_' + locatie.toLowerCase() + '_' + Date.now();
+  // Legacy fallback - not used anymore
+  document.getElementById('locatie-dialog')?.remove();
+  const entryId = plantId + '_' + Date.now();
   moetuinData.push({ entryId, plantId, cat, locatie, zaaidatum:'', uitplantdatum:'', oogstdatum:'', waterdatum:'', notities:'', foto:'', publiek:false });
   saveMoetuinToFirebase();
   renderPickerGrid(pickerCurrentCat);
-  showToast('Toegevoegd aan moestuin ✓','ok');
+  showToast('Toegevoegd ✓', 'ok');
 }
+
 
 function updatePickerCount() {
   const n = moetuinData.length;
