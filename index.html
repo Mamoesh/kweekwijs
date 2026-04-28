@@ -387,7 +387,13 @@ select option{background:var(--surface2);}
     <div class="auth-form active" id="auth-login">
       <div class="auth-error" id="login-error"></div>
       <div class="auth-field"><label>E-mailadres</label><input type="email" id="login-email" placeholder="jouw@email.be" autocomplete="email"></div>
-      <div class="auth-field"><label>Wachtwoord</label><input type="password" id="login-pw" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="auth-field">
+        <label>Wachtwoord</label>
+        <div style="position:relative">
+          <input type="password" id="login-pw" placeholder="••••••••" autocomplete="current-password" style="width:100%;padding-right:2.5rem">
+          <button type="button" onclick="togglePw('login-pw',this)" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text2);font-size:1rem;padding:0;line-height:1" title="Wachtwoord tonen">👁</button>
+        </div>
+      </div>
       <button class="btn" id="login-btn" style="width:100%;margin-top:.5rem" onclick="doLogin()">Aanmelden →</button>
       <div style="display:flex;align-items:center;gap:.75rem;margin:.75rem 0">
         <div style="flex:1;height:1px;background:var(--border)"></div>
@@ -405,7 +411,20 @@ select option{background:var(--surface2);}
       <div class="auth-error" id="register-error"></div>
       <div class="auth-field"><label>Naam</label><input type="text" id="reg-name" placeholder="Voornaam Naam"></div>
       <div class="auth-field"><label>E-mailadres</label><input type="email" id="reg-email" placeholder="jouw@email.be" autocomplete="email"></div>
-      <div class="auth-field"><label>Wachtwoord (min. 6 tekens)</label><input type="password" id="reg-pw" placeholder="••••••••" autocomplete="new-password"></div>
+      <div class="auth-field">
+        <label>Wachtwoord (min. 6 tekens)</label>
+        <div style="position:relative">
+          <input type="password" id="reg-pw" placeholder="••••••••" autocomplete="new-password" style="width:100%;padding-right:2.5rem">
+          <button type="button" onclick="togglePw('reg-pw',this)" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text2);font-size:1rem;padding:0;line-height:1" title="Wachtwoord tonen">👁</button>
+        </div>
+      </div>
+      <div class="auth-field">
+        <label>Wachtwoord bevestigen</label>
+        <div style="position:relative">
+          <input type="password" id="reg-pw2" placeholder="••••••••" autocomplete="new-password" style="width:100%;padding-right:2.5rem">
+          <button type="button" onclick="togglePw('reg-pw2',this)" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text2);font-size:1rem;padding:0;line-height:1" title="Wachtwoord tonen">👁</button>
+        </div>
+      </div>
       <div class="auth-field">
         <label>Taal / Language / Langue</label>
         <div class="toggle-group" id="tg-lang" style="margin-top:.4rem">
@@ -555,7 +574,7 @@ select option{background:var(--surface2);}
         <h2>Jouw profiel is klaar!</h2>
         <p class="sub" style="margin-top:.5rem">We hebben de beste kruiden voor jou geselecteerd.</p>
         <div id="profile-summary" style="text-align:left;background:var(--surface2);border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.9rem;line-height:2;color:var(--text2)"></div>
-        <button class="btn" onclick="openMoetuinPopup()" id="view-moestuin-btn">Bekijk mijn moestuin →</button>
+        
       </div>
     </div>
   </div>
@@ -653,14 +672,7 @@ select option{background:var(--surface2);}
     </div>
   </div>
 
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:.5rem">
-    <div class="section-title" style="margin-bottom:0">🌱 Mijn Moestuin</div>
-    <button class="btn" style="font-size:.82rem;padding:.5rem 1.1rem" onclick="openMoetuinPopup()">+ Planten toevoegen</button>
-  </div>
-  <div class="section-sub" style="margin-bottom:1rem">Jouw persoonlijke moestuin — houd bij wat je zaait, uitplant en oogst.</div>
-  <div id="profiel-moestuin-grid" class="moestuin-plant-grid">
-    <div style="color:var(--text2);font-size:.85rem;padding:1.5rem 0">Nog geen planten toegevoegd. Klik op "+ Planten toevoegen" om te beginnen.</div>
-  </div>
+
 
   <div style="margin-top:2rem">
     <div class="section-title">⚙️ Profiel bewerken</div>
@@ -2359,43 +2371,19 @@ function classifyRecept(name, herbId) {
 // Build recipe database from HERBS
 function buildReceptenDB() {
   const db = [];
-  const allPlants = [...HERBS, ...GROENTEN, ...FRUIT];
-  allPlants.forEach(herb => {
-    (herb.rec||[]).forEach(recept => {
-      db.push({
-        naam: recept,
-        herbId: herb.id,
-        herbNaam: herb.name,
-        herbEmoji: herb.emoji||'🌿',
-        cat: classifyRecept(recept, herb.id),
-        tip: ''
-      });
-    });
-    (herb.thee_combos||[]).forEach(tc => {
-      db.push({
-        naam: tc.naam,
-        herbId: herb.id,
-        herbNaam: herb.name,
-        herbEmoji: herb.emoji||'🌿',
-        cat: 'thee',
-        tip: tc.voordeel
-      });
-    });
-  });
-  // Merge with Firebase recepten (RECEPTEN_DB) — add any that aren't already in db
+  // Enkel Firebase recepten tonen (uit RECEPTEN_DB)
   Object.entries(RECEPTEN_DB||{}).forEach(([naam, r]) => {
-    if (!db.find(x => x.naam === naam)) {
-      db.push({
-        naam,
-        herbId: r.herbId||'',
-        herbNaam: r.herbId||'',
-        herbEmoji: '🍳',
-        cat: r.cat||'gerecht',
-        tip: r.intro||''
-      });
-    }
+    const herb = [...HERBS,...GROENTEN,...FRUIT].find(h=>h.id===(r.herbId||''));
+    db.push({
+      naam,
+      herbId: r.herbId||'',
+      herbNaam: herb?.name || r.herbId||'',
+      herbEmoji: herb?.emoji||'🍳',
+      cat: r.cat||classifyRecept(naam, r.herbId||''),
+      tip: r.intro||''
+    });
   });
-  // Deduplicate by name
+  // Deduplicate
   const seen = new Set();
   return db.filter(r => {
     if (seen.has(r.naam)) return false;
@@ -2734,6 +2722,14 @@ function setRegisterLoading(loading) {
   if (btn) btn.disabled = loading;
 }
 
+function togglePw(fieldId, btn) {
+  const field = document.getElementById(fieldId);
+  if (!field) return;
+  const show = field.type === 'password';
+  field.type = show ? 'text' : 'password';
+  btn.textContent = show ? '🙈' : '👁';
+}
+
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pw    = document.getElementById('login-pw').value;
@@ -2786,8 +2782,10 @@ async function doRegister() {
   const agreed = document.getElementById('tc-agree').checked;
   const err    = document.getElementById('register-error');
   err.classList.remove('show');
+  const pw2 = document.getElementById('reg-pw2')?.value||'';
   if (!name||!email||!pw) { err.textContent='Vul alle velden in.'; err.classList.add('show'); return; }
   if (pw.length < 6) { err.textContent='Wachtwoord moet minimaal 6 tekens zijn.'; err.classList.add('show'); return; }
+  if (pw !== pw2) { err.textContent='Wachtwoorden komen niet overeen.'; err.classList.add('show'); return; }
   if (!agreed) { err.textContent='Je moet akkoord gaan met de gebruiksvoorwaarden.'; err.classList.add('show'); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent='Ongeldig e-mailadres.'; err.classList.add('show'); return; }
   setRegisterLoading(true);
