@@ -368,7 +368,7 @@ select option{background:var(--surface2);}
     <button onclick="go('kruiden')" id="nav-kruiden">🌱 <span>Kruiden</span></button>
     <button onclick="go('recepten')" id="nav-recepten">🍳 <span>Recepten</span></button>
     <button onclick="go('community')" id="nav-community">🌿 <span>Community</span></button>
-    <button onclick="openMoetuinPopup()" id="nav-moestuin">🥕 <span>Mijn Moestuin</span></button>
+    
     <div style="flex:1"></div>
     <button onclick="go('profiel')" id="nav-profiel" style="margin-left:auto">👤 <span>Profiel</span></button>
   </nav>
@@ -2576,6 +2576,16 @@ function goToRecept(herbId, receptNaam) {
 
 // Navigeer vanuit inhoudmodal naar receptenpagina + scroll naar/open het juiste recept
 function goToReceptFromModal(herbId, receptNaam) {
+  // Controleer eerst in RECEPTEN_DB (lokaal + Firebase geladen)
+  const inDB = RECEPTEN_DB[receptNaam];
+  if (inDB) {
+    // Recept gevonden — open direct zonder naar receptenpagina te gaan
+    closeModal();
+    openReceptDetail(receptNaam, herbId);
+    return;
+  }
+
+  // Niet gevonden — ga naar receptenpagina en probeer daar te openen
   closeModal();
   go('recepten');
   activeReceptFilter = 'all';
@@ -2584,13 +2594,12 @@ function goToReceptFromModal(herbId, receptNaam) {
   if (firstBtn) firstBtn.classList.add('active');
   renderRecepten();
 
-  // Wacht even tot recepten gerenderd zijn, open dan het recept direct
   setTimeout(() => {
+    // Hercheck na render (Firebase kan inmiddels geladen zijn)
     if (RECEPTEN_DB[receptNaam]) {
-      // Recept bestaat al — open het meteen
       openReceptDetail(receptNaam, herbId);
     } else {
-      // Recept bestaat nog niet — scroll naar de kaart en highlight
+      // Scroll naar kaart en highlight
       const cards = document.querySelectorAll('.recept-card');
       for (const card of cards) {
         if (card.querySelector('h3')?.textContent?.trim() === receptNaam) {
@@ -4344,6 +4353,17 @@ async function laadFirebaseData() {
     if (kruiden.length)  { HERBS.length = 0;   kruiden.forEach(p => HERBS.push(p)); }
     if (groenten.length) { GROENTEN.length = 0; groenten.forEach(p => GROENTEN.push(p)); }
     if (fruit.length)    { FRUIT.length = 0;    fruit.forEach(p => FRUIT.push(p)); }
+
+    // Laad ook recepten uit Firebase en voeg toe aan RECEPTEN_DB
+    try {
+      const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      const recSnap = await getDocs(collection(db, 'recepten'));
+      recSnap.docs.forEach(d => {
+        const data = d.data();
+        const naam = data.naam || d.id.replace(/_sl_/g,'/').replace(/_dt_/g,'.').replace(/_/g,' ');
+        if (naam && !RECEPTEN_DB[naam]) RECEPTEN_DB[naam] = data;
+      });
+    } catch(e) { console.warn('Recepten laden fout:', e.message); }
 
     // Herrender alle actieve schermen
     if (typeof renderHerbs    === 'function') renderHerbs();
