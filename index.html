@@ -1420,15 +1420,14 @@ function selectLand(code, btn) {
 
 function ns(i){
   if(i===0){
-    // Landstap verwijderd — standaard België
     UP.land = document.getElementById('s-land')?.value || 'be';
     UP.klimaat = KL[UP.land] || 'Gematigd oceaanklimaat (Cfb)';
   }
+  if(i===1){
     const types = gms('tg-type');
     if(!types.length){alert('Kies minstens één type ruimte.');return;}
-    UP.types = types;  // array of selected types
-    UP.type = types.join(', ');  // backward compat
-    // Read per-space m2
+    UP.types = types;
+    UP.type = types.join(', ');
     UP.spaceM2 = {};
     types.forEach(t => {
       const key = 'sm2-' + t.replace(/[^a-z]/gi,'').toLowerCase();
@@ -1442,11 +1441,14 @@ function ns(i){
   if(i===2){UP.cats=gms('tg-cat');UP.tijd=gs('tg-tijd')||'Matig';}
   if(i===3)return;
   document.getElementById('step-'+i).classList.remove('active');
-  document.getElementById('dot-'+i).classList.remove('active');document.getElementById('dot-'+i).classList.add('done');
+  document.getElementById('dot-'+i).classList.remove('active');
+  document.getElementById('dot-'+i).classList.add('done');
   step=i+1;
-  document.getElementById('step-'+step).classList.add('active');document.getElementById('dot-'+step).classList.add('active');
+  document.getElementById('step-'+step).classList.add('active');
+  document.getElementById('dot-'+step).classList.add('active');
   if(step===3)buildSum();
 }
+
 function openMoetuinPopupFromWizard() {
   // Sla profiel op en open moestuin popup
   finishWizard();
