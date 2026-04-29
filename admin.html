@@ -11,7 +11,7 @@ import { initializeApp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc }
+import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, getDoc }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -149,7 +149,8 @@ window.switchSection = s => {
   const main = document.getElementById('main-panel');
   main.innerHTML = '';
   const map = {
-    dashboard: renderDashboard,
+    dashboard:       renderDashboard,
+    'moestuin-intro': renderMoetuinIntroAdmin,
     kruiden:   ()=>renderSection('kruiden'),
     groenten:  ()=>renderSection('groenten'),
     fruit:     ()=>renderSection('fruit'),
@@ -1223,6 +1224,80 @@ window.importAllPlants=async()=>{
   }
 };
 
+// ── De Moestuin Intro beheer ──────────────────────────────────
+async function renderMoetuinIntroAdmin() {
+  document.getElementById('main-panel').innerHTML = `
+    <div class="page-title-row">
+      <div class="page-title">🌿 De Moestuin — introductiepagina</div>
+      <button class="btn-primary" onclick="saveMoetuinIntro()">💾 Opslaan</button>
+    </div>
+    <p class="page-sub">Pas hier de tekst en foto's aan van de introductiepagina "De Moestuin".</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:.5rem">
+      <div>
+        <div class="dash-section-title">📄 Algemeen</div>
+        <div class="fg"><label>Paginatitel</label><input id="mi-title" placeholder="De Moestuin"></div>
+        <div class="fg"><label>Subtitel</label><input id="mi-sub" placeholder="Ontdek alles over kweken..."></div>
+        <div class="fg"><label>Hero afbeelding URL</label><input id="mi-heroImg" placeholder="https://..."></div>
+        <div class="fg"><label>Introductietekst (HTML toegestaan)</label><textarea id="mi-tekst" rows="6" placeholder="Welkomstekst voor de bezoekers..."></textarea></div>
+      </div>
+      <div>
+        <div class="dash-section-title">🖼 Voorbeeldweergave</div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;font-size:.8rem;color:var(--text-muted)">
+          Na opslaan verschijnen de wijzigingen live op de website.
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;margin-top:1.5rem">
+      <div class="upload-dash-box">
+        <div class="dash-section-title">🥦 Groenten blok</div>
+        <div class="fg"><label>Titel</label><input id="mi-groentenTitle" placeholder="Groenten"></div>
+        <div class="fg"><label>Tekst</label><textarea id="mi-groentenText" rows="3"></textarea></div>
+        <div class="fg"><label>Foto URL</label><input id="mi-groentenImg" placeholder="https://..."></div>
+      </div>
+      <div class="upload-dash-box">
+        <div class="dash-section-title">🍎 Fruit blok</div>
+        <div class="fg"><label>Titel</label><input id="mi-fruitTitle" placeholder="Fruit"></div>
+        <div class="fg"><label>Tekst</label><textarea id="mi-fruitText" rows="3"></textarea></div>
+        <div class="fg"><label>Foto URL</label><input id="mi-fruitImg" placeholder="https://..."></div>
+      </div>
+      <div class="upload-dash-box">
+        <div class="dash-section-title">🌱 Kruiden blok</div>
+        <div class="fg"><label>Titel</label><input id="mi-kruidenTitle" placeholder="Kruiden"></div>
+        <div class="fg"><label>Tekst</label><textarea id="mi-kruidenText" rows="3"></textarea></div>
+        <div class="fg"><label>Foto URL</label><input id="mi-kruidenImg" placeholder="https://..."></div>
+      </div>
+    </div>`;
+
+  // Laad bestaande data
+  try {
+    const snap = await getDoc(doc(db,'siteContent','moestuin-intro'));
+    if (snap.exists()) {
+      const d = snap.data();
+      const set = (id,val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
+      set('mi-title',d.title); set('mi-sub',d.sub); set('mi-heroImg',d.heroImg);
+      set('mi-tekst',d.tekst);
+      set('mi-groentenTitle',d.groentenTitle); set('mi-groentenText',d.groentenText); set('mi-groentenImg',d.groentenImg);
+      set('mi-fruitTitle',d.fruitTitle); set('mi-fruitText',d.fruitText); set('mi-fruitImg',d.fruitImg);
+      set('mi-kruidenTitle',d.kruidenTitle); set('mi-kruidenText',d.kruidenText); set('mi-kruidenImg',d.kruidenImg);
+    }
+  } catch(e) { console.warn('Laden fout:', e.message); }
+}
+
+window.saveMoetuinIntro = async () => {
+  const get = id => (document.getElementById(id)||{}).value||'';
+  const data = {
+    title: get('mi-title'), sub: get('mi-sub'),
+    heroImg: get('mi-heroImg'), tekst: get('mi-tekst'),
+    groentenTitle: get('mi-groentenTitle'), groentenText: get('mi-groentenText'), groentenImg: get('mi-groentenImg'),
+    fruitTitle: get('mi-fruitTitle'), fruitText: get('mi-fruitText'), fruitImg: get('mi-fruitImg'),
+    kruidenTitle: get('mi-kruidenTitle'), kruidenText: get('mi-kruidenText'), kruidenImg: get('mi-kruidenImg'),
+  };
+  try {
+    await setDoc(doc(db,'siteContent','moestuin-intro'), data);
+    toast('De Moestuin pagina opgeslagen ✓','ok');
+  } catch(e) { toast('Fout: '+e.message,'err'); }
+};
+
 // ── Toast ──────────────────────────────────────────────────────
 function toast(msg,type='ok'){
   const el=document.getElementById('toast');el.textContent=msg;
@@ -1666,6 +1741,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <span class="nav-icon">🍎</span> Fruit
       </div>
       <div class="nav-section">Content</div>
+      <div class="nav-item" data-section="moestuin-intro" onclick="switchSection('moestuin-intro')">
+        <span class="nav-icon">🌿</span> De Moestuin
+      </div>
       <div class="nav-item" data-section="paginas" onclick="switchSection('paginas')">
         <span class="nav-icon">📄</span> Pagina's
       </div>
