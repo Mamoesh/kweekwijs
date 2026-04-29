@@ -541,9 +541,9 @@ select option{background:var(--surface2);}
         <p class="sub" style="margin-top:.5rem">We hebben de beste planten voor jou geselecteerd.</p>
         <div id="profile-summary" style="text-align:left;background:var(--surface2);border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.9rem;line-height:2;color:var(--text2)"></div>
         <button class="btn" style="width:100%;margin-bottom:.75rem;font-size:.95rem;padding:.85rem" onclick="openMoetuinPopupFromWizard()">
-          🌿 Kies jouw planten →
+          🌱 Kies jouw planten →
         </button>
-        <button class="btn btn-outline" style="width:100%;font-size:.85rem" onclick="finishWizard()">
+        <button class="btn btn-outline" style="width:100%;font-size:.85rem" onclick="finishWizard('kruiden')">
           Later doen
         </button>
       </div>
@@ -1453,17 +1453,20 @@ function ns(i){
 }
 
 function openMoetuinPopupFromWizard() {
-  // Sla profiel op en open moestuin popup
+  // Sla profiel op en ga naar kruiden om planten te kiezen
   finishWizard();
-  setTimeout(() => openMoetuinPopup(), 200);
+  // Toon een melding dat ze planten kunnen kiezen
+  setTimeout(() => {
+    showToast('Blader door de kruiden, groenten en fruit om planten te kiezen! 🌱', 'ok');
+  }, 300);
 }
 
-function finishWizard() {
+function finishWizard(dest) {
   document.getElementById('hero-section').style.display = 'none';
   document.getElementById('wizard-section').style.display = 'none';
   UP.done = true;
   localStorage.setItem('hr_up_' + (currentUser?.email||'guest'), JSON.stringify(UP));
-  go('profiel');
+  go(dest || 'kruiden');
 }
 
 function ps(i){
