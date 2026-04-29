@@ -544,7 +544,7 @@ select option{background:var(--surface2);}
           🌱 Kies jouw planten →
         </button>
         <button class="btn btn-outline" style="width:100%;font-size:.85rem" onclick="finishWizard('kruiden')">
-          Later doen
+          Overslaan, ga naar kruiden
         </button>
       </div>
     </div>
@@ -1453,12 +1453,14 @@ function ns(i){
 }
 
 function openMoetuinPopupFromWizard() {
-  // Sla profiel op en ga naar kruiden om planten te kiezen
-  finishWizard();
-  // Toon een melding dat ze planten kunnen kiezen
-  setTimeout(() => {
-    showToast('Blader door de kruiden, groenten en fruit om planten te kiezen! 🌱', 'ok');
-  }, 300);
+  // Sla profiel op, sluit wizard, open moestuin popup
+  document.getElementById('hero-section').style.display = 'none';
+  document.getElementById('wizard-section').style.display = 'none';
+  UP.done = true;
+  localStorage.setItem('hr_up_' + (currentUser?.email||'guest'), JSON.stringify(UP));
+  go('profiel');
+  // Wacht even tot profiel geladen is, open dan de popup
+  setTimeout(() => openMoetuinPopup(), 300);
 }
 
 function finishWizard(dest) {
