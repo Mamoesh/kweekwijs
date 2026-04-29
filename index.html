@@ -284,6 +284,16 @@ select option{background:var(--surface2);}
 .upload-btn-area:hover{border-color:var(--accent);color:var(--accent);}
 .upload-btn-area .upload-icon{font-size:2rem;margin-bottom:.5rem;}
 
+/* ── DE MOESTUIN INTRO ── */
+.moestuin-intro-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;margin-top:.5rem;}
+.moestuin-intro-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .2s;}
+.moestuin-intro-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:var(--shadow);}
+.mic-img-wrap{height:160px;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.mic-img-wrap img{width:100%;height:100%;object-fit:cover;}
+.mic-emoji{font-size:3.5rem;}
+.mic-body{padding:1rem 1.1rem 1.25rem;}
+.mic-title{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--accent3);margin-bottom:.4rem;font-weight:700;}
+.mic-text{font-size:.85rem;color:var(--text2);line-height:1.65;}
 /* ── MIJN MOESTUIN ── */
 .btn-skip{background:none;border:none;color:var(--text2);font-size:.82rem;cursor:pointer;padding:.5rem;text-decoration:underline;display:block;margin:0 auto;}
 .btn-skip:hover{color:var(--text);}
@@ -368,6 +378,7 @@ select option{background:var(--surface2);}
   <div class="logo">🌱 Kweek<span>wijs</span></div>
   <nav>
     <button class="active" onclick="go('home')" id="nav-home">🏡 <span>Start</span></button>
+    <button onclick="go('moestuin-intro')" id="nav-moestuin-intro">🌿 <span>De Moestuin</span></button>
     <button onclick="go('groenten')" id="nav-groenten">🥦 <span>Groenten</span></button>
     <button onclick="go('fruit')" id="nav-fruit">🍓 <span>Fruit</span></button>
     <button onclick="go('kruiden')" id="nav-kruiden">🌱 <span>Kruiden</span></button>
@@ -545,7 +556,65 @@ select option{background:var(--surface2);}
         <button class="btn" style="width:100%;margin-bottom:.75rem;font-size:.95rem;padding:.85rem" onclick="openMoetuinPopupFromWizard()">
           🌱 Kies jouw planten →
         </button>
-        <button class="btn-skip" onclick="finishWizard('kruiden')">Overslaan</button>
+        <button class="btn-skip" onclick="finishWizard('moestuin-intro')">Overslaan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- DE MOESTUIN INTRO -->
+<div class="screen" id="screen-moestuin-intro">
+  <div id="moestuin-intro-content">
+    <!-- Wordt ingevuld via renderMoetuinIntro() vanuit Firebase -->
+    <div class="section-title" id="moestuin-intro-title">🌿 De Moestuin</div>
+    <div class="section-sub" id="moestuin-intro-sub">Ontdek alles over groenten, fruit en kruiden kweken.</div>
+
+    <!-- Hero afbeelding -->
+    <div id="moestuin-intro-hero" style="margin:1rem 0 1.5rem;border-radius:var(--radius);overflow:hidden;max-height:280px">
+      <img id="moestuin-intro-hero-img" src="" alt="De Moestuin" style="width:100%;height:280px;object-fit:cover;display:none">
+    </div>
+
+    <!-- Intro tekst -->
+    <div id="moestuin-intro-tekst" style="color:var(--text2);line-height:1.8;margin-bottom:2rem;font-size:.95rem"></div>
+
+    <!-- Drie blokken -->
+    <div class="moestuin-intro-grid">
+      <!-- Groenten -->
+      <div class="moestuin-intro-card" onclick="go('groenten')">
+        <div class="mic-img-wrap">
+          <img id="mic-groenten-img" src="" alt="Groenten" style="display:none">
+          <div class="mic-emoji" id="mic-groenten-emoji">🥦</div>
+        </div>
+        <div class="mic-body">
+          <div class="mic-title" id="mic-groenten-title">Groenten</div>
+          <div class="mic-text" id="mic-groenten-text">Van tomaten tot courgettes — ontdek welke groenten jij kan kweken.</div>
+          <button class="btn" style="margin-top:.85rem;font-size:.82rem;padding:.5rem 1.1rem">Bekijk groenten →</button>
+        </div>
+      </div>
+      <!-- Fruit -->
+      <div class="moestuin-intro-card" onclick="go('fruit')">
+        <div class="mic-img-wrap">
+          <img id="mic-fruit-img" src="" alt="Fruit" style="display:none">
+          <div class="mic-emoji" id="mic-fruit-emoji">🍎</div>
+        </div>
+        <div class="mic-body">
+          <div class="mic-title" id="mic-fruit-title">Fruit</div>
+          <div class="mic-text" id="mic-fruit-text">Verse aardbeien, frambozen of appels uit eigen tuin — het kan!</div>
+          <button class="btn" style="margin-top:.85rem;font-size:.82rem;padding:.5rem 1.1rem">Bekijk fruit →</button>
+        </div>
+      </div>
+      <!-- Kruiden -->
+      <div class="moestuin-intro-card" onclick="go('kruiden')">
+        <div class="mic-img-wrap">
+          <img id="mic-kruiden-img" src="" alt="Kruiden" style="display:none">
+          <div class="mic-emoji" id="mic-kruiden-emoji">🌱</div>
+        </div>
+        <div class="mic-body">
+          <div class="mic-title" id="mic-kruiden-title">Kruiden</div>
+          <div class="mic-text" id="mic-kruiden-text">Basilicum, munt, rozemarijn — kweek je eigen kruidenparadijs.</div>
+          <button class="btn" style="margin-top:.85rem;font-size:.82rem;padding:.5rem 1.1rem">Bekijk kruiden →</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1402,6 +1471,7 @@ function go(id){
   if(id==='fruit')renderFruit();
   if(id==='profiel')renderProfiel();
   if(id==='community')renderCommunity();
+  if(id==='moestuin-intro')renderMoetuinIntro();
   if(id==='profiel'){ renderProfielMoestuin(); }
   if(id==='moestuin')renderMoestuin();
 }
@@ -1410,7 +1480,7 @@ function go(id){
 // WIZARD
 // ═══════════════════════════════════════
 function startSetup(){document.getElementById('hero-section').style.display='none';document.getElementById('wizard-section').style.display='block';}
-function loadDemo(){UP={land:'be',klimaat:KL.be,type:'Balkon',ori:'Zuid',medium:'Potten',m2:'4',cats:['koken','thee','huidverzorging','insecten'],tijd:'Matig',done:true};go('kruiden');}
+function loadDemo(){UP={land:'be',klimaat:KL.be,type:'Balkon',ori:'Zuid',medium:'Potten',m2:'4',cats:['koken','thee','huidverzorging','insecten'],tijd:'Matig',done:true};go('moestuin-intro');}
 function selectLand(code, btn) {
   document.querySelectorAll('#tg-land .geo-choice-btn').forEach(b => b.style.borderColor = 'var(--border)');
   btn.style.borderColor = 'var(--accent)';
@@ -2704,6 +2774,36 @@ function seedPosts() {
   savePosts(seed);
 }
 
+// ── De Moestuin Intro ─────────────────────────────────────────
+async function renderMoetuinIntro() {
+  try {
+    const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const cfg = {apiKey:"AIzaSyCIbxp7FemPmockRtH2Dx06yZ4_wBEfJkg",authDomain:"herbalroot.firebaseapp.com",projectId:"herbalroot",storageBucket:"herbalroot.firebasestorage.app",messagingSenderId:"613071845588",appId:"1:613071845588:web:4f06139e25abeda9bee341"};
+    const app = getApps().find(a=>a.name==='herbalroot-viewer')||initializeApp(cfg,'herbalroot-viewer');
+    const db = getFirestore(app);
+    const snap = await getDoc(doc(db,'siteContent','moestuin-intro'));
+    if (snap.exists()) {
+      const d = snap.data();
+      const setTxt = (id,val) => { const el=document.getElementById(id); if(el&&val) el.textContent=val; };
+      const setHTML = (id,val) => { const el=document.getElementById(id); if(el&&val) el.innerHTML=val; };
+      setTxt('moestuin-intro-title', d.title);
+      setTxt('moestuin-intro-sub', d.sub);
+      setHTML('moestuin-intro-tekst', d.tekst);
+      if (d.heroImg) { const img=document.getElementById('moestuin-intro-hero-img'); if(img){img.src=d.heroImg;img.style.display='block';} }
+      if (d.groentenImg) { const i=document.getElementById('mic-groenten-img'); if(i){i.src=d.groentenImg;i.style.display='block';document.getElementById('mic-groenten-emoji').style.display='none';} }
+      setTxt('mic-groenten-title', d.groentenTitle);
+      setTxt('mic-groenten-text', d.groentenText);
+      if (d.fruitImg) { const i=document.getElementById('mic-fruit-img'); if(i){i.src=d.fruitImg;i.style.display='block';document.getElementById('mic-fruit-emoji').style.display='none';} }
+      setTxt('mic-fruit-title', d.fruitTitle);
+      setTxt('mic-fruit-text', d.fruitText);
+      if (d.kruidenImg) { const i=document.getElementById('mic-kruiden-img'); if(i){i.src=d.kruidenImg;i.style.display='block';document.getElementById('mic-kruiden-emoji').style.display='none';} }
+      setTxt('mic-kruiden-title', d.kruidenTitle);
+      setTxt('mic-kruiden-text', d.kruidenText);
+    }
+  } catch(e) { console.warn('Moestuin intro fout:', e.message); }
+}
+
 function renderCommunity() {
   seedPosts();
   let posts = getPosts();
@@ -3543,7 +3643,7 @@ function applyLanguage(lang) {
 
   // Nav labels
   const navMap = {
-    'nav-home':'nav_home','nav-kruiden':'nav_kruiden','nav-groenten':'nav_groenten',
+    'nav-home':'nav_home','nav-moestuin-intro':'nav_moestuin','nav-kruiden':'nav_kruiden','nav-groenten':'nav_groenten',
     'nav-fruit':'nav_fruit','nav-recepten':'nav_recepten','nav-community':'nav_community'
   };
   Object.entries(navMap).forEach(([id, key]) => {
