@@ -293,15 +293,16 @@ select option{background:var(--surface2);}
 .upload-btn-area .upload-icon{font-size:2rem;margin-bottom:.5rem;}
 
 /* ── DE MOESTUIN INTRO ── */
-.moestuin-intro-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;margin-top:.5rem;}
-.moestuin-intro-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .2s;}
-.moestuin-intro-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:var(--shadow);}
-.mic-img-wrap{height:160px;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.moestuin-intro-grid{display:flex;flex-direction:column;gap:1.25rem;margin-top:.5rem;}
+.moestuin-intro-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .2s;display:flex;flex-direction:row;align-items:stretch;}
+.moestuin-intro-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow);}
+.mic-img-wrap{width:220px;min-width:220px;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;flex-shrink:0;}
 .mic-img-wrap img{width:100%;height:100%;object-fit:cover;}
 .mic-emoji{font-size:3.5rem;}
-.mic-body{padding:1rem 1.1rem 1.25rem;}
-.mic-title{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--accent3);margin-bottom:.4rem;font-weight:700;}
-.mic-text{font-size:.85rem;color:var(--text2);line-height:1.65;}
+.mic-body{padding:1.25rem 1.5rem;flex:1;display:flex;flex-direction:column;justify-content:center;}
+.mic-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--accent3);margin-bottom:.5rem;font-weight:700;}
+.mic-text{font-size:.88rem;color:var(--text2);line-height:1.75;flex:1;}
+@media(max-width:600px){.moestuin-intro-card{flex-direction:column;}.mic-img-wrap{width:100%;min-width:unset;height:160px;}}
 /* ── MIJN MOESTUIN ── */
 .btn-skip{background:none;border:none;color:var(--text2);font-size:.82rem;cursor:pointer;padding:.5rem;text-decoration:underline;display:block;margin:0 auto;}
 .btn-skip:hover{color:var(--text);}
@@ -387,14 +388,13 @@ select option{background:var(--surface2);}
   <nav>
     <button class="active" onclick="go('home')" id="nav-home">🏡 <span>Start</span></button>
     <div class="nav-dropdown" id="nav-moestuin-wrap">
-      <button class="nav-dropdown-btn" id="nav-moestuin-intro" onclick="toggleNavDropdown(event)">
+      <button class="nav-dropdown-btn" id="nav-moestuin-intro" onclick="handleMoetuinClick(event)">
         🌿 <span>De Moestuin</span> <span class="nav-dropdown-arrow">▾</span>
       </button>
       <div class="nav-dropdown-menu" id="nav-moestuin-menu">
-        <button onclick="go('moestuin-intro');closeNavDropdown()" id="nav-dd-intro">🌿 Overzicht</button>
-        <button onclick="go('groenten');closeNavDropdown()" id="nav-groenten">🥦 Groenten</button>
-        <button onclick="go('fruit');closeNavDropdown()" id="nav-fruit">🍓 Fruit</button>
-        <button onclick="go('kruiden');closeNavDropdown()" id="nav-kruiden">🌱 Kruiden</button>
+        <button onclick="go('groenten');closeAllDropdowns()" id="nav-groenten">🥦 Groenten</button>
+        <button onclick="go('fruit');closeAllDropdowns()" id="nav-fruit">🍓 Fruit</button>
+        <button onclick="go('kruiden');closeAllDropdowns()" id="nav-kruiden">🌱 Kruiden</button>
       </div>
     </div>
     <div class="nav-dropdown" id="nav-recepten-wrap">
@@ -1555,6 +1555,24 @@ let filt='all',selHerb=null,step=0;
 // ═══════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════
+function handleMoetuinClick(e) {
+  e.stopPropagation();
+  const wrap = document.getElementById('nav-moestuin-wrap');
+  const menu = document.getElementById('nav-moestuin-menu');
+  // If clicking the arrow area, toggle dropdown; otherwise navigate to page
+  const rect = e.currentTarget.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const isArrowArea = clickX > rect.width - 30;
+  if (isArrowArea) {
+    const isOpen = wrap.classList.contains('open');
+    closeAllDropdowns();
+    if (!isOpen) wrap.classList.add('open');
+  } else {
+    closeAllDropdowns();
+    go('moestuin-intro');
+  }
+}
+
 function toggleNavDropdown(e) {
   e.stopPropagation();
   const wrap = document.getElementById('nav-moestuin-wrap');
@@ -3725,7 +3743,7 @@ let selectedRegLang = 'nl';
 
 const TRANSLATIONS = {
   nl: {
-    nav_home:'Start', nav_kruiden:'Kruiden', nav_groenten:'Groenten',
+    nav_home:'Start', nav_moestuin:'De Moestuin', nav_kruiden:'Kruiden', nav_groenten:'Groenten',
     nav_fruit:'Fruit', nav_recepten:'Recepten', nav_community:'Community',
     hero_title:'Kweek je eigen<br><em>moestuin</em>',
     hero_sub:'Persoonlijk kwekerijadvies op basis van jouw klimaat, ruimte en smaak — van zaad tot bloei.',
@@ -3751,7 +3769,7 @@ const TRANSLATIONS = {
     btn_next:'Volgende →', btn_back:'← Terug', btn_view:'Bekijk mijn moestuin →',
   },
   en: {
-    nav_home:'Home', nav_kruiden:'Herbs', nav_groenten:'Vegetables',
+    nav_home:'Home', nav_moestuin:'The Garden', nav_kruiden:'Herbs', nav_groenten:'Vegetables',
     nav_fruit:'Fruit', nav_recepten:'Recipes', nav_community:'Community',
     hero_title:'Grow your own<br><em>herb paradise</em>',
     hero_sub:'Personal growing advice based on your climate, space and taste — from seed to bloom.',
@@ -3777,7 +3795,7 @@ const TRANSLATIONS = {
     btn_next:'Next →', btn_back:'← Back', btn_view:'View my herbs →',
   },
   fr: {
-    nav_home:'Accueil', nav_kruiden:'Herbes', nav_groenten:'Légumes',
+    nav_home:'Accueil', nav_moestuin:'Le Jardin', nav_kruiden:'Herbes', nav_groenten:'Légumes',
     nav_fruit:'Fruits', nav_recepten:'Recettes', nav_community:'Communauté',
     hero_title:'Cultivez votre propre<br><em>paradis d\'herbes</em>',
     hero_sub:'Conseils personnalisés selon votre climat, espace et goût — de la graine à la floraison.',
