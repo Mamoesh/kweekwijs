@@ -1681,14 +1681,14 @@ function ns(i){
 }
 
 function openMoetuinPopupFromWizard() {
-  // Sla profiel op, sluit wizard, open moestuin popup
+  // Sla profiel op, sluit wizard, open moestuin popup direct (zonder naar profiel te gaan)
   document.getElementById('hero-section').style.display = 'none';
   document.getElementById('wizard-section').style.display = 'none';
   UP.done = true;
   localStorage.setItem('hr_up_' + (currentUser?.email||'guest'), JSON.stringify(UP));
-  go('profiel');
-  // Wacht even tot profiel geladen is, open dan de popup
-  setTimeout(() => openMoetuinPopup(), 300);
+  // Ga naar startpagina en open popup
+  go('home');
+  setTimeout(() => openMoetuinPopup(), 150);
 }
 
 function finishWizard(dest) {
