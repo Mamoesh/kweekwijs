@@ -1631,10 +1631,17 @@ document.addEventListener('click', () => closeAllDropdowns());
 // Filter recepten direct via dropdown
 function filterReceptenDirect(cat) {
   setTimeout(() => {
-    activeReceptFilter = cat;
+    activeReceptFilter = cat === 'all' ? 'all' : cat;
     document.querySelectorAll('#recept-filter-bar .filter-btn').forEach(b => {
-      b.classList.toggle('active', b.textContent.toLowerCase().includes(cat) || (cat==='all'&&b===document.querySelector('#recept-filter-bar .filter-btn')));
+      b.classList.remove('active');
     });
+    if (cat === 'all') {
+      document.querySelector('#recept-filter-bar .filter-btn')?.classList.add('active');
+    } else {
+      document.querySelectorAll('#recept-filter-bar .filter-btn').forEach(b => {
+        if (b.textContent.toLowerCase().includes(cat)) b.classList.add('active');
+      });
+    }
     renderRecepten();
   }, 50);
 }
