@@ -1935,7 +1935,7 @@ function openModal(id){
       }
 
       let html = '';
-      if (koken.length)   html += '<div class="section-h">🍽 Gerechten & Soepen</div><div class="herb-tags">'+koken.map(r=>makeTag(r,'🍴','gold')).join('')+'</div>';
+      if (koken.length)   html += '<div class="section-h">🍽 Recepten</div><div class="herb-tags">'+koken.map(r=>makeTag(r,'🍴','gold')).join('')+'</div>';
       if (dranken.length) html += '<div class="section-h">🥤 Dranken</div><div class="herb-tags">'+dranken.map(r=>makeTag(r,'🍹','gold')).join('')+'</div>';
       if (desserts.length)html += '<div class="section-h">🍰 Desserts</div><div class="herb-tags">'+desserts.map(r=>makeTag(r,'🍰','gold')).join('')+'</div>';
       if (thee.length || theeCombos.length) {
@@ -1945,7 +1945,7 @@ function openModal(id){
         html += '</div>';
       }
       if (verzorging.length) html += '<div class="section-h">✨ Verzorgingsproducten</div><div class="herb-tags">'+verzorging.map(r=>makeTag(r,'✨','purple')).join('')+'</div>';
-      return html || '<div class="section-h">🍽 Gerechten & Soepen</div><div class="herb-tags"><span style="color:var(--text2);font-size:.85rem">Geen recepten.</span></div>';
+      return html || '';
     })()}
     ${h.skin ? `
     <div class="section-h">✨ Persoonlijke verzorging</div>
@@ -3653,7 +3653,7 @@ function openPlantModal(id, type) {
       const dranken = (h.rec||[]).filter(r => drankKeywords.test(r));
       let html = '';
       if (koken.length) {
-        html += '<div class="section-h">🍽 Koken & verwerken</div>' +
+        html += '<div class="section-h">🍽 Recepten</div>' +
           '<div class="herb-tags">' + koken.map(r => {
             const hasR = !!RECEPTEN_DB[r];
             const esc = r.replace(/'/g, "\\'");
@@ -3707,6 +3707,19 @@ function openPlantModal(id, type) {
     // Kweektip
     '<div class="section-h" style="margin-top:0">💡 Kweektip</div>' +
     '<div class="harvest-box">' + (h.tip || 'Geen specifieke kweektip.') + '</div>' +
+
+    // Recepten uit Firebase (gefilterd op plantId)
+    (() => {
+      const plantRecepten = Object.entries(RECEPTEN_DB||{}).filter(([,r]) => r.herbId === h.id);
+      if (!plantRecepten.length) return '';
+      return '<div class="section-h">🍽 Recepten</div>' +
+        '<div class="herb-tags">' +
+        plantRecepten.map(([naam]) => {
+          const esc = naam.replace(/'/g, "\'");
+          return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal('' + h.id + '',''+esc+'')">🍴 ' + naam + '</span>';
+        }).join('') +
+        '</div>';
+    })() +
 
     // Companions
     '<div class="section-h">🤝 Goede buurtplanten</div>' +
