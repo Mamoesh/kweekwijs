@@ -1838,7 +1838,7 @@ function renderHerbs(){
         <h3>${h.name}</h3>
         <div class="herb-lat">${h.lat}</div>
         <div class="herb-tags">${h.cat.map(c=>`<span class="tag ${cc(c)}">${ce(c)} ${c}</span>`).join('')}</div>
-        <div style="margin-top:.6rem;font-size:.75rem;color:var(--text2)">💧 Om de ${h.wf}d · ☀️ ${sunShort(h.sun)}</div>
+        <div style="margin-top:.6rem;font-size:.75rem;color:var(--text2)">${h.wf<=3?'💧💧💧 Veel':h.wf<=6?'💧💧 Matig':'💧 Weinig'} · ☀️ ${sunShort(h.sun)}</div>
       </div>
     </div>`;
   }).join('');
@@ -1922,7 +1922,7 @@ function openModal(id){
   // Panel 1: Info
   const infoPanel=`<div class="tab-content active" id="panel-info">
     <div class="info-grid">
-      <div class="info-item"><div class="info-label">Bewatering</div><div class="info-val">💧 Om de ${h.wf} dag${h.wf>1?'en':''}</div></div>
+      <div class="info-item"><div class="info-label">Bewatering</div><div class="info-val">${h.wf<=3?'💧💧💧 Veel':h.wf<=6?'💧💧 Matig':'💧 Weinig'}</div></div>
       <div class="info-item"><div class="info-label">Zonlicht</div><div class="info-val">☀️ ${h.sun}</div></div>
       <div class="info-item"><div class="info-label">Temperatuur</div><div class="info-val">🌡 ${h.temp}</div></div>
       <div class="info-item"><div class="info-label">pH grond</div><div class="info-val">⚗️ ${h.ph}</div></div>
@@ -1931,7 +1931,7 @@ function openModal(id){
       ${h.levensduur ? `<div class="info-item" style="grid-column:1/-1">
         <div class="info-label">Levensduur</div>
         <div class="info-val">
-          ${h.levensduur === 'vast' ? '🌳 Vaste plant' : h.levensduur === 'twee' ? '📅 Tweejarige plant' : '📅 Eenjarige plant'}
+          ${h.levensduur === 'vast' ? '🌳 Vaste plant' : h.levensduur === 'twee' ? '📅 Meerjarige plant' : '📅 Eenjarige plant'}
           ${h.levensduur === 'een' && h.zelfzaaiend ? ' · 🌱 Zelfzaaiend' : ''}
           ${h.levensduur === 'een' && h.zelfzaaiend === false ? ' · ✋ Niet zelfzaaiend' : ''}
         </div>
@@ -3568,7 +3568,7 @@ function renderPlantCard(h, type) {
     '<div class="herb-card-body">' +
     '<h3>' + h.name + '</h3>' +
     '<div class="herb-lat">' + h.lat + '</div>' +
-    '<div style="margin-top:.6rem;font-size:.75rem;color:var(--text2)">💧 Om de ' + h.wf + 'd · ☀️ ' + h.sun.split('–')[0].trim() + '</div>' +
+    '<div style="margin-top:.6rem;font-size:.75rem;color:var(--text2)">' + (h.wf<=3?'💧💧💧 Veel':h.wf<=6?'💧💧 Matig':'💧 Weinig') + ' · ☀️ ' + h.sun.split('–')[0].trim() + '</div>' +
     '</div></div>';
 }
 
@@ -3610,14 +3610,14 @@ function openPlantModal(id, type) {
 
   const infoPanel = '<div class="tab-content active" id="panel-pinfo">' +
     '<div class="info-grid">' +
-    '<div class="info-item"><div class="info-label">Bewatering</div><div class="info-val">💧 Om de ' + h.wf + ' dag' + (h.wf>1?'en':'') + '</div></div>' +
+    '<div class="info-item"><div class="info-label">Bewatering</div><div class="info-val">' + (h.wf<=3?'💧💧💧 Veel':h.wf<=6?'💧💧 Matig':'💧 Weinig') + '</div></div>' +
     '<div class="info-item"><div class="info-label">Zonlicht</div><div class="info-val">☀️ ' + h.sun + '</div></div>' +
     '<div class="info-item"><div class="info-label">Temperatuur</div><div class="info-val">🌡 ' + h.temp + '</div></div>' +
     '<div class="info-item"><div class="info-label">pH grond</div><div class="info-val">⚗️ ' + h.ph + '</div></div>' +
     '<div class="info-item"><div class="info-label">Aarde</div><div class="info-val">🌍 ' + h.soil + '</div></div>' +
     '<div class="info-item"><div class="info-label">Verzorging</div><div class="info-val">' + cl[h.care] + '</div></div>' +
     (h.levensduur ? '<div class="info-item" style="grid-column:1/-1"><div class="info-label">Levensduur</div><div class="info-val">' +
-      (h.levensduur === 'vast' ? '🌳 Vaste plant' : h.levensduur === 'twee' ? '📅 Tweejarige plant' : '📅 Eenjarige plant') +
+      (h.levensduur === 'vast' ? '🌳 Vaste plant' : h.levensduur === 'twee' ? '📅 Meerjarige plant' : '📅 Eenjarige plant') +
       (h.levensduur === 'een' && h.zelfzaaiend ? ' · 🌱 Zelfzaaiend' : '') +
       (h.levensduur === 'een' && h.zelfzaaiend === false ? ' · ✋ Niet zelfzaaiend' : '') +
       '</div></div>' : '') +
@@ -4022,7 +4022,7 @@ function renderSpaceSuggestions() {
         '<div class="herb-badge badge-' + h.care + '">' + ({easy:'Weinig',medium:'Matig',hard:'Veel'}[h.care]) + '</div>' +
         '</div>' +
         '<div class="herb-card-body"><h3>' + h.name + '</h3><div class="herb-lat">' + h.lat + '</div>' +
-        '<div style="font-size:.75rem;color:var(--text2);margin-top:.5rem">💧 Om de ' + h.wf + 'd · ☀️ ' + h.sun.split('–')[0].trim() + '</div>' +
+        '<div style="font-size:.75rem;color:var(--text2);margin-top:.5rem">' + (h.wf<=3?'💧💧💧 Veel':h.wf<=6?'💧💧 Matig':'💧 Weinig') + ' · ☀️ ' + h.sun.split('–')[0].trim() + '</div>' +
         '</div></div>').join('') +
       '</div>';
     container.appendChild(section);
