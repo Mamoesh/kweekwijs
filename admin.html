@@ -294,6 +294,7 @@ window.openEditor = (id, type) => {
   set('ed-id',p.id||''); set('ed-name',p.name||''); set('ed-lat',p.lat||'');
   set('ed-emoji',p.emoji||'🌿'); set('ed-care',p.care||'easy');
   set('ed-levensduur', p.levensduur||'');
+  set('ed-preventie', p.preventie||'');
   const zelfEl = document.getElementById('ed-zelfzaaiend');
   if(zelfEl) zelfEl.value = p.zelfzaaiend===true ? 'ja' : p.zelfzaaiend===false ? 'nee' : '';
   set('ed-sun',p.sun||''); set('ed-temp',p.temp||''); set('ed-ph',p.ph||'');
@@ -353,7 +354,7 @@ window.savePlant = async () => {
     ben:lines(get('ed-ben')),rec:lines(get('ed-rec')),good:csv(get('ed-good')),bad:csv(get('ed-bad')),cat:csv(get('ed-cat')),
     zaai_binnen:months(get('ed-zaai_binnen')),zaai_buiten:months(get('ed-zaai_buiten')),
     uitplanten:months(get('ed-uitplanten')),oogst:months(get('ed-oogst')),stek:months(get('ed-stek')),
-    photo:get('ed-photo-url'),photo2:get('ed-photo-url'),pests,diseases,ph_stages:['🌱','🌿','🌸','🌼'],cp:0,watered:Date.now()};
+    photo:get('ed-photo-url'),photo2:get('ed-photo-url'),pests,diseases,preventie:get('ed-preventie'),ph_stages:['🌱','🌿','🌸','🌼'],cp:0,watered:Date.now()};
   try{
     await setDoc(doc(db,editingType,id),data);
     const idx=(allPlants[editingType]||[]).findIndex(p=>p.id===id);
@@ -2022,6 +2023,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <div class="dash-section-title" style="margin-bottom:.75rem">🍂 Ziektes</div>
         <div id="diseases-list"></div>
         <button class="btn-outline-sm" style="width:100%;margin-bottom:.5rem" onclick="addPestEntry('disease')">+ Ziekte toevoegen</button>
+        <div class="dash-section-title" style="margin-top:1.5rem;margin-bottom:.75rem">🛡 Preventie</div>
+        <div class="fg full"><label>Algemene preventietips (zichtbaar als apart blok op de website)</label>
+          <textarea id="ed-preventie" rows="4" placeholder="Bijv. Zorg voor goede luchtcirculatie, gebruik compostthee als bladspray..."></textarea></div>
         <input type="hidden" id="ed-pests">
         <input type="hidden" id="ed-diseases">
       </div>
