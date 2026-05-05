@@ -31,8 +31,8 @@
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(126,200,126,.06) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 80% 90%,rgba(200,169,110,.05) 0%,transparent 60%);pointer-events:none;z-index:0;}
 header{position:sticky;top:0;z-index:100;background:rgba(15,26,15,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;align-items:center;height:64px;gap:.25rem;}
-.logo{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--accent);display:flex;align-items:center;gap:.5rem;}
-.logo span{color:var(--accent3);font-style:italic;}
+.logo{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--accent);display:flex;align-items:center;gap:.5rem;user-select:none;transition:opacity .2s;}
+.logo:hover{opacity:.8;}
 nav{display:flex;gap:.25rem;align-items:center;flex:1;}
 nav button{background:none;border:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:.85rem;padding:.5rem 1rem;border-radius:8px;cursor:pointer;transition:all .2s;}
 .nav-dropdown{position:relative;}
@@ -391,9 +391,8 @@ select option{background:var(--surface2);}
 </head>
 <body>
 <header>
-  <div class="logo">🌱 Kweek<span>wijs</span></div>
+  <div class="logo" onclick="go('home')" style="cursor:pointer">🌱 Kweekwijs</div>
   <nav>
-    <button class="active" onclick="go('home')" id="nav-home">🏡 <span>Start</span></button>
     <div class="nav-dropdown" id="nav-moestuin-wrap">
       <button class="nav-dropdown-btn" id="nav-moestuin-intro" onclick="handleMoetuinClick(event)">
         🌿 <span>De Moestuin</span> <span class="nav-dropdown-arrow">▾</span>
@@ -427,7 +426,7 @@ select option{background:var(--surface2);}
 <!-- AUTH OVERLAY -->
 <div class="auth-overlay" id="auth-overlay">
   <div class="auth-box">
-    <div class="auth-logo">🌱 Kweek<span>wijs</span></div>
+    <div class="auth-logo">🌱 Kweekwijs</div>
     <div class="auth-sub">Jouw persoonlijk moestuin-assistent</div>
     <div class="auth-tabs">
       <div class="auth-tab active" onclick="switchAuthTab('login')">Aanmelden</div>
@@ -517,80 +516,50 @@ select option{background:var(--surface2);}
 
 <!-- HOME -->
 <div class="screen active" id="screen-home">
-  <div id="hero-section">
-    <div class="hero">
-      <h1>Kweek je eigen<br><em>moestuin</em></h1>
-      <p>Persoonlijk kwekerijadvies op basis van jouw klimaat, ruimte en smaak — van zaad tot bloei.</p>
-      <button class="btn" onclick="startSetup()">Aan de slag →</button>
-      <button class="btn btn-outline" onclick="loadDemo()">Demo bekijken</button>
+  <div id="home-hero-wrap" style="position:relative;width:100%;max-height:340px;overflow:hidden;border-radius:0 0 var(--radius) var(--radius);margin-bottom:0">
+    <img id="home-hero-img" src="" alt="" style="width:100%;max-height:340px;object-fit:cover;display:none">
+    <div id="home-hero-overlay" style="display:none;position:absolute;inset:0;background:rgba(15,26,15,.52);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center">
+      <h1 id="home-overlay-title" style="font-family:'Playfair Display',serif;font-size:clamp(1.6rem,4vw,2.8rem);color:#e8d5a3;margin-bottom:.6rem;line-height:1.2"></h1>
+      <p id="home-overlay-sub" style="color:rgba(255,255,255,.85);font-size:1rem;max-width:480px;line-height:1.6"></p>
     </div>
   </div>
-  <div class="wizard" id="wizard-section" style="display:none">
-    <div class="step-indicator">
-      <div class="step-dot active" id="dot-0"></div><div class="step-dot" id="dot-1"></div>
-      <div class="step-dot" id="dot-2"></div><div class="step-dot" id="dot-3"></div>
-    </div>
-    <div class="step active" id="step-0" style="display:none">
-      <input type="hidden" id="s-land" value="be">
-      <input type="hidden" id="s-klimaat" value="Gematigd oceaanklimaat (Cfb)">
-    </div>
-    <div class="step active" id="step-1">
-      <div class="card">
-        <h2>🌳 Kweekomgeving</h2><p class="sub">Hoe ziet jouw groeiruimte eruit?</p>
-        <label>Type ruimte</label>
-        <div class="toggle-group" id="tg-type">
-          <div class="toggle" onclick="tmSpace(this)">Tuin</div>
-          <div class="toggle" onclick="tmSpace(this)">Balkon</div>
-          <div class="toggle" onclick="tmSpace(this)">Serre</div>
-          <div class="toggle" onclick="tmSpace(this)">Vensterbank</div>
-        </div>
-        <div id="space-m2-fields" style="margin-top:.75rem;display:none"></div>
-        <label>Oriëntatie</label>
-        <div class="toggle-group" id="tg-ori">
-          <div class="toggle" onclick="ts(this,'tg-ori')">⬆️ Noord</div>
-          <div class="toggle" onclick="ts(this,'tg-ori')">↗️ Noord-oost</div>
-          <div class="toggle" onclick="ts(this,'tg-ori')">➡️ Oost</div>
-          <div class="toggle" onclick="ts(this,'tg-ori')">↘️ Zuid-oost</div>
-          <div class="toggle" onclick="ts(this,'tg-ori')">⬇️ Zuid</div>
-          <div class="toggle" onclick="ts(this,'tg-ori')">↙️ Zuid-west</div>
-          <div class="toggle" onclick="ts(this,'tg-ori')">⬅️ West</div>
-          <div class="toggle" onclick="ts(this,'tg-ori')">↖️ Noord-west</div>
-        </div>
-        <label>Kweekmedium</label>
-        <div class="toggle-group" id="tg-med">
-          <div class="toggle" onclick="tm(this)">🌍 Volle grond</div>
-          <div class="toggle" onclick="tm(this)">🌸 Potten / bakken</div>
-          <div class="toggle" onclick="tm(this)">📦 Kweekbakken</div>
-        </div>
+  <div style="padding:1.5rem 1.25rem 0">
+    <div id="home-title" style="font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--accent3);margin-bottom:.4rem"></div>
+    <div id="home-sub" style="color:var(--text2);font-size:.95rem;line-height:1.7;margin-bottom:1.2rem"></div>
+    <div id="home-tekst" style="color:var(--text2);line-height:1.8;font-size:.93rem;margin-bottom:1.5rem"></div>
+  </div>
+  <div class="moestuin-intro-grid" style="padding:0 1.25rem 1.5rem">
+    <div class="moestuin-intro-card" onclick="go('groenten')">
+      <div class="mic-img-wrap">
+        <img id="home-groenten-img" src="" alt="Groenten" style="display:none">
+        <div class="mic-emoji" id="home-groenten-emoji">🥦</div>
       </div>
-      <div class="step-nav"><button class="btn btn-outline" onclick="document.getElementById('wizard-section').style.display='none';document.getElementById('hero-section').style.display='flex'">← Terug</button><button class="btn" onclick="ns(1)">Volgende →</button></div>
-    </div>
-    <div class="step" id="step-2">
-      <div class="card">
-        <h2>🌸 Interesses</h2><p class="sub">Kies je interessecategorieën — we filteren de beste kruiden.</p>
-        <div class="toggle-group" id="tg-cat">
-          <div class="toggle" onclick="tm(this)">🍳 Koken</div><div class="toggle" onclick="tm(this)">🍵 Thee</div>
-          <div class="toggle" onclick="tm(this)">🧘 Ontspanning</div><div class="toggle" onclick="tm(this)">🦟 Insecten weren</div>
-          <div class="toggle" onclick="tm(this)">🐝 Bijen aantrekken</div><div class="toggle" onclick="tm(this)">✨ Persoonlijke verzorging</div>
-          <div class="toggle" onclick="tm(this)">🌿 Welzijn</div><div class="toggle" onclick="tm(this)">🌺 Decoratief</div>
-        </div>
-        <label>Wekelijkse tijd</label>
-        <div class="toggle-group" id="tg-tijd">
-          <div class="toggle" onclick="ts(this,'tg-tijd')">⚡ Weinig</div><div class="toggle" onclick="ts(this,'tg-tijd')">🌱 Matig</div><div class="toggle" onclick="ts(this,'tg-tijd')">🌳 Veel</div>
-        </div>
+      <div class="mic-body">
+        <div class="mic-title" id="home-groenten-title">Groenten</div>
+        <div class="mic-text" id="home-groenten-text">Van tomaten tot courgettes — ontdek welke groenten jij kan kweken.</div>
+        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk groenten →</button>
       </div>
-      <div class="step-nav"><button class="btn btn-outline" onclick="ps(2)">← Terug</button><button class="btn" onclick="ns(2)">Volgende →</button></div>
     </div>
-    <div class="step" id="step-3">
-      <div class="card" style="text-align:center;padding:2.5rem">
-        <div style="font-size:3rem;margin-bottom:1rem">🌱</div>
-        <h2>Jouw profiel is klaar!</h2>
-        <p class="sub" style="margin-top:.5rem">We hebben de beste planten voor jou geselecteerd.</p>
-        <div id="profile-summary" style="text-align:left;background:var(--surface2);border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.9rem;line-height:2;color:var(--text2)"></div>
-        <button class="btn" style="width:100%;margin-bottom:.75rem;font-size:.95rem;padding:.85rem" onclick="openMoetuinPopupFromWizard()">
-          🌱 Kies jouw planten →
-        </button>
-        <button class="btn-skip" onclick="finishWizard('moestuin-intro')">Overslaan</button>
+    <div class="moestuin-intro-card" onclick="go('fruit')">
+      <div class="mic-img-wrap">
+        <img id="home-fruit-img" src="" alt="Fruit" style="display:none">
+        <div class="mic-emoji" id="home-fruit-emoji">🍎</div>
+      </div>
+      <div class="mic-body">
+        <div class="mic-title" id="home-fruit-title">Fruit</div>
+        <div class="mic-text" id="home-fruit-text">Verse aardbeien, frambozen of appels uit eigen tuin — het kan!</div>
+        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk fruit →</button>
+      </div>
+    </div>
+    <div class="moestuin-intro-card" onclick="go('kruiden')">
+      <div class="mic-img-wrap">
+        <img id="home-kruiden-img" src="" alt="Kruiden" style="display:none">
+        <div class="mic-emoji" id="home-kruiden-emoji">🌱</div>
+      </div>
+      <div class="mic-body">
+        <div class="mic-title" id="home-kruiden-title">Kruiden</div>
+        <div class="mic-text" id="home-kruiden-text">Basilicum, munt, rozemarijn — kweek je eigen kruidenparadijs.</div>
+        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk kruiden →</button>
       </div>
     </div>
   </div>
@@ -1677,6 +1646,7 @@ function go(id){
   if(id==='profiel')renderProfiel();
   if(id==='community')renderCommunity();
   if(id==='recepten-intro')renderReceptenIntro();
+  if(id==='home')renderHome();
   if(id==='moestuin-intro')renderMoetuinIntro();
   if(id==='profiel'){ renderProfielMoestuin(); }
   if(id==='moestuin')renderMoestuin();
@@ -1686,7 +1656,7 @@ function go(id){
 // WIZARD
 // ═══════════════════════════════════════
 function startSetup(){document.getElementById('hero-section').style.display='none';document.getElementById('wizard-section').style.display='block';}
-function loadDemo(){UP={land:'be',klimaat:KL.be,type:'Balkon',ori:'Zuid',medium:'Potten',m2:'4',cats:['koken','thee','huidverzorging','insecten'],tijd:'Matig',done:true};go('moestuin-intro');}
+function loadDemo(){UP={land:'be',klimaat:KL.be,type:'Balkon',ori:'Zuid',medium:'Potten',m2:'4',cats:['koken','thee','huidverzorging','insecten'],tijd:'Matig',done:true};go('home');}
 function selectLand(code, btn) {
   document.querySelectorAll('#tg-land .geo-choice-btn').forEach(b => b.style.borderColor = 'var(--border)');
   btn.style.borderColor = 'var(--accent)';
@@ -3028,6 +2998,55 @@ async function renderReceptenIntro() {
 }
 
 // ── De Moestuin Intro ─────────────────────────────────────────
+async function renderHome() {
+  try {
+    const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const cfg = {apiKey:"AIzaSyCIbxp7FemPmockRtH2Dx06yZ4_wBEfJkg",authDomain:"herbalroot.firebaseapp.com",projectId:"herbalroot",storageBucket:"herbalroot.firebasestorage.app",messagingSenderId:"613071845588",appId:"1:613071845588:web:4f06139e25abeda9bee341"};
+    const app = getApps().find(a=>a.name==='herbalroot-viewer')||initializeApp(cfg,'herbalroot-viewer');
+    const db = getFirestore(app);
+    const snap = await getDoc(doc(db,'siteContent','home'));
+    if (snap.exists()) {
+      const d = snap.data();
+      const setTxt  = (id,val) => { const el=document.getElementById(id); if(el&&val) el.textContent=val; };
+      const setHTML = (id,val) => { const el=document.getElementById(id); if(el&&val) el.innerHTML=val; };
+      setTxt('home-title', d.title);
+      setTxt('home-sub',   d.sub);
+      setHTML('home-tekst', d.tekst);
+      // Hero afbeelding
+      if (d.heroImg) {
+        const img = document.getElementById('home-hero-img');
+        if (img) { img.src=d.heroImg; img.style.display='block'; }
+        const ov = document.getElementById('home-hero-overlay');
+        if (ov) ov.style.display='flex';
+        setTxt('home-overlay-title', d.overlayTitle||d.title||'');
+        setTxt('home-overlay-sub',   d.overlaySub||d.sub||'');
+      }
+      // Kaarten
+      const showCard = (prefix, imgId, emojiId) => {
+        const imgUrl = d[prefix+'Img'];
+        if (imgUrl) {
+          const i=document.getElementById(imgId); if(i){i.src=imgUrl;i.style.display='block';document.getElementById(emojiId).style.display='none';}
+        }
+        setTxt(prefix+'Title', d[prefix.replace('home-','')+'Title']||'');
+        setTxt(prefix+'Text',  d[prefix.replace('home-','')+'Text']||'');
+      };
+      // Groenten kaart
+      if (d.groentenImg) { const i=document.getElementById('home-groenten-img'); if(i){i.src=d.groentenImg;i.style.display='block';document.getElementById('home-groenten-emoji').style.display='none';} }
+      setTxt('home-groenten-title', d.groentenTitle);
+      setTxt('home-groenten-text',  d.groentenText);
+      // Fruit kaart
+      if (d.fruitImg) { const i=document.getElementById('home-fruit-img'); if(i){i.src=d.fruitImg;i.style.display='block';document.getElementById('home-fruit-emoji').style.display='none';} }
+      setTxt('home-fruit-title', d.fruitTitle);
+      setTxt('home-fruit-text',  d.fruitText);
+      // Kruiden kaart
+      if (d.kruidenImg) { const i=document.getElementById('home-kruiden-img'); if(i){i.src=d.kruidenImg;i.style.display='block';document.getElementById('home-kruiden-emoji').style.display='none';} }
+      setTxt('home-kruiden-title', d.kruidenTitle);
+      setTxt('home-kruiden-text',  d.kruidenText);
+    }
+  } catch(e) { console.warn('Home render fout:', e.message); }
+}
+
 async function renderMoetuinIntro() {
   try {
     const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
