@@ -3716,7 +3716,7 @@ function openPlantModal(id, type) {
         '<div class="herb-tags">' +
         plantRecepten.map(([naam]) => {
           const esc = naam.replace(/'/g, "\'");
-          return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal('' + h.id + '',''+esc+'')">🍴 ' + naam + '</span>';
+          return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\\\'' + h.id + '\\\',\\\''+esc+'\\\')">🍴 ' + naam + '</span>';
         }).join('') +
         '</div>';
     })() +
