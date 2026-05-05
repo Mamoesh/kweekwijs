@@ -150,6 +150,7 @@ window.switchSection = s => {
   main.innerHTML = '';
   const map = {
     dashboard:       renderDashboard,
+    'home':           renderHomeAdmin,
     'moestuin-intro': renderMoetuinIntroAdmin,
     'recepten-intro': renderReceptenIntroAdmin,
     kruiden:   ()=>renderSection('kruiden'),
@@ -309,8 +310,6 @@ window.openEditor = (id, type) => {
   setTimeout(() => {
     renderPestList(p.pests||[], 'pest');
     renderPestList(p.diseases||[], 'disease');
-    const prevEl = document.getElementById('ed-preventie');
-    if (prevEl) prevEl.value = p.preventie || '';
   }, 50);
   document.getElementById('ed-id').disabled=!!id;
   document.getElementById('photo-preview').innerHTML=p.photo
@@ -355,7 +354,7 @@ window.savePlant = async () => {
     ben:lines(get('ed-ben')),rec:lines(get('ed-rec')),good:csv(get('ed-good')),bad:csv(get('ed-bad')),cat:csv(get('ed-cat')),
     zaai_binnen:months(get('ed-zaai_binnen')),zaai_buiten:months(get('ed-zaai_buiten')),
     uitplanten:months(get('ed-uitplanten')),oogst:months(get('ed-oogst')),stek:months(get('ed-stek')),
-    photo:get('ed-photo-url'),photo2:get('ed-photo-url'),pests,diseases,preventie:get('ed-preventie'),ph_stages:['🌱','🌿','🌸','🌼'],cp:0,watered:Date.now()};
+    photo:get('ed-photo-url'),photo2:get('ed-photo-url'),pests,diseases,ph_stages:['🌱','🌿','🌸','🌼'],cp:0,watered:Date.now()};
   try{
     await setDoc(doc(db,editingType,id),data);
     const idx=(allPlants[editingType]||[]).findIndex(p=>p.id===id);
@@ -1230,6 +1229,102 @@ window.importAllPlants=async()=>{
   }
 };
 
+// ── Startpagina beheer ────────────────────────────────────────
+async function renderHomeAdmin() {
+  document.getElementById('main-panel').innerHTML = `
+    <div class="page-title-row">
+      <div class="page-title">🏡 Startpagina</div>
+      <button class="btn-primary" onclick="saveHomeAdmin()">💾 Opslaan</button>
+    </div>
+    <p class="page-sub">Pas hier de inhoud van de startpagina aan — teksten, afbeeldingen en de drie categoriekaarten.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:.5rem">
+      <div>
+        <div class="dash-section-title">📄 Algemeen</div>
+        <div class="fg"><label>Paginatitel</label><input id="hp-title" placeholder="Welkom bij Kweekwijs"></div>
+        <div class="fg"><label>Subtitel / intro</label><input id="hp-sub" placeholder="Jouw persoonlijke moestuingids..."></div>
+        <div class="fg"><label>Introductietekst (HTML toegestaan)</label><textarea id="hp-tekst" rows="5" placeholder="Welkomstekst voor de bezoekers..."></textarea></div>
+      </div>
+      <div>
+        <div class="dash-section-title">🖼 Hero afbeelding</div>
+        <div class="fg"><label>Hero foto URL</label><input id="hp-heroImg" placeholder="https://..." oninput="previewHomeImg(this.value)"></div>
+        <div id="hp-hero-preview" style="margin-top:.5rem"></div>
+        <div class="fg" style="margin-top:1rem"><label>Overlay titel (op foto)</label><input id="hp-overlayTitle" placeholder="Kweek je eigen moestuin"></div>
+        <div class="fg"><label>Overlay subtitel (op foto)</label><input id="hp-overlaySub" placeholder="Van zaad tot oogst..."></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;margin-top:1.5rem">
+      <div class="upload-dash-box">
+        <div class="dash-section-title">🥦 Groenten kaart</div>
+        <div class="fg"><label>Titel</label><input id="hp-groentenTitle" placeholder="Groenten"></div>
+        <div class="fg"><label>Tekst</label><textarea id="hp-groentenText" rows="3"></textarea></div>
+        <div class="fg"><label>Foto URL</label><input id="hp-groentenImg" placeholder="https://..." oninput="previewCardImg('hp-groenten-prev',this.value)"></div>
+        <div id="hp-groenten-prev"></div>
+      </div>
+      <div class="upload-dash-box">
+        <div class="dash-section-title">🍎 Fruit kaart</div>
+        <div class="fg"><label>Titel</label><input id="hp-fruitTitle" placeholder="Fruit"></div>
+        <div class="fg"><label>Tekst</label><textarea id="hp-fruitText" rows="3"></textarea></div>
+        <div class="fg"><label>Foto URL</label><input id="hp-fruitImg" placeholder="https://..." oninput="previewCardImg('hp-fruit-prev',this.value)"></div>
+        <div id="hp-fruit-prev"></div>
+      </div>
+      <div class="upload-dash-box">
+        <div class="dash-section-title">🌱 Kruiden kaart</div>
+        <div class="fg"><label>Titel</label><input id="hp-kruidenTitle" placeholder="Kruiden"></div>
+        <div class="fg"><label>Tekst</label><textarea id="hp-kruidenText" rows="3"></textarea></div>
+        <div class="fg"><label>Foto URL</label><input id="hp-kruidenImg" placeholder="https://..." oninput="previewCardImg('hp-kruiden-prev',this.value)"></div>
+        <div id="hp-kruiden-prev"></div>
+      </div>
+    </div>`;
+
+  window.previewHomeImg = url => {
+    const el = document.getElementById('hp-hero-preview');
+    if (!el) return;
+    el.innerHTML = url
+      ? '<img src="'+url+'" style="max-height:140px;border-radius:8px;object-fit:cover;width:100%" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">'
+      : '';
+  };
+  window.previewCardImg = (divId, url) => {
+    const el = document.getElementById(divId);
+    if (!el) return;
+    el.innerHTML = url
+      ? '<img src="'+url+'" style="max-height:90px;border-radius:6px;object-fit:cover;width:100%;margin-top:.25rem" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">'
+      : '';
+  };
+
+  // Laad bestaande data
+  try {
+    const snap = await getDoc(doc(db,'siteContent','home'));
+    if (snap.exists()) {
+      const d = snap.data();
+      const set = (id,val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
+      set('hp-title',d.title); set('hp-sub',d.sub); set('hp-tekst',d.tekst);
+      set('hp-heroImg',d.heroImg); set('hp-overlayTitle',d.overlayTitle); set('hp-overlaySub',d.overlaySub);
+      set('hp-groentenTitle',d.groentenTitle); set('hp-groentenText',d.groentenText); set('hp-groentenImg',d.groentenImg);
+      set('hp-fruitTitle',d.fruitTitle); set('hp-fruitText',d.fruitText); set('hp-fruitImg',d.fruitImg);
+      set('hp-kruidenTitle',d.kruidenTitle); set('hp-kruidenText',d.kruidenText); set('hp-kruidenImg',d.kruidenImg);
+      if (d.heroImg) previewHomeImg(d.heroImg);
+      if (d.groentenImg) previewCardImg('hp-groenten-prev', d.groentenImg);
+      if (d.fruitImg)    previewCardImg('hp-fruit-prev',    d.fruitImg);
+      if (d.kruidenImg)  previewCardImg('hp-kruiden-prev',  d.kruidenImg);
+    }
+  } catch(e) { console.warn('Home laden fout:', e.message); }
+}
+
+window.saveHomeAdmin = async () => {
+  const get = id => (document.getElementById(id)||{}).value||'';
+  const data = {
+    title: get('hp-title'), sub: get('hp-sub'), tekst: get('hp-tekst'),
+    heroImg: get('hp-heroImg'), overlayTitle: get('hp-overlayTitle'), overlaySub: get('hp-overlaySub'),
+    groentenTitle: get('hp-groentenTitle'), groentenText: get('hp-groentenText'), groentenImg: get('hp-groentenImg'),
+    fruitTitle: get('hp-fruitTitle'), fruitText: get('hp-fruitText'), fruitImg: get('hp-fruitImg'),
+    kruidenTitle: get('hp-kruidenTitle'), kruidenText: get('hp-kruidenText'), kruidenImg: get('hp-kruidenImg'),
+  };
+  try {
+    await setDoc(doc(db,'siteContent','home'), data);
+    toast('Startpagina opgeslagen ✓','ok');
+  } catch(e) { toast('Fout: '+e.message,'err'); }
+};
+
 // ── De Moestuin Intro beheer ──────────────────────────────────
 async function renderMoetuinIntroAdmin() {
   document.getElementById('main-panel').innerHTML = `
@@ -1854,7 +1949,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   <div class="login-box">
     <div class="login-logo">
       <span class="login-logo-icon">🌿</span>
-      <span class="login-logo-text">Kweek<span>wijs</span></span>
+      <span class="login-logo-text">Kweekwijs</span>
     </div>
     <div class="login-sub">Beheerderspaneel — log in met je Google-account</div>
     <button class="btn-google" id="google-btn">
@@ -1877,7 +1972,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <div class="sidebar-logo">
       <span class="logo-icon">🌿</span>
       <div>
-        <div class="logo-text">Kweek<span>wijs</span></div>
+        <div class="logo-text">Kweekwijs</div>
         <div class="logo-sub">Beheerderspaneel</div>
       </div>
     </div>
@@ -1897,6 +1992,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <span class="nav-icon">🍎</span> Fruit
       </div>
       <div class="nav-section">Content</div>
+      <div class="nav-item" data-section="home" onclick="switchSection('home')">
+        <span class="nav-icon">🏡</span> Startpagina
+      </div>
       <div class="nav-item" data-section="moestuin-intro" onclick="switchSection('moestuin-intro')">
         <span class="nav-icon">🌿</span> De Moestuin
       </div>
@@ -2018,17 +2116,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <div id="unsplash-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.5rem;margin-top:.85rem"></div>
       </div>
       <div class="etab-panel" id="etab-plagen">
-        <div class="dash-section-title" style="margin-bottom:.75rem">🐛 Plagen</div>
+        <div class="dash-section-title" style="margin-bottom:.75rem">🐛 Insecten & plagen</div>
         <div id="pests-list"></div>
         <button class="btn-outline-sm" style="width:100%;margin-bottom:1.5rem" onclick="addPestEntry('pest')">+ Plaag toevoegen</button>
         <div class="dash-section-title" style="margin-bottom:.75rem">🍂 Ziektes</div>
         <div id="diseases-list"></div>
-        <button class="btn-outline-sm" style="width:100%;margin-bottom:1.5rem" onclick="addPestEntry('disease')">+ Ziekte toevoegen</button>
-        <div class="dash-section-title" style="margin-bottom:.75rem">🛡️ Preventie</div>
-        <div class="fg" style="margin-bottom:.5rem">
-          <label for="ed-preventie" style="font-size:.8rem;color:var(--text2);display:block;margin-bottom:.35rem">Tips om plagen en ziektes te voorkomen</label>
-          <textarea id="ed-preventie" rows="4" placeholder="bv. Zorg voor goede luchtcirculatie, gebruik compost, wissel gewassen af..." style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:.9rem;padding:.6rem .75rem;resize:vertical;min-height:80px;"></textarea>
-        </div>
+        <button class="btn-outline-sm" style="width:100%;margin-bottom:.5rem" onclick="addPestEntry('disease')">+ Ziekte toevoegen</button>
         <input type="hidden" id="ed-pests">
         <input type="hidden" id="ed-diseases">
       </div>
