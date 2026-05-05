@@ -167,8 +167,11 @@ select option{background:var(--surface2);}
 .pest-card{background:rgba(200,126,126,.07);border:1px solid rgba(200,126,126,.2);border-radius:10px;padding:.75rem 1rem;}
 .pest-name{font-size:.85rem;font-weight:500;color:var(--danger);margin-bottom:.25rem;}
 .pest-desc{font-size:.82rem;color:var(--text2);line-height:1.55;margin-bottom:.3rem;}
-.pest-prevent{font-size:.8rem;color:var(--text);line-height:1.5;margin-top:.5rem;background:rgba(126,200,126,.08);border:1px solid rgba(126,200,126,.2);border-radius:7px;padding:.5rem .75rem;}
-.pest-prevent strong{color:var(--accent);display:block;font-size:.75rem;margin-bottom:.2rem;}
+.pest-prevent{font-size:.82rem;color:var(--text2);line-height:1.5;margin-top:.4rem;}
+.pest-prevent strong{color:var(--accent);font-weight:700;}
+.pest-preventie-block{margin-top:1.5rem;}
+.pest-preventie-block .pv-title{font-size:.78rem;font-weight:700;color:#e07c6a;letter-spacing:.07em;margin-bottom:.5rem;display:flex;align-items:center;gap:.35rem;}
+.pest-preventie-block .pv-text{background:var(--surface2,rgba(255,255,255,.04));border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;font-size:.82rem;color:var(--text2);line-height:1.7;font-style:italic;}
 .storage-para{background:rgba(200,169,110,.07);border:1px solid rgba(200,169,110,.25);border-radius:10px;padding:.75rem 1rem;font-size:.87rem;color:var(--text2);line-height:1.7;margin-bottom:.45rem;}
 .storage-para strong{color:var(--accent2);}
 .storage-box strong{color:var(--accent2);}
@@ -2024,6 +2027,7 @@ function openModal(id){
           '</div>'
         ).join('') + '</div>'
       : '<p style="color:var(--text2);font-size:.85rem">Geen bekende specifieke ziektes.</p>') +
+    (h.preventie ? '<div class="pest-preventie-block"><div class="pv-title"><span>🛡</span> PREVENTIE</div><div class="pv-text">' + h.preventie + '</div></div>' : '') +
     '</div>';
 
   const theePanel='';
@@ -3739,6 +3743,7 @@ function openPlantModal(id, type) {
           '</div>'
         ).join('') + '</div>'
       : '<p style="color:var(--text2);font-size:.85rem">Geen bekende specifieke ziektes.</p>') +
+    (h.preventie ? '<div class="pest-preventie-block"><div class="pv-title"><span>🛡</span> PREVENTIE</div><div class="pv-text">' + h.preventie + '</div></div>' : '') +
     '</div>';
 
   document.getElementById('tab-panels').innerHTML = infoPanel + calPanel + storagePanel + naastPanel + plagenPanel_p;
