@@ -1399,7 +1399,7 @@ function createPestCard(item, type, idx) {
       '<input type="text" class="pest-naam" value="' + (item.naam||'').replace(/"/g,'&quot;') + '" placeholder="bv. Bladluis"></div>' +
     '<div class="fg"><label>Beschrijving</label>' +
       '<textarea class="pest-beschrijving" rows="2" placeholder="Hoe herken je dit?">' + (item.beschrijving||'') + '</textarea></div>' +
-    '<div class="fg"><label>Behandelen</label>' +
+    '<div class="fg"><label>Voorkomen / behandeling</label>' +
       '<textarea class="pest-voorkomen" rows="2" placeholder="Hoe voorkom of behandel je dit?">' + (item.voorkomen||'') + '</textarea></div>';
   return div;
 }
@@ -1961,7 +1961,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
               <option value="">— Kies levensduur —</option>
               <option value="vast">🌳 Vaste plant</option>
               <option value="een">📅 Eenjarige plant</option>
-              <option value="twee">📅 Meerjarige plant</option>
+              <option value="twee">📅 Tweejarige plant</option>
             </select></div>
           <div class="fg"><label>Zelfzaaiend (enkel bij eenjarige)</label>
             <select id="ed-zelfzaaiend">
@@ -1980,7 +1980,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
           <div class="fg"><label>Temperatuur</label><input id="ed-temp" placeholder="15–30°C"></div>
           <div class="fg"><label>pH grond</label><input id="ed-ph" placeholder="6.0–7.0"></div>
           <div class="fg"><label>Grondtype</label><input id="ed-soil" placeholder="Lichte, drainerende grond"></div>
-          <div class="fg"><label>Bewatering</label><input id="ed-wf" type="number" min="1" max="30"></div>
+          <div class="fg"><label>Watergift (elke X dagen)</label><input id="ed-wf" type="number" min="1" max="30"></div>
           <div class="fg"><label>Zaaien binnen (maanden 1–12)</label><input id="ed-zaai_binnen" placeholder="2, 3, 4"><span class="hint">Maandnummers, komma-gescheiden</span></div>
           <div class="fg"><label>Zaaien buiten</label><input id="ed-zaai_buiten" placeholder="4, 5"></div>
           <div class="fg"><label>Uitplanten</label><input id="ed-uitplanten" placeholder="5, 6"></div>
