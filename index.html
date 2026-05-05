@@ -167,8 +167,8 @@ select option{background:var(--surface2);}
 .pest-card{background:rgba(200,126,126,.07);border:1px solid rgba(200,126,126,.2);border-radius:10px;padding:.75rem 1rem;}
 .pest-name{font-size:.85rem;font-weight:500;color:var(--danger);margin-bottom:.25rem;}
 .pest-desc{font-size:.82rem;color:var(--text2);line-height:1.55;margin-bottom:.3rem;}
-.pest-prevent{font-size:.8rem;color:var(--text2);line-height:1.5;}
-.pest-prevent strong{color:var(--accent);}
+.pest-prevent{font-size:.8rem;color:var(--text);line-height:1.5;margin-top:.5rem;background:rgba(126,200,126,.08);border:1px solid rgba(126,200,126,.2);border-radius:7px;padding:.5rem .75rem;}
+.pest-prevent strong{color:var(--accent);display:block;font-size:.75rem;margin-bottom:.2rem;}
 .storage-para{background:rgba(200,169,110,.07);border:1px solid rgba(200,169,110,.25);border-radius:10px;padding:.75rem 1rem;font-size:.87rem;color:var(--text2);line-height:1.7;margin-bottom:.45rem;}
 .storage-para strong{color:var(--accent2);}
 .storage-box strong{color:var(--accent2);}
@@ -2009,7 +2009,7 @@ function openModal(id){
           '<div class="pest-card">' +
           '<div class="pest-name">🐛 ' + p.naam + '</div>' +
           '<div class="pest-desc">' + p.beschrijving + '</div>' +
-          (p.voorkomen ? '<div class="pest-prevent"><strong>🛡 Voorkomen:</strong> ' + p.voorkomen + '</div>' : '') +
+          (p.voorkomen ? '<div class="pest-prevent"><strong>Behandelen:</strong>' + p.voorkomen + '</div>' : '') +
           '</div>'
         ).join('') + '</div>'
       : '<p style="color:var(--text2);font-size:.85rem;margin-bottom:.75rem">Geen bekende specifieke plagen.</p>') +
@@ -2020,7 +2020,7 @@ function openModal(id){
           '<div class="pest-card" style="border-color:rgba(200,169,110,.25);background:rgba(200,169,110,.07)">' +
           '<div class="pest-name" style="color:var(--accent2)">🍂 ' + d.naam + '</div>' +
           '<div class="pest-desc">' + d.beschrijving + '</div>' +
-          (d.voorkomen ? '<div class="pest-prevent"><strong>🛡 Voorkomen:</strong> ' + d.voorkomen + '</div>' : '') +
+          (d.voorkomen ? '<div class="pest-prevent"><strong>Behandelen:</strong>' + d.voorkomen + '</div>' : '') +
           '</div>'
         ).join('') + '</div>'
       : '<p style="color:var(--text2);font-size:.85rem">Geen bekende specifieke ziektes.</p>') +
@@ -3724,7 +3724,7 @@ function openPlantModal(id, type) {
           '<div class="pest-card">' +
           '<div class="pest-name">🐛 ' + p.naam + '</div>' +
           '<div class="pest-desc">' + p.beschrijving + '</div>' +
-          (p.voorkomen ? '<div class="pest-prevent"><strong>🛡 Voorkomen:</strong> ' + p.voorkomen + '</div>' : '') +
+          (p.voorkomen ? '<div class="pest-prevent"><strong>Behandelen:</strong>' + p.voorkomen + '</div>' : '') +
           '</div>'
         ).join('') + '</div>'
       : '<p style="color:var(--text2);font-size:.85rem;margin-bottom:.75rem">Geen bekende specifieke plagen.</p>') +
@@ -3735,7 +3735,7 @@ function openPlantModal(id, type) {
           '<div class="pest-card" style="border-color:rgba(200,169,110,.25);background:rgba(200,169,110,.07)">' +
           '<div class="pest-name" style="color:var(--accent2)">🍂 ' + d.naam + '</div>' +
           '<div class="pest-desc">' + d.beschrijving + '</div>' +
-          (d.voorkomen ? '<div class="pest-prevent"><strong>🛡 Voorkomen:</strong> ' + d.voorkomen + '</div>' : '') +
+          (d.voorkomen ? '<div class="pest-prevent"><strong>Behandelen:</strong>' + d.voorkomen + '</div>' : '') +
           '</div>'
         ).join('') + '</div>'
       : '<p style="color:var(--text2);font-size:.85rem">Geen bekende specifieke ziektes.</p>') +
