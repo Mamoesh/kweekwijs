@@ -2032,33 +2032,28 @@ function openModal(id){
 
 
   const plagenPanel = '<div class="tab-content" id="panel-plagen">' +
-    '<div class="section-h" style="margin-top:0">🐛 Plagen</div>' +
+    '<div class="section-h" style="margin-top:0">🐛 Gevoelig voor insecten & plagen</div>' +
     (pests.length
       ? '<div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.5rem">' +
         pests.map(p =>
           '<div class="pest-card">' +
           '<div class="pest-name">🐛 ' + p.naam + '</div>' +
           '<div class="pest-desc">' + p.beschrijving + '</div>' +
-          '<div class="pest-prevent"><strong>Behandelen:</strong> ' + p.voorkomen + '</div>' +
+          '<div class="pest-prevent"><strong>Voorkomen:</strong> ' + p.voorkomen + '</div>' +
           '</div>'
         ).join('') + '</div>'
       : '<p style="color:var(--text2);font-size:.85rem;margin-bottom:.75rem">Geen bekende specifieke plagen.</p>') +
-    '<div class="section-h">🍂 Ziektes</div>' +
+    '<div class="section-h">🍂 Gevoelig voor ziektes</div>' +
     (diseases.length
       ? '<div style="display:flex;flex-direction:column;gap:.5rem">' +
         diseases.map(d =>
           '<div class="pest-card" style="border-color:rgba(200,169,110,.25);background:rgba(200,169,110,.07)">' +
           '<div class="pest-name" style="color:var(--accent2)">🍂 ' + d.naam + '</div>' +
           '<div class="pest-desc">' + d.beschrijving + '</div>' +
-          '<div class="pest-prevent"><strong>Behandelen:</strong> ' + d.voorkomen + '</div>' +
+          '<div class="pest-prevent"><strong>Voorkomen:</strong> ' + d.voorkomen + '</div>' +
           '</div>'
         ).join('') + '</div>'
       : '<p style="color:var(--text2);font-size:.85rem">Geen bekende specifieke ziektes.</p>') +
-    '<div class="section-h" style="margin-top:1.5rem">🛡️ Preventie</div>' +
-    '<div class="pest-card" style="border-color:rgba(126,200,126,.25);background:rgba(126,200,126,.07)">' +
-    '<div class="pest-desc" style="color:var(--text2);font-size:.85rem;font-style:italic">' +
-    (h.preventie ? h.preventie : 'Nog geen preventietips ingevoerd voor deze plant.') +
-    '</div></div>' +
     '</div>';
 
   const theePanel='';
@@ -3661,8 +3656,9 @@ function openPlantModal(id, type) {
   }
   const calPanel = '<div class="tab-content" id="panel-pkalender">' +
     '<div class="section-h" style="margin-top:0">📅 Zaai- en oogstkalender</div>' +
+    buildCalendar(h) +
     '<div class="info-grid" style="margin-top:.5rem">' +
-    calEntry(h.zaai_binnen, '🏠 Zaaien binnen') +
+    calEntry(h.zaai_binnen, '🏠 Zaaien binnen / serre') +
     calEntry(h.zaai_buiten, '🌿 Zaaien buiten') +
     calEntry(h.uitplanten, '🌱 Uitplanten') +
     calEntry(h.stek, '✂️ Stekken') +
@@ -3702,33 +3698,28 @@ function openPlantModal(id, type) {
 
   // Plagen & Ziektes — apart tabblad
   const plagenPanel_p = '<div class="tab-content" id="panel-pplagen">' +
-    '<div class="section-h" style="margin-top:0">🐛 Plagen</div>' +
+    '<div class="section-h" style="margin-top:0">🐛 Gevoelig voor insecten & plagen</div>' +
     (pests_p.length
       ? '<div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.5rem">' +
         pests_p.map(p =>
           '<div class="pest-card">' +
           '<div class="pest-name">🐛 ' + p.naam + '</div>' +
           '<div class="pest-desc">' + p.beschrijving + '</div>' +
-          '<div class="pest-prevent"><strong>Behandelen:</strong> ' + p.voorkomen + '</div>' +
+          '<div class="pest-prevent"><strong>Voorkomen:</strong> ' + p.voorkomen + '</div>' +
           '</div>'
         ).join('') + '</div>'
       : '<p style="color:var(--text2);font-size:.85rem;margin-bottom:.75rem">Geen bekende specifieke plagen.</p>') +
-    '<div class="section-h">🍂 Ziektes</div>' +
+    '<div class="section-h">🍂 Gevoelig voor ziektes</div>' +
     (diseases_p.length
       ? '<div style="display:flex;flex-direction:column;gap:.5rem">' +
         diseases_p.map(d =>
           '<div class="pest-card" style="border-color:rgba(200,169,110,.25);background:rgba(200,169,110,.07)">' +
           '<div class="pest-name" style="color:var(--accent2)">🍂 ' + d.naam + '</div>' +
           '<div class="pest-desc">' + d.beschrijving + '</div>' +
-          '<div class="pest-prevent"><strong>Behandelen:</strong> ' + d.voorkomen + '</div>' +
+          '<div class="pest-prevent"><strong>Voorkomen:</strong> ' + d.voorkomen + '</div>' +
           '</div>'
         ).join('') + '</div>'
       : '<p style="color:var(--text2);font-size:.85rem">Geen bekende specifieke ziektes.</p>') +
-    '<div class="section-h" style="margin-top:1.5rem">🛡️ Preventie</div>' +
-    '<div class="pest-card" style="border-color:rgba(126,200,126,.25);background:rgba(126,200,126,.07)">' +
-    '<div class="pest-desc" style="color:var(--text2);font-size:.85rem;font-style:italic">' +
-    (h.preventie ? h.preventie : 'Nog geen preventietips ingevoerd voor deze plant.') +
-    '</div></div>' +
     '</div>';
 
   document.getElementById('tab-panels').innerHTML = infoPanel + calPanel + storagePanel + naastPanel + plagenPanel_p;
