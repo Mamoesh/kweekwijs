@@ -309,8 +309,6 @@ window.openEditor = (id, type) => {
   setTimeout(() => {
     renderPestList(p.pests||[], 'pest');
     renderPestList(p.diseases||[], 'disease');
-    const prevEl = document.getElementById('ed-preventie');
-    if (prevEl) prevEl.value = p.preventie || '';
   }, 50);
   document.getElementById('ed-id').disabled=!!id;
   document.getElementById('photo-preview').innerHTML=p.photo
@@ -355,7 +353,7 @@ window.savePlant = async () => {
     ben:lines(get('ed-ben')),rec:lines(get('ed-rec')),good:csv(get('ed-good')),bad:csv(get('ed-bad')),cat:csv(get('ed-cat')),
     zaai_binnen:months(get('ed-zaai_binnen')),zaai_buiten:months(get('ed-zaai_buiten')),
     uitplanten:months(get('ed-uitplanten')),oogst:months(get('ed-oogst')),stek:months(get('ed-stek')),
-    photo:get('ed-photo-url'),photo2:get('ed-photo-url'),pests,diseases,preventie:get('ed-preventie'),ph_stages:['🌱','🌿','🌸','🌼'],cp:0,watered:Date.now()};
+    photo:get('ed-photo-url'),photo2:get('ed-photo-url'),pests,diseases,ph_stages:['🌱','🌿','🌸','🌼'],cp:0,watered:Date.now()};
   try{
     await setDoc(doc(db,editingType,id),data);
     const idx=(allPlants[editingType]||[]).findIndex(p=>p.id===id);
@@ -1401,7 +1399,7 @@ function createPestCard(item, type, idx) {
       '<input type="text" class="pest-naam" value="' + (item.naam||'').replace(/"/g,'&quot;') + '" placeholder="bv. Bladluis"></div>' +
     '<div class="fg"><label>Beschrijving</label>' +
       '<textarea class="pest-beschrijving" rows="2" placeholder="Hoe herken je dit?">' + (item.beschrijving||'') + '</textarea></div>' +
-    '<div class="fg"><label>Voorkomen / behandeling</label>' +
+    '<div class="fg"><label>Behandelen</label>' +
       '<textarea class="pest-voorkomen" rows="2" placeholder="Hoe voorkom of behandel je dit?">' + (item.voorkomen||'') + '</textarea></div>';
   return div;
 }
@@ -1963,7 +1961,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
               <option value="">— Kies levensduur —</option>
               <option value="vast">🌳 Vaste plant</option>
               <option value="een">📅 Eenjarige plant</option>
-              <option value="twee">📅 Tweejarige plant</option>
+              <option value="twee">📅 Meerjarige plant</option>
             </select></div>
           <div class="fg"><label>Zelfzaaiend (enkel bij eenjarige)</label>
             <select id="ed-zelfzaaiend">
@@ -1982,7 +1980,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
           <div class="fg"><label>Temperatuur</label><input id="ed-temp" placeholder="15–30°C"></div>
           <div class="fg"><label>pH grond</label><input id="ed-ph" placeholder="6.0–7.0"></div>
           <div class="fg"><label>Grondtype</label><input id="ed-soil" placeholder="Lichte, drainerende grond"></div>
-          <div class="fg"><label>Watergift (elke X dagen)</label><input id="ed-wf" type="number" min="1" max="30"></div>
+          <div class="fg"><label>Bewatering</label><input id="ed-wf" type="number" min="1" max="30"></div>
           <div class="fg"><label>Zaaien binnen (maanden 1–12)</label><input id="ed-zaai_binnen" placeholder="2, 3, 4"><span class="hint">Maandnummers, komma-gescheiden</span></div>
           <div class="fg"><label>Zaaien buiten</label><input id="ed-zaai_buiten" placeholder="4, 5"></div>
           <div class="fg"><label>Uitplanten</label><input id="ed-uitplanten" placeholder="5, 6"></div>
@@ -2018,17 +2016,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <div id="unsplash-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.5rem;margin-top:.85rem"></div>
       </div>
       <div class="etab-panel" id="etab-plagen">
-        <div class="dash-section-title" style="margin-bottom:.75rem">🐛 Plagen</div>
+        <div class="dash-section-title" style="margin-bottom:.75rem">🐛 Insecten & plagen</div>
         <div id="pests-list"></div>
         <button class="btn-outline-sm" style="width:100%;margin-bottom:1.5rem" onclick="addPestEntry('pest')">+ Plaag toevoegen</button>
         <div class="dash-section-title" style="margin-bottom:.75rem">🍂 Ziektes</div>
         <div id="diseases-list"></div>
-        <button class="btn-outline-sm" style="width:100%;margin-bottom:1.5rem" onclick="addPestEntry('disease')">+ Ziekte toevoegen</button>
-        <div class="dash-section-title" style="margin-bottom:.75rem">🛡️ Preventie</div>
-        <div class="fg" style="margin-bottom:.5rem">
-          <label for="ed-preventie" style="font-size:.8rem;color:var(--text2);display:block;margin-bottom:.35rem">Tips om plagen en ziektes te voorkomen</label>
-          <textarea id="ed-preventie" rows="4" placeholder="bv. Zorg voor goede luchtcirculatie, gebruik compost, wissel gewassen af..." style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:.9rem;padding:.6rem .75rem;resize:vertical;min-height:80px;"></textarea>
-        </div>
+        <button class="btn-outline-sm" style="width:100%;margin-bottom:.5rem" onclick="addPestEntry('disease')">+ Ziekte toevoegen</button>
         <input type="hidden" id="ed-pests">
         <input type="hidden" id="ed-diseases">
       </div>
