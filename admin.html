@@ -1141,7 +1141,7 @@ window.saveRecept=async()=>{
         const plant = allPlants[plantType].find(p=>p.id===herbId);
         if(plant && !(plant.rec||[]).includes(naam)) {
           plant.rec = [...(plant.rec||[]), naam];
-          await setDoc(doc(db,plantType,herbId), plant);
+          await setDoc(doc(db,plantType,herbId), {...plant, status: plant.status||'live'});
           toast(`${naam} opgeslagen ✓ en toegevoegd aan ${plant.name}`,'ok');
         } else {
           toast(`${naam} opgeslagen ✓`,'ok');
