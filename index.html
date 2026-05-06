@@ -2486,7 +2486,6 @@ function goToRecept(herbId, receptNaam) {
 
 // Navigeer vanuit inhoudmodal naar receptenpagina + scroll naar/open het juiste recept
 function goToReceptFromModal(herbId, receptNaam) {
-  console.log('[KWEEKWIJS] goToReceptFromModal aangeroepen:', herbId, receptNaam, '| DB keys:', Object.keys(RECEPTEN_DB||{}));
   // Zoek in RECEPTEN_DB: exacte naam, case-insensitief, of gedeeltelijke match
   function zoekInDB(naam) {
     if (RECEPTEN_DB[naam]) return naam;
@@ -3610,10 +3609,13 @@ function vulPlantRecepten() {
   const placeholder = document.getElementById('plant-recept-placeholder');
   if (!placeholder) return;
   const plantId = placeholder.getAttribute('data-plantid');
+  // Zoek recepten via herbId (case-insensitief)
   const recepten = Object.entries(RECEPTEN_DB || {})
-    .filter(([, r]) => r.herbId === plantId)
+    .filter(([, r]) => (r.herbId || '').toLowerCase() === plantId.toLowerCase())
     .map(([naam]) => naam);
   if (!recepten.length) { placeholder.innerHTML = ''; return; }
+  // Bouw DOM-elementen (geen onclick strings = geen escaping-problemen)
+  placeholder.innerHTML = '';
   const wrap = document.createElement('div');
   const title = document.createElement('div');
   title.className = 'section-h';
@@ -3631,7 +3633,6 @@ function vulPlantRecepten() {
     tags.appendChild(span);
   });
   wrap.appendChild(tags);
-  placeholder.innerHTML = '';
   placeholder.appendChild(wrap);
 }
 
@@ -3790,38 +3791,14 @@ function openPlantModal(id, type) {
     '</div>';
 
   document.getElementById('tab-panels').innerHTML = infoPanel + calPanel + storagePanel + naastPanel + plagenPanel_p;
+  // Vul recepten in — direct en daarna opnieuw als Firebase nog laadt
   vulPlantRecepten();
+  let _rv = 0;
+  const _ri = setInterval(() => { _rv++; vulPlantRecepten(); if (_rv >= 20) clearInterval(_ri); }, 300);
   document.getElementById('modal-overlay').classList.add('open');
 }
 
-function renderPlantReceptenPlaceholder(h) {
-  function vulIn() {
-    const el = document.getElementById('plant-recept-placeholder');
-    if (!el) return;
-    // Combineer h.rec met RECEPTEN_DB gefilterd op herbId (case-insensitief)
-    const recUitPlant = h.rec || [];
-    const recUitDB = Object.entries(RECEPTEN_DB || {})
-      .filter(([, r]) => (r.herbId || '').toLowerCase() === h.id.toLowerCase())
-      .map(([naam]) => naam);
-    const alleRec = [...new Set([...recUitPlant, ...recUitDB])];
-    console.log('[KWEEKWIJS DEBUG] Plant:', h.id, '| h.rec:', recUitPlant, '| RECEPTEN_DB hits:', recUitDB, '| Totaal:', alleRec, '| Alle herbIds in DB:', Object.values(RECEPTEN_DB||{}).map(r=>r.herbId));
-    if (!alleRec.length) { el.innerHTML = ''; return; }
-    const tags = alleRec.map(r => {
-      const esc = r.replace(/'/g, "\'");
-      return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\'' + h.id + '\',\''+esc+'\')" title="Bekijk recept">🍴 ' + r + '</span>';
-    }).join('');
-    el.innerHTML = '<div class="section-h">🍽 Recepten</div><div class="herb-tags">' + tags + '</div>';
-  }
 
-  // Meteen proberen, daarna herhalen tot RECEPTEN_DB geladen is (max 6s)
-  vulIn();
-  let pogingen = 0;
-  const iv = setInterval(() => {
-    pogingen++;
-    vulIn();
-    if (pogingen >= 20) clearInterval(iv);
-  }, 300);
-}
 
 // Load Wikipedia photos for groenten and fruit
 const WIKI_GROENTEN = {
@@ -4467,8 +4444,7 @@ async function laadFirebaseData() {
         const naam = data.naam || d.id.replace(/_sl_/g,'/').replace(/_dt_/g,'.').replace(/_/g,' ');
         if (naam && !RECEPTEN_DB[naam]) RECEPTEN_DB[naam] = data;
       });
-      console.log('[KWEEKWIJS] Recepten geladen uit Firebase:', Object.keys(RECEPTEN_DB).length, Object.keys(RECEPTEN_DB));
-      Object.values(RECEPTEN_DB).forEach(r => console.log('[KWEEKWIJS] Recept:', r.naam, '→ herbId:', r.herbId));
+
       if (typeof vulPlantRecepten === 'function') vulPlantRecepten();
     } catch(e) { console.warn('Recepten laden fout:', e.message); }
 
