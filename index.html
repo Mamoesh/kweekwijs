@@ -2486,48 +2486,43 @@ function goToRecept(herbId, receptNaam) {
 
 // Navigeer vanuit inhoudmodal naar receptenpagina + scroll naar/open het juiste recept
 function goToReceptFromModal(herbId, receptNaam) {
-  // Controleer eerst in RECEPTEN_DB — ook case-insensitief zoeken
-  let inDB = RECEPTEN_DB[receptNaam];
-  if (!inDB) {
-    // Probeer case-insensitief match
-    const lc = receptNaam.toLowerCase();
-    const match = Object.keys(RECEPTEN_DB).find(k => k.toLowerCase() === lc);
-    if (match) { inDB = RECEPTEN_DB[match]; receptNaam = match; }
+  // Zoek in RECEPTEN_DB — ook case-insensitief
+  function zoekInDB(naam) {
+    if (RECEPTEN_DB[naam]) return naam;
+    const lc = naam.toLowerCase();
+    return Object.keys(RECEPTEN_DB).find(k => k.toLowerCase() === lc) || null;
   }
-  if (inDB) {
-    // Recept gevonden — open direct zonder naar receptenpagina te gaan
+
+  function openRecept(naam) {
     closeModal();
-    openReceptDetail(receptNaam, herbId);
-    return;
+    openReceptDetail(naam, herbId);
   }
 
-  // Niet gevonden — ga naar receptenpagina en probeer daar te openen
-  closeModal();
-  go('recepten');
-  activeReceptFilter = 'all';
-  document.querySelectorAll('#recept-filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
-  const firstBtn = document.querySelector('#recept-filter-bar .filter-btn');
-  if (firstBtn) firstBtn.classList.add('active');
-  renderRecepten();
+  const gevonden = zoekInDB(receptNaam);
+  if (gevonden) { openRecept(gevonden); return; }
 
-  setTimeout(() => {
-    // Hercheck na render (Firebase kan inmiddels geladen zijn)
-    if (RECEPTEN_DB[receptNaam]) {
-      openReceptDetail(receptNaam, herbId);
-    } else {
-      // Scroll naar kaart en highlight
-      const cards = document.querySelectorAll('.recept-card');
-      for (const card of cards) {
-        if (card.querySelector('h3')?.textContent?.trim() === receptNaam) {
-          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          card.style.outline = '2px solid var(--accent)';
-          card.style.outlineOffset = '3px';
-          setTimeout(() => { card.style.outline = ''; card.style.outlineOffset = ''; }, 2000);
-          break;
-        }
-      }
+  // RECEPTEN_DB nog leeg (Firebase laadt nog) — wacht en herprobeeer
+  closeModal();
+  const loadingDiv = document.createElement('div');
+  loadingDiv.id = 'recept-loading-toast';
+  loadingDiv.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.75rem 1.5rem;color:var(--text2);font-size:.85rem;z-index:9999';
+  loadingDiv.textContent = '⏳ Recept laden…';
+  document.body.appendChild(loadingDiv);
+
+  let pogingen = 0;
+  const interval = setInterval(() => {
+    pogingen++;
+    const match = zoekInDB(receptNaam);
+    if (match) {
+      clearInterval(interval);
+      loadingDiv.remove();
+      openReceptDetail(match, herbId);
+    } else if (pogingen >= 20) {
+      clearInterval(interval);
+      loadingDiv.textContent = '❌ Recept niet gevonden. Controleer of het opgeslagen is in de beheerpagina.';
+      setTimeout(() => loadingDiv.remove(), 3000);
     }
-  }, 150);
+  }, 300);
 }
 
 
