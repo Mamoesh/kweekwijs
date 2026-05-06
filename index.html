@@ -2486,11 +2486,18 @@ function goToRecept(herbId, receptNaam) {
 
 // Navigeer vanuit inhoudmodal naar receptenpagina + scroll naar/open het juiste recept
 function goToReceptFromModal(herbId, receptNaam) {
-  // Zoek in RECEPTEN_DB — ook case-insensitief
+  // Zoek in RECEPTEN_DB: exacte naam, case-insensitief, of gedeeltelijke match
   function zoekInDB(naam) {
     if (RECEPTEN_DB[naam]) return naam;
-    const lc = naam.toLowerCase();
-    return Object.keys(RECEPTEN_DB).find(k => k.toLowerCase() === lc) || null;
+    const lc = naam.trim().toLowerCase();
+    // Case-insensitief
+    const ci = Object.keys(RECEPTEN_DB).find(k => k.toLowerCase() === lc);
+    if (ci) return ci;
+    // Gedeeltelijke match (naam bevat zoekterm of omgekeerd)
+    const partial = Object.keys(RECEPTEN_DB).find(k =>
+      k.toLowerCase().includes(lc) || lc.includes(k.toLowerCase())
+    );
+    return partial || null;
   }
 
   function openRecept(naam) {
@@ -2501,11 +2508,13 @@ function goToReceptFromModal(herbId, receptNaam) {
   const gevonden = zoekInDB(receptNaam);
   if (gevonden) { openRecept(gevonden); return; }
 
-  // RECEPTEN_DB nog leeg (Firebase laadt nog) — wacht en herprobeeer
+  // Niet direct gevonden — wacht op Firebase en probeer opnieuw
   closeModal();
+  const existing = document.getElementById('recept-loading-toast');
+  if (existing) existing.remove();
   const loadingDiv = document.createElement('div');
   loadingDiv.id = 'recept-loading-toast';
-  loadingDiv.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.75rem 1.5rem;color:var(--text2);font-size:.85rem;z-index:9999';
+  loadingDiv.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.75rem 1.5rem;color:var(--text2);font-size:.85rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3)';
   loadingDiv.textContent = '⏳ Recept laden…';
   document.body.appendChild(loadingDiv);
 
@@ -2517,12 +2526,12 @@ function goToReceptFromModal(herbId, receptNaam) {
       clearInterval(interval);
       loadingDiv.remove();
       openReceptDetail(match, herbId);
-    } else if (pogingen >= 20) {
+    } else if (pogingen >= 30) {
       clearInterval(interval);
-      loadingDiv.textContent = '❌ Recept niet gevonden. Controleer of het opgeslagen is in de beheerpagina.';
-      setTimeout(() => loadingDiv.remove(), 3000);
+      loadingDiv.innerHTML = '❌ <strong>' + receptNaam + '</strong> niet gevonden in receptendatabank.<br><span style="font-size:.75rem">Controleer of het recept is opgeslagen met herbId = ' + herbId + '</span>';
+      setTimeout(() => loadingDiv.remove(), 4000);
     }
-  }, 300);
+  }, 200);
 }
 
 
@@ -4419,13 +4428,13 @@ async function laadFirebaseData() {
 
     // Laad ook recepten uit Firebase en voeg toe aan RECEPTEN_DB
     try {
-      const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
       const recSnap = await getDocs(collection(db, 'recepten'));
       recSnap.docs.forEach(d => {
         const data = d.data();
         const naam = data.naam || d.id.replace(/_sl_/g,'/').replace(/_dt_/g,'.').replace(/_/g,' ');
         if (naam && !RECEPTEN_DB[naam]) RECEPTEN_DB[naam] = data;
       });
+      console.log('Recepten geladen:', Object.keys(RECEPTEN_DB).length, 'recepten:', Object.keys(RECEPTEN_DB));
     } catch(e) { console.warn('Recepten laden fout:', e.message); }
 
     // Herrender alle actieve schermen
