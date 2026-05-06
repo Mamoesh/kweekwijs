@@ -3698,7 +3698,7 @@ function openPlantModal(id, type) {
           '<div class="herb-tags">' + koken.map(r => {
             const hasR = !!RECEPTEN_DB[r];
             const esc = r.replace(/'/g, "\\'");
-            return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\''+id+'\',\''+esc+'\'" title="Bekijk recept">🍴 ' + r + '</span>';
+            return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\''+id+'\',\''+esc+'\')" title="Bekijk recept">🍴 ' + r + '</span>';
           }).join('') + '</div>';
       }
       if (dranken.length) {
@@ -3706,7 +3706,7 @@ function openPlantModal(id, type) {
           '<div class="herb-tags">' + dranken.map(r => {
             const hasR = !!RECEPTEN_DB[r];
             const esc = r.replace(/'/g, "\\'");
-            return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\''+id+'\',\''+esc+'\'" title="Bekijk recept">🥤 ' + r + '</span>';
+            return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\''+id+'\',\''+esc+'\')" title="Bekijk recept">🥤 ' + r + '</span>';
           }).join('') + '</div>';
       }
       return html;
