@@ -3708,17 +3708,16 @@ function openPlantModal(id, type) {
     '<div class="section-h" style="margin-top:0">💡 Kweektip</div>' +
     '<div class="harvest-box">' + (h.tip || 'Geen specifieke kweektip.') + '</div>' +
 
-    // Recepten uit Firebase (gefilterd op plantId)
+    // Recepten (uit h.rec op de plant + RECEPTEN_DB voor links)
     (() => {
-      const plantRecepten = Object.entries(RECEPTEN_DB||{}).filter(([,r]) => r.herbId === h.id);
-      if (!plantRecepten.length) return '';
+      const allRec = h.rec || [];
+      if (!allRec.length) return '';
+      function makePTag(r) {
+        const esc = r.replace(/'/g, "\'");
+        return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\'' + h.id + '\',\''+esc+'\')" title="Bekijk recept">🍴 ' + r + '</span>';
+      }
       return '<div class="section-h">🍽 Recepten</div>' +
-        '<div class="herb-tags">' +
-        plantRecepten.map(([naam]) => {
-          const esc = naam.replace(/'/g, "\'");
-          return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\\\'' + h.id + '\\\',\\\''+esc+'\\\')">🍴 ' + naam + '</span>';
-        }).join('') +
-        '</div>';
+        '<div class="herb-tags">' + allRec.map(makePTag).join('') + '</div>';
     })() +
 
     // Companions
