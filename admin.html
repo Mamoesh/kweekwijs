@@ -204,13 +204,28 @@ function renderDashboard() {
         '<button class="qa-btn" onclick="switchSection(\'fruit\');setTimeout(()=>openEditor(null,\'fruit\'),50)"><span class="qa-icon">🍎</span><span>Nieuw fruit</span></button>' +
         '<button class="qa-btn" onclick="switchSection(\'paginas\');setTimeout(()=>openPageEditor(null),100)"><span class="qa-icon">📄</span><span>Nieuwe pagina</span></button>' +
         '<button class="qa-btn" onclick="switchSection(\'recepten\');setTimeout(()=>openReceptEditor(null),50)"><span class="qa-icon">🍳</span><span>Nieuw recept</span></button>' +
-        '<button class="qa-btn" onclick="window.open(\'index.html\',\'_blank\')"><span class="qa-icon">👁</span><span>Bekijk website</span></button>' +
+        '<button class="qa-btn" onclick="previewWebsite()"><span class="qa-icon">👁</span><span>Bekijk website</span></button>' +
       '</div>' +
     '</div>' +
-    '<div style="margin-top:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">' +
+    (() => {
+      const draftCount = ['kruiden','groenten','fruit'].reduce((n,t)=>n+(allPlants[t]||[]).filter(p=>p.status!=='live').length, 0);
+      return '<div style="margin-top:1.25rem;background:var(--surface);border:2px solid ' + (draftCount>0?'var(--green)':'var(--border)') + ';border-radius:var(--radius-lg);padding:1.25rem">' +
+        '<div class="dash-section-title" style="margin-bottom:.35rem">🚀 Publiceren</div>' +
+        '<div style="font-size:.83rem;color:var(--text-muted);margin-bottom:.85rem">' +
+          (draftCount > 0
+            ? '⚠️ <strong style="color:var(--green)">' + draftCount + ' item' + (draftCount>1?'s':'') + '</strong> staan klaar als concept — nog niet live op de website.'
+            : '✅ Alles staat live. Geen openstaande concepten.') +
+        '</div>' +
+        '<button id="publish-btn" onclick="publishAll()" style="width:100%;padding:.75rem;background:var(--green);color:#0f1a0f;border:none;border-radius:10px;font-weight:700;font-size:.95rem;cursor:pointer;transition:opacity .2s" ' +
+          (draftCount===0?'disabled style="width:100%;padding:.75rem;background:var(--border);color:var(--text-muted);border:none;border-radius:10px;font-weight:700;font-size:.95rem;cursor:not-allowed"':'') +
+          '>🚀 Publiceer naar website</button>' +
+      '</div>';
+    })() +
+    '<div style="margin-top:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">' +
       '<div class="dash-section-title" style="margin-bottom:.5rem">🔌 Firebase verbindingsstatus</div>' +
       '<div id="fb-status" style="font-size:.8rem;color:var(--text-muted)">Nog niet gecontroleerd</div>' +
       '<button class="btn-outline-sm" style="margin-top:.5rem" onclick="testFirebaseConnection()">🔍 Test verbinding</button>' +
+      '<button class="btn-outline-sm" style="margin-top:.5rem;margin-left:.5rem" onclick="migreerNaarLive()">🔄 Zet bestaande items live</button>' +
     '</div>';
 }
 
@@ -240,6 +255,56 @@ window.testFirebaseConnection = async () => {
 };
 
 // ── Plant raster ──────────────────────────────────────────────
+
+// ── Publiceer: zet alle drafts live ──────────────────────────────
+window.publishAll = async () => {
+  const types = ['kruiden','groenten','fruit'];
+  let count = 0;
+  const btn = document.getElementById('publish-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Publiceren…'; }
+  try {
+    for (const type of types) {
+      const drafts = (allPlants[type]||[]).filter(p => p.status !== 'live');
+      for (const plant of drafts) {
+        await setDoc(doc(db, type, plant.id), {...plant, status:'live'});
+        plant.status = 'live';
+        count++;
+      }
+    }
+    if (count > 0) {
+      toast(`✅ ${count} item${count>1?'s':''} gepubliceerd!`, 'ok');
+    } else {
+      toast('Alles staat al live — geen nieuwe wijzigingen.', 'ok');
+    }
+    renderDashboard();
+  } catch(e) {
+    toast('Fout bij publiceren: ' + e.message, 'err');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '🚀 Publiceer naar website'; }
+};
+
+
+// ── Migratie: zet alle items zonder status op 'live' ─────────────
+window.migreerNaarLive = async () => {
+  if (!confirm('Dit zet alle bestaande items zonder status op "live". Nieuwe items worden voortaan als concept opgeslagen. Doorgaan?')) return;
+  const types = ['kruiden','groenten','fruit'];
+  let count = 0;
+  for (const type of types) {
+    const items = (allPlants[type]||[]).filter(p => !p.status);
+    for (const plant of items) {
+      await setDoc(doc(db, type, plant.id), {...plant, status:'live'});
+      plant.status = 'live';
+      count++;
+    }
+  }
+  toast(`✅ ${count} bestaande items op "live" gezet.`, 'ok');
+  renderDashboard();
+};
+
+window.previewWebsite = () => {
+  window.open('index.html', '_blank');
+};
+
 function renderSection(type) {
   const plants  = allPlants[type] || [];
   const label   = {kruiden:'Kruiden',groenten:'Groenten',fruit:'Fruit'}[type];
@@ -270,6 +335,7 @@ function renderPlantGrid(plants, type) {
       <div class="pcard-body">
         <div class="pcard-name">${p.name||p.id}</div>
         <div class="pcard-lat">${p.lat||''}</div>
+        ${p.status !== 'live' ? '<span class="draft-badge">concept</span>' : ''}
       </div>
       <div class="pcard-actions">
         <button class="btn-icon-edit" onclick="event.stopPropagation();openEditor('${p.id}','${type}')">✏️</button>
@@ -354,7 +420,8 @@ window.savePlant = async () => {
     ben:lines(get('ed-ben')),rec:lines(get('ed-rec')),good:csv(get('ed-good')),bad:csv(get('ed-bad')),cat:csv(get('ed-cat')),
     zaai_binnen:months(get('ed-zaai_binnen')),zaai_buiten:months(get('ed-zaai_buiten')),
     uitplanten:months(get('ed-uitplanten')),oogst:months(get('ed-oogst')),stek:months(get('ed-stek')),
-    photo:get('ed-photo-url'),photo2:get('ed-photo-url'),pests,diseases,preventie:get('ed-preventie'),ph_stages:['🌱','🌿','🌸','🌼'],cp:0,watered:Date.now()};
+    photo:get('ed-photo-url'),photo2:get('ed-photo-url'),pests,diseases,preventie:get('ed-preventie'),ph_stages:['🌱','🌿','🌸','🌼'],cp:0,watered:Date.now(),
+    status: (allPlants[editingType]||[]).find(p=>p.id===id)?.status || 'draft'};
   try{
     await setDoc(doc(db,editingType,id),data);
     const idx=(allPlants[editingType]||[]).findIndex(p=>p.id===id);
@@ -1584,6 +1651,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .badge{display:inline-block;background:var(--bg);border:1px solid var(--border);
   color:var(--text-muted);border-radius:100px;padding:.1rem .5rem;font-size:.7rem;margin-left:.4rem;}
 .status-badge{display:inline-block;padding:.2rem .6rem;border-radius:100px;font-size:.7rem;font-weight:500;}
+.draft-badge{display:inline-block;padding:.1rem .45rem;border-radius:100px;font-size:.65rem;font-weight:600;background:rgba(255,200,80,.15);color:#f0c040;border:1px solid rgba(255,200,80,.3);margin-top:.2rem;}
 .status-badge.published{background:var(--green-light);color:var(--green-dark);}
 .status-badge.draft{background:var(--bg);border:1px solid var(--border);color:var(--text-muted);}
 
