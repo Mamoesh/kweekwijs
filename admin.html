@@ -1136,9 +1136,11 @@ window.saveRecept=async()=>{
     // Voeg receptnaam toe aan de plant's rec-array als die er nog niet in staat
     const herbId = get('re-herbid').trim();
     if(herbId) {
-      const plantType = ['kruiden','groenten','fruit'].find(t => (allPlants[t]||[]).find(p=>p.id===herbId));
+      // Zoek case-insensitief op id
+      const herbIdLc = herbId.toLowerCase();
+      const plantType = ['kruiden','groenten','fruit'].find(t => (allPlants[t]||[]).find(p=>p.id.toLowerCase()===herbIdLc));
       if(plantType) {
-        const plant = allPlants[plantType].find(p=>p.id===herbId);
+        const plant = allPlants[plantType].find(p=>p.id.toLowerCase()===herbIdLc);
         if(plant) {
           if(!(plant.rec||[]).includes(naam)) {
             plant.rec = [...(plant.rec||[]), naam];
