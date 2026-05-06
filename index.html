@@ -3805,6 +3805,7 @@ function renderPlantReceptenPlaceholder(h) {
       .filter(([, r]) => (r.herbId || '').toLowerCase() === h.id.toLowerCase())
       .map(([naam]) => naam);
     const alleRec = [...new Set([...recUitPlant, ...recUitDB])];
+    console.log('[KWEEKWIJS DEBUG] Plant:', h.id, '| h.rec:', recUitPlant, '| RECEPTEN_DB hits:', recUitDB, '| Totaal:', alleRec, '| Alle herbIds in DB:', Object.values(RECEPTEN_DB||{}).map(r=>r.herbId));
     if (!alleRec.length) { el.innerHTML = ''; return; }
     const tags = alleRec.map(r => {
       const esc = r.replace(/'/g, "\'");
@@ -4467,7 +4468,8 @@ async function laadFirebaseData() {
         const naam = data.naam || d.id.replace(/_sl_/g,'/').replace(/_dt_/g,'.').replace(/_/g,' ');
         if (naam && !RECEPTEN_DB[naam]) RECEPTEN_DB[naam] = data;
       });
-      console.log('Recepten geladen:', Object.keys(RECEPTEN_DB).length, 'recepten:', Object.keys(RECEPTEN_DB));
+      console.log('[KWEEKWIJS] Recepten geladen uit Firebase:', Object.keys(RECEPTEN_DB).length, Object.keys(RECEPTEN_DB));
+      Object.values(RECEPTEN_DB).forEach(r => console.log('[KWEEKWIJS] Recept:', r.naam, '→ herbId:', r.herbId));
       if (typeof vulPlantRecepten === 'function') vulPlantRecepten();
     } catch(e) { console.warn('Recepten laden fout:', e.message); }
 
