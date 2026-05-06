@@ -2486,6 +2486,7 @@ function goToRecept(herbId, receptNaam) {
 
 // Navigeer vanuit inhoudmodal naar receptenpagina + scroll naar/open het juiste recept
 function goToReceptFromModal(herbId, receptNaam) {
+  console.log('[KWEEKWIJS] goToReceptFromModal aangeroepen:', herbId, receptNaam, '| DB keys:', Object.keys(RECEPTEN_DB||{}));
   // Zoek in RECEPTEN_DB: exacte naam, case-insensitief, of gedeeltelijke match
   function zoekInDB(naam) {
     if (RECEPTEN_DB[naam]) return naam;
@@ -3791,8 +3792,6 @@ function openPlantModal(id, type) {
   document.getElementById('tab-panels').innerHTML = infoPanel + calPanel + storagePanel + naastPanel + plagenPanel_p;
   vulPlantRecepten();
   document.getElementById('modal-overlay').classList.add('open');
-  // Vul recept-placeholder in (direct + opnieuw als Firebase nog laadt)
-  renderPlantReceptenPlaceholder(h);
 }
 
 function renderPlantReceptenPlaceholder(h) {
