@@ -3709,17 +3709,8 @@ function openPlantModal(id, type) {
     '<div class="section-h" style="margin-top:0">💡 Kweektip</div>' +
     '<div class="harvest-box">' + (h.tip || 'Geen specifieke kweektip.') + '</div>' +
 
-    // Recepten (uit h.rec op de plant + RECEPTEN_DB voor links)
-    (() => {
-      const allRec = h.rec || [];
-      if (!allRec.length) return '';
-      function makePTag(r) {
-        const esc = r.replace(/'/g, "\'");
-        return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\'' + h.id + '\',\''+esc+'\')" title="Bekijk recept">🍴 ' + r + '</span>';
-      }
-      return '<div class="section-h">🍽 Recepten</div>' +
-        '<div class="herb-tags">' + allRec.map(makePTag).join('') + '</div>';
-    })() +
+    // Recepten — placeholder, wordt ingevuld na modal open (Firebase kan nog laden)
+    ((h.rec||[]).length ? '<div id="plant-recept-placeholder" data-plantid="' + h.id + '"></div>' : '') +
 
     // Companions
     '<div class="section-h">🤝 Goede buurtplanten</div>' +
@@ -3761,6 +3752,33 @@ function openPlantModal(id, type) {
 
   document.getElementById('tab-panels').innerHTML = infoPanel + calPanel + storagePanel + naastPanel + plagenPanel_p;
   document.getElementById('modal-overlay').classList.add('open');
+  // Vul recept-placeholder in (direct + opnieuw als Firebase nog laadt)
+  renderPlantReceptenPlaceholder(h);
+}
+
+function renderPlantReceptenPlaceholder(h) {
+  const rec = h.rec || [];
+  if (!rec.length) return;
+
+  function vulIn() {
+    const el = document.getElementById('plant-recept-placeholder');
+    if (!el) return false;
+    const tags = rec.map(r => {
+      const esc = r.replace(/'/g, "\'");
+      return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\'' + h.id + '\',\''+esc+'\')" title="Bekijk recept">🍴 ' + r + '</span>';
+    }).join('');
+    el.innerHTML = '<div class="section-h">🍽 Recepten</div><div class="herb-tags">' + tags + '</div>';
+    return true;
+  }
+
+  vulIn();
+  // Herprobeeer als Firebase nog laadt (max 6s)
+  let pogingen = 0;
+  const iv = setInterval(() => {
+    pogingen++;
+    vulIn();
+    if (pogingen >= 20) clearInterval(iv);
+  }, 300);
 }
 
 // Load Wikipedia photos for groenten and fruit
