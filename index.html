@@ -2431,7 +2431,7 @@ function openReceptDetail(a, b) {
     document.getElementById('recept-modal-overlay').classList.add('open');
     return;
   }
-  const herb = HERBS.find(h => h.id === herbId) || {};
+  const herb = HERBS.find(h => h.id === herbId) || GROENTEN.find(h => h.id === herbId) || FRUIT.find(h => h.id === herbId) || {};
   document.getElementById('recept-modal-title').textContent = naam;
   document.getElementById('recept-modal-meta').textContent = (herb.emoji||'') + ' ' + (herb.name||'') + ' — ' + (recept.cat||'');
   const diffColor = (recept.moeilijk||'').includes('Makkelijk') ? 'var(--accent)' : (recept.moeilijk||'').includes('Gemiddeld') ? 'var(--accent2)' : 'var(--danger)';
@@ -2486,8 +2486,14 @@ function goToRecept(herbId, receptNaam) {
 
 // Navigeer vanuit inhoudmodal naar receptenpagina + scroll naar/open het juiste recept
 function goToReceptFromModal(herbId, receptNaam) {
-  // Controleer eerst in RECEPTEN_DB (lokaal + Firebase geladen)
-  const inDB = RECEPTEN_DB[receptNaam];
+  // Controleer eerst in RECEPTEN_DB — ook case-insensitief zoeken
+  let inDB = RECEPTEN_DB[receptNaam];
+  if (!inDB) {
+    // Probeer case-insensitief match
+    const lc = receptNaam.toLowerCase();
+    const match = Object.keys(RECEPTEN_DB).find(k => k.toLowerCase() === lc);
+    if (match) { inDB = RECEPTEN_DB[match]; receptNaam = match; }
+  }
   if (inDB) {
     // Recept gevonden — open direct zonder naar receptenpagina te gaan
     closeModal();
