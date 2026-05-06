@@ -3605,6 +3605,35 @@ function renderPlantCard(h, type) {
     '</div></div>';
 }
 
+function vulPlantRecepten() {
+  const placeholder = document.getElementById('plant-recept-placeholder');
+  if (!placeholder) return;
+  const plantId = placeholder.getAttribute('data-plantid');
+  const recepten = Object.entries(RECEPTEN_DB || {})
+    .filter(([, r]) => r.herbId === plantId)
+    .map(([naam]) => naam);
+  if (!recepten.length) { placeholder.innerHTML = ''; return; }
+  const wrap = document.createElement('div');
+  const title = document.createElement('div');
+  title.className = 'section-h';
+  title.textContent = '🍽 Recepten';
+  wrap.appendChild(title);
+  const tags = document.createElement('div');
+  tags.className = 'herb-tags';
+  recepten.forEach(naam => {
+    const span = document.createElement('span');
+    span.className = 'tag gold has-recept';
+    span.style.cursor = 'pointer';
+    span.title = 'Bekijk recept';
+    span.textContent = '🍴 ' + naam;
+    span.addEventListener('click', () => goToReceptFromModal(plantId, naam));
+    tags.appendChild(span);
+  });
+  wrap.appendChild(tags);
+  placeholder.innerHTML = '';
+  placeholder.appendChild(wrap);
+}
+
 function openPlantModal(id, type) {
   const db = type === 'fruit' ? FRUIT : GROENTEN;
   const h = db.find(x => x.id === id);
@@ -3718,8 +3747,8 @@ function openPlantModal(id, type) {
     '<div class="section-h" style="margin-top:0">💡 Kweektip</div>' +
     '<div class="harvest-box">' + (h.tip || 'Geen specifieke kweektip.') + '</div>' +
 
-    // Recepten — placeholder, wordt ingevuld na modal open (Firebase kan nog laden)
-    ((h.rec||[]).length ? '<div id="plant-recept-placeholder" data-plantid="' + h.id + '"></div>' : '') +
+    // Recepten placeholder — altijd tonen, wordt gevuld via RECEPTEN_DB na render
+    '<div id="plant-recept-placeholder" data-plantid="' + h.id + '"></div>' +
 
     // Companions
     '<div class="section-h">🤝 Goede buurtplanten</div>' +
@@ -3760,28 +3789,32 @@ function openPlantModal(id, type) {
     '</div>';
 
   document.getElementById('tab-panels').innerHTML = infoPanel + calPanel + storagePanel + naastPanel + plagenPanel_p;
+  vulPlantRecepten();
   document.getElementById('modal-overlay').classList.add('open');
   // Vul recept-placeholder in (direct + opnieuw als Firebase nog laadt)
   renderPlantReceptenPlaceholder(h);
 }
 
 function renderPlantReceptenPlaceholder(h) {
-  const rec = h.rec || [];
-  if (!rec.length) return;
-
   function vulIn() {
     const el = document.getElementById('plant-recept-placeholder');
-    if (!el) return false;
-    const tags = rec.map(r => {
+    if (!el) return;
+    // Combineer h.rec met RECEPTEN_DB gefilterd op herbId (case-insensitief)
+    const recUitPlant = h.rec || [];
+    const recUitDB = Object.entries(RECEPTEN_DB || {})
+      .filter(([, r]) => (r.herbId || '').toLowerCase() === h.id.toLowerCase())
+      .map(([naam]) => naam);
+    const alleRec = [...new Set([...recUitPlant, ...recUitDB])];
+    if (!alleRec.length) { el.innerHTML = ''; return; }
+    const tags = alleRec.map(r => {
       const esc = r.replace(/'/g, "\'");
       return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\'' + h.id + '\',\''+esc+'\')" title="Bekijk recept">🍴 ' + r + '</span>';
     }).join('');
     el.innerHTML = '<div class="section-h">🍽 Recepten</div><div class="herb-tags">' + tags + '</div>';
-    return true;
   }
 
+  // Meteen proberen, daarna herhalen tot RECEPTEN_DB geladen is (max 6s)
   vulIn();
-  // Herprobeeer als Firebase nog laadt (max 6s)
   let pogingen = 0;
   const iv = setInterval(() => {
     pogingen++;
@@ -4418,23 +4451,9 @@ async function laadFirebaseData() {
       getDocs(collection(db, 'fruit')),
     ]);
 
-    // Merge Firebase data met lokale hardcoded data (behoud rec-array uit beide)
-    function mergeMetLokaal(fbItems, lokaalArray) {
-      return fbItems
-        .filter(p => !p.status || p.status === 'live')
-        .map(fbPlant => {
-          const lokaal = lokaalArray.find(l => l.id === fbPlant.id);
-          // Combineer rec: Firebase rec + lokale rec (dedupliceren)
-          const fbRec = fbPlant.rec || [];
-          const lokaalRec = (lokaal && lokaal.rec) || [];
-          const gecombineerdRec = [...new Set([...fbRec, ...lokaalRec])];
-          return {...fbPlant, rec: gecombineerdRec};
-        });
-    }
-
-    const kruiden  = mergeMetLokaal(kSnap.docs.map(d => ({...d.data(), id: d.id})), HERBS);
-    const groenten = mergeMetLokaal(gSnap.docs.map(d => ({...d.data(), id: d.id})), GROENTEN);
-    const fruit    = mergeMetLokaal(fSnap.docs.map(d => ({...d.data(), id: d.id})), FRUIT);
+    const kruiden  = kSnap.docs.map(d => ({...d.data(), id: d.id})).filter(p => !p.status || p.status === 'live');
+    const groenten = gSnap.docs.map(d => ({...d.data(), id: d.id})).filter(p => !p.status || p.status === 'live');
+    const fruit    = fSnap.docs.map(d => ({...d.data(), id: d.id})).filter(p => !p.status || p.status === 'live');
 
     if (kruiden.length)  { HERBS.length = 0;   kruiden.forEach(p => HERBS.push(p)); }
     if (groenten.length) { GROENTEN.length = 0; groenten.forEach(p => GROENTEN.push(p)); }
@@ -4449,6 +4468,7 @@ async function laadFirebaseData() {
         if (naam && !RECEPTEN_DB[naam]) RECEPTEN_DB[naam] = data;
       });
       console.log('Recepten geladen:', Object.keys(RECEPTEN_DB).length, 'recepten:', Object.keys(RECEPTEN_DB));
+      if (typeof vulPlantRecepten === 'function') vulPlantRecepten();
     } catch(e) { console.warn('Recepten laden fout:', e.message); }
 
     // Herrender alle actieve schermen
