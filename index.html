@@ -227,6 +227,8 @@ select option{background:var(--surface2);}
 .recept-tag.drank{background:rgba(100,180,230,.1);color:#7ecce8;border:1px solid rgba(100,180,230,.2);}
 .recept-tag.thee{background:rgba(200,169,110,.1);color:var(--accent2);border:1px solid rgba(200,169,110,.2);}
 .recept-tag.dessert{background:rgba(200,126,180,.1);color:#d4a0c8;border:1px solid rgba(200,126,180,.2);}
+.recept-tag.dip{background:rgba(230,180,80,.1);color:#e8b84b;border:1px solid rgba(230,180,80,.2);}
+.recept-tag.broodbeleg{background:rgba(180,140,100,.1);color:#c8a878;border:1px solid rgba(180,140,100,.2);}
 .recept-tag.verzorging{background:rgba(180,130,220,.1);color:#c8a0e8;border:1px solid rgba(180,130,220,.2);}
 .tag.purple{background:rgba(180,130,220,.12);color:#c8a0e8;border:1px solid rgba(180,130,220,.25);}
 
@@ -418,7 +420,9 @@ select option{background:var(--surface2);}
         <button onclick="go('recepten');filterReceptenDirect('soep');closeAllDropdowns()">🥣 Soepen</button>
         <button onclick="go('recepten');filterReceptenDirect('drank');closeAllDropdowns()">🥤 Dranken</button>
         <button onclick="go('recepten');filterReceptenDirect('thee');closeAllDropdowns()">🍵 Thee</button>
-        <button onclick="go('recepten');filterReceptenDirect('dessert');closeAllDropdowns()">🍰 Desserts</button>
+        <button onclick="go('recepten');filterReceptenDirect('dessert');closeAllDropdowns()">🧁 Gebak & Zoetwaren</button>
+        <button onclick="go('recepten');filterReceptenDirect('dip');closeAllDropdowns()">🥣 Dips & Spreads</button>
+        <button onclick="go('recepten');filterReceptenDirect('broodbeleg');closeAllDropdowns()">🍞 Broodbeleg</button>
         <button onclick="go('recepten');filterReceptenDirect('verzorging');closeAllDropdowns()">✨ Verzorging</button>
       </div>
     </div>
@@ -698,7 +702,7 @@ select option{background:var(--surface2);}
       </div>
       <div class="mic-body">
         <div class="mic-title">Alle recepten</div>
-        <div class="mic-text">Bekijk alle recepten in één overzicht — gerechten, soepen, dranken, thee, desserts en verzorging.</div>
+        <div class="mic-text">Bekijk alle recepten in één overzicht — gerechten, soepen, dranken, thee, gebak, dips, broodbeleg en verzorging.</div>
         <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk alle recepten →</button>
       </div>
     </div>
@@ -752,9 +756,29 @@ select option{background:var(--surface2);}
         <div class="mic-emoji" id="ri-dessert-emoji">🍰</div>
       </div>
       <div class="mic-body">
-        <div class="mic-title" id="ri-dessert-title">Desserts</div>
-        <div class="mic-text" id="ri-dessert-text">Zoete verrassingen met fruit en kruiden uit eigen tuin.</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk desserts →</button>
+        <div class="mic-title" id="ri-dessert-title">Gebak & Zoetwaren</div>
+        <div class="mic-text" id="ri-dessert-text">Zoet gebak, taarten en lekkernijen met fruit en kruiden.</div>
+        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk gebak →</button>
+      </div>
+    </div>
+    <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('dip')">
+      <div class="mic-img-wrap">
+        <div class="mic-emoji" id="ri-dip-emoji">🥣</div>
+      </div>
+      <div class="mic-body">
+        <div class="mic-title">Dips & Spreads</div>
+        <div class="mic-text">Smaakvolle dips en smeerbare sauzen met verse kruiden en groenten.</div>
+        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk dips →</button>
+      </div>
+    </div>
+    <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('broodbeleg')">
+      <div class="mic-img-wrap">
+        <div class="mic-emoji" id="ri-broodbeleg-emoji">🍞</div>
+      </div>
+      <div class="mic-body">
+        <div class="mic-title">Broodbeleg</div>
+        <div class="mic-text">Zelfgemaakt broodbeleg met kruiden, groenten en fruit uit de tuin.</div>
+        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk broodbeleg →</button>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('verzorging')">
@@ -784,7 +808,9 @@ select option{background:var(--surface2);}
     <button class="filter-btn" onclick="filterRecepten('soep',this)">🥣 Soepen</button>
     <button class="filter-btn" onclick="filterRecepten('drank',this)">🥤 Dranken</button>
     <button class="filter-btn" onclick="filterRecepten('thee',this)">🍵 Thee</button>
-    <button class="filter-btn" onclick="filterRecepten('dessert',this)">🍰 Desserts</button>
+    <button class="filter-btn" onclick="filterRecepten('dessert',this)">🧁 Gebak & Zoetwaren</button>
+    <button class="filter-btn" onclick="filterRecepten('dip',this)">🥣 Dips & Spreads</button>
+    <button class="filter-btn" onclick="filterRecepten('broodbeleg',this)">🍞 Broodbeleg</button>
     <button class="filter-btn" onclick="filterRecepten('verzorging',this)">✨ Verzorging</button>
   </div>
   <div id="recepten-grid"></div>
@@ -1916,39 +1942,7 @@ function openModal(id){
     </div>
     <div class="section-h">🌿 Voordelen & gebruik</div>
     <ul class="benefit-list">${h.ben.map(b=>`<li>${b}</li>`).join('')}</ul>
-    ${(() => {
-      // Split all recipes by category
-      const allRec = h.rec || [];
-      const koken      = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='gerecht' || cat==='soep'; });
-      const dranken    = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='drank'; });
-      const desserts   = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='dessert'; });
-      const thee       = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='thee'; });
-      const verzorging = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='verzorging'; });
-      // Add thee_combos to thee section
-      const theeCombos = h.thee_combos || [];
 
-      function makeTag(r, emoji, colorClass) {
-        return '<span class="tag '+colorClass+' has-recept" style="cursor:pointer" data-herbid="'+h.id+'" data-recept="'+encodeURIComponent(r)+'" title="Bekijk recept">'+emoji+' '+r+'</span>';
-      }
-      function makeComboTag(tc) {
-        const hasR = !!RECEPTEN_DB[tc.naam];
-        const esc = tc.naam.replace(/'/g, "\'");
-        return '<span class="tag green'+(hasR?' has-recept':'')+'" style="cursor:pointer" data-herbid="'+h.id+'" data-recept="'+encodeURIComponent(tc.naam)+'" title="'+tc.voordeel+'">🍵 '+tc.naam+'</span>';
-      }
-
-      let html = '';
-      if (koken.length)   html += '<div class="section-h">🍽 Recepten</div><div class="herb-tags">'+koken.map(r=>makeTag(r,'🍴','gold')).join('')+'</div>';
-      if (dranken.length) html += '<div class="section-h">🥤 Dranken</div><div class="herb-tags">'+dranken.map(r=>makeTag(r,'🍹','gold')).join('')+'</div>';
-      if (desserts.length)html += '<div class="section-h">🍰 Desserts</div><div class="herb-tags">'+desserts.map(r=>makeTag(r,'🍰','gold')).join('')+'</div>';
-      if (thee.length || theeCombos.length) {
-        html += '<div class="section-h">🍵 Thee</div><div class="herb-tags">';
-        html += thee.map(r=>makeTag(r,'🍵','green')).join('');
-        html += theeCombos.map(tc=>makeComboTag(tc)).join('');
-        html += '</div>';
-      }
-      if (verzorging.length) html += '<div class="section-h">✨ Verzorgingsproducten</div><div class="herb-tags">'+verzorging.map(r=>makeTag(r,'✨','purple')).join('')+'</div>';
-      return html || '';
-    })()}
     ${h.skin ? `
     <div class="section-h">✨ Persoonlijke verzorging</div>
     <div class="skin-box" style="margin-bottom:.5rem">${h.skin}</div>
@@ -2003,6 +1997,37 @@ function openModal(id){
     <div class="companion-list" style="margin-bottom:1rem">
       ${h.bad.length?h.bad.map(b=>`<span class="companion bad">✗ ${b}</span>`).join(''):'<span style="color:var(--text2);font-size:.85rem">Geen bekende slechte buren</span>'}
     </div>
+    ${(() => {
+      const allRec = h.rec || [];
+      const koken      = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='gerecht'||cat==='soep'; });
+      const dranken    = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='drank'; });
+      const desserts   = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='dessert'; });
+      const thee       = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='thee'; });
+      const dips       = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='dip'; });
+      const broodbeleg = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='broodbeleg'; });
+      const verzorging = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='verzorging'; });
+      const theeCombos = h.thee_combos || [];
+      function makeTag(r, emoji, colorClass) {
+        return '<span class="tag '+colorClass+' has-recept" style="cursor:pointer" data-herbid="'+h.id+'" data-recept="'+encodeURIComponent(r)+'" title="Bekijk recept">'+emoji+' '+r+'</span>';
+      }
+      function makeComboTag(tc) {
+        return '<span class="tag green has-recept" style="cursor:pointer" data-herbid="'+h.id+'" data-recept="'+encodeURIComponent(tc.naam)+'" title="'+tc.voordeel+'">🍵 '+tc.naam+'</span>';
+      }
+      let html = '';
+      if (koken.length)      html += '<div class="section-h">🍽 Recepten</div><div class="herb-tags">'+koken.map(r=>makeTag(r,'🍴','gold')).join('')+'</div>';
+      if (dranken.length)    html += '<div class="section-h">🥤 Dranken</div><div class="herb-tags">'+dranken.map(r=>makeTag(r,'🍹','gold')).join('')+'</div>';
+      if (desserts.length)   html += '<div class="section-h">🧁 Gebak & Zoetwaren</div><div class="herb-tags">'+desserts.map(r=>makeTag(r,'🍰','gold')).join('')+'</div>';
+      if (dips.length)       html += '<div class="section-h">🥣 Dips & Spreads</div><div class="herb-tags">'+dips.map(r=>makeTag(r,'🥣','gold')).join('')+'</div>';
+      if (broodbeleg.length) html += '<div class="section-h">🍞 Broodbeleg</div><div class="herb-tags">'+broodbeleg.map(r=>makeTag(r,'🍞','gold')).join('')+'</div>';
+      if (thee.length || theeCombos.length) {
+        html += '<div class="section-h">🍵 Thee</div><div class="herb-tags">';
+        html += thee.map(r=>makeTag(r,'🍵','green')).join('');
+        html += theeCombos.map(tc=>makeComboTag(tc)).join('');
+        html += '</div>';
+      }
+      if (verzorging.length) html += '<div class="section-h">✨ Verzorgingsproducten</div><div class="herb-tags">'+verzorging.map(r=>makeTag(r,'✨','purple')).join('')+'</div>';
+      return html;
+    })()}
   </div>`;
 
 
@@ -2338,6 +2363,8 @@ function classifyRecept(name, herbId) {
   if (n.match(/thee|infusie|blend|tisane/)) return 'thee';
   if (n.match(/cocktail|mojito|gin|bier|wijn|limonade|siroop|drank|smoothie|drankje|lemonade|ijsthee|karkadeh/)) return 'drank';
   if (n.match(/soep|bouillon|potage|velouté|bisque|gazpacho|vichyssoise/)) return 'soep';
+  if (n.match(/dip|spread|hummus|tapenade|pesto|aioli|tzatziki|salsa|guacamole|paté|rillette/)) return 'dip';
+  if (n.match(/broodbeleg|chutney|compote|confituur|kruidenboter|kruidenkaas|beleg/)) return 'broodbeleg';
   if (n.match(/koek|cake|taart|dessert|ijs|pudding|suiker|confiture|jam|gelei|honing/)) return 'dessert';
   return 'gerecht';
 }
@@ -2381,7 +2408,9 @@ function renderRecepten() {
     soep:      { label:'🥣 Soepen',               icon:'🥣', items:[] },
     drank:     { label:'🥤 Dranken & Cocktails',  icon:'🥤', items:[] },
     thee:      { label:'🍵 Thee & Infusies',      icon:'🍵', items:[] },
-    dessert:   { label:'🍰 Desserts & Zoetwaren', icon:'🍰', items:[] },
+    dessert:   { label:'🧁 Gebak & Zoetwaren',   icon:'🧁', items:[] },
+    dip:       { label:'🥣 Dips & Spreads',       icon:'🥣', items:[] },
+    broodbeleg:{ label:'🍞 Broodbeleg',           icon:'🍞', items:[] },
     verzorging:{ label:'✨ Verzorgingsproducten',  icon:'✨', items:[] },
   };
   filtered.forEach(r => {
@@ -2389,7 +2418,7 @@ function renderRecepten() {
   });
 
   const catOrder = activeReceptFilter === 'all'
-    ? ['gerecht','soep','drank','thee','dessert','verzorging']
+    ? ['gerecht','soep','drank','thee','dessert','dip','broodbeleg','verzorging']
     : [activeReceptFilter];
 
   const html = catOrder.map(cat => {
@@ -3814,9 +3843,6 @@ function openPlantModal(id, type) {
     '<div class="section-h" style="margin-top:0">💡 Kweektip</div>' +
     '<div class="harvest-box">' + (h.tip || 'Geen specifieke kweektip.') + '</div>' +
 
-    // Recepten placeholder — altijd tonen, wordt gevuld via RECEPTEN_DB na render
-    '<div id="plant-recept-placeholder" data-plantid="' + h.id + '"></div>' +
-
     // Companions
     '<div class="section-h">🤝 Goede buurtplanten</div>' +
     '<div class="companion-list" style="margin-bottom:1rem">' +
@@ -3826,6 +3852,10 @@ function openPlantModal(id, type) {
     '<div class="companion-list" style="margin-bottom:1.25rem">' +
     ((h.bad||[]).length ? (h.bad||[]).map(b => '<span class="companion bad">✗ ' + b + '</span>').join('') : '<span style="color:var(--text2);font-size:.85rem">Geen bekende slechte buren</span>') +
     '</div>' +
+
+    // Recepten placeholder — onderaan, wordt gevuld via RECEPTEN_DB na render
+    '<div id="plant-recept-placeholder" data-plantid="' + h.id + '"></div>' +
+
     '</div>';
 
   // Plagen & Ziektes — apart tabblad
