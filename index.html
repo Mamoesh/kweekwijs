@@ -126,8 +126,9 @@ select option{background:var(--surface2);}
 .tab-content{display:none;padding:1.25rem 2rem 2rem;}
 .tab-content.active{display:block;animation:fadeUp .2s ease;}
 /* INFO GRID */
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:1.1rem;}
-.info-item{background:var(--surface2);border-radius:10px;padding:.8rem 1rem;border:1px solid var(--border);}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:1.1rem;grid-auto-rows:1fr;}
+.info-item{display:flex;flex-direction:column;justify-content:center;}
+.info-item{background:var(--surface2);border-radius:10px;padding:.8rem 1rem;border:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;}
 .info-label{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;}
 .info-val{font-size:.92rem;color:var(--text);}
 .section-h{font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent2);margin:1.1rem 0 .5rem;}
@@ -923,6 +924,7 @@ select option{background:var(--surface2);}
 <script>
 const KL={be:'Gematigd oceaanklimaat (Cfb)',nl:'Gematigd oceaanklimaat (Cfb)',fr:'Gematigd / mediterraan',de:'Gematigd continentaal',es:'Mediterraan / semi-aride',it:'Mediterraan (Csa/Csb)',uk:'Oceanisch (Cfb)',pt:'Mediterraan (Csa)',gr:'Mediterraan (Csa)'};
 const MAANDEN=['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
+const MAANDEN_KORT=['Jan','Feb','Maa','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
 
 // zaai_binnen: maanden (1=jan) voor zaaien onder glas/binnen
 // zaai_buiten: maanden voor direct buiten zaaien
@@ -1964,11 +1966,11 @@ function openModal(id){
     <div class="section-h" style="margin-top:0">📅 Zaai- en oogstkalender</div>
     ${buildCalendar(h)}
     <div class="info-grid" style="margin-top:.5rem">
-      ${h.zaai_binnen&&h.zaai_binnen.length?`<div class="info-item"><div class="info-label">🏠 Zaaien binnen / serre</div><div class="info-val">${h.zaai_binnen.map(m=>MAANDEN[m-1]).join(', ')}</div></div>`:''}
-      ${h.zaai_buiten&&h.zaai_buiten.length?`<div class="info-item"><div class="info-label">🌿 Zaaien buiten</div><div class="info-val">${h.zaai_buiten.map(m=>MAANDEN[m-1]).join(', ')}</div></div>`:''}
-      ${h.uitplanten&&h.uitplanten.length?`<div class="info-item"><div class="info-label">🌱 Uitplanten</div><div class="info-val">${h.uitplanten.map(m=>MAANDEN[m-1]).join(', ')}</div></div>`:''}
-      ${h.stek&&h.stek.length?`<div class="info-item"><div class="info-label">✂️ Stekken</div><div class="info-val">${h.stek.map(m=>MAANDEN[m-1]).join(', ')}</div></div>`:''}
-      ${h.oogst&&h.oogst.length?`<div class="info-item" style="grid-column:1/-1"><div class="info-label">🌾 Oogsttijd</div><div class="info-val">${h.oogst.map(m=>MAANDEN[m-1]).join(', ')}</div></div>`:''}
+      ${h.zaai_binnen&&h.zaai_binnen.length?`<div class="info-item"><div class="info-label">🏠 Zaaien binnen / serre</div><div class="info-val">${h.zaai_binnen.map(m=>MAANDEN_KORT[m-1]).join(', ')}</div></div>`:''}
+      ${h.zaai_buiten&&h.zaai_buiten.length?`<div class="info-item"><div class="info-label">🌿 Zaaien buiten</div><div class="info-val">${h.zaai_buiten.map(m=>MAANDEN_KORT[m-1]).join(', ')}</div></div>`:''}
+      ${h.uitplanten&&h.uitplanten.length?`<div class="info-item"><div class="info-label">🌱 Uitplanten</div><div class="info-val">${h.uitplanten.map(m=>MAANDEN_KORT[m-1]).join(', ')}</div></div>`:''}
+      ${h.stek&&h.stek.length?`<div class="info-item"><div class="info-label">✂️ Stekken</div><div class="info-val">${h.stek.map(m=>MAANDEN_KORT[m-1]).join(', ')}</div></div>`:''}
+      ${h.oogst&&h.oogst.length?`<div class="info-item" style="grid-column:1/-1"><div class="info-label">🌾 Oogsttijd</div><div class="info-val">${h.oogst.map(m=>MAANDEN_KORT[m-1]).join(', ')}</div></div>`:''}
     </div>
     ${h.stek&&h.stek.length&&h.stek_hoe?`<div class="section-h">✂️ Hoe stekken?</div><div class="harvest-box">${h.stek_hoe}</div>`:''}
     ${h.oogst_hoe?`<div class="section-h">🌾 Hoe oogsten?</div><div class="harvest-box">${h.oogst_hoe}</div>`:''}
@@ -3722,6 +3724,7 @@ function openPlantModal(id, type) {
 
   const cl = {easy:'⚡ Weinig zorg', medium:'🌱 Matige zorg', hard:'🌳 Veel zorg'};
   const MAANDEN_LOCAL = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
+  const MAANDEN_KORT_LOCAL = ['Jan','Feb','Maa','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
 
   // Reuse full modal tab system
   const tabs = [
@@ -3778,7 +3781,7 @@ function openPlantModal(id, type) {
   // Calendar panel
   function calEntry(months, label) {
     if (!months || !months.length) return '';
-    return '<div class="info-item"><div class="info-label">' + label + '</div><div class="info-val">' + months.map(m => MAANDEN_LOCAL[m-1]).join(', ') + '</div></div>';
+    return '<div class="info-item"><div class="info-label">' + label + '</div><div class="info-val">' + months.map(m => MAANDEN_KORT_LOCAL[m-1]).join(', ') + '</div></div>';
   }
   const calPanel = '<div class="tab-content" id="panel-pkalender">' +
     '<div class="section-h" style="margin-top:0">📅 Zaai- en oogstkalender</div>' +
@@ -3788,7 +3791,7 @@ function openPlantModal(id, type) {
     calEntry(h.zaai_buiten, '🌿 Zaaien buiten') +
     calEntry(h.uitplanten, '🌱 Uitplanten') +
     calEntry(h.stek, '✂️ Stekken') +
-    (h.oogst && h.oogst.length ? '<div class="info-item" style="grid-column:1/-1"><div class="info-label">🌾 Oogsttijd</div><div class="info-val">' + h.oogst.map(m => MAANDEN_LOCAL[m-1]).join(', ') + '</div></div>' : '') +
+    (h.oogst && h.oogst.length ? '<div class="info-item" style="grid-column:1/-1"><div class="info-label">🌾 Oogsttijd</div><div class="info-val">' + h.oogst.map(m => MAANDEN_KORT_LOCAL[m-1]).join(', ') + '</div></div>' : '') +
     '</div>' +
     (h.stek_hoe ? '<div class="section-h">✂️ Hoe stekken?</div><div class="harvest-box">' + h.stek_hoe + '</div>' : '') +
     (h.oogst_hoe ? '<div class="section-h">🌾 Hoe oogsten?</div><div class="harvest-box">' + h.oogst_hoe + '</div>' : '') +
