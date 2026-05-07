@@ -547,7 +547,6 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title" id="home-groenten-title">Groenten</div>
         <div class="mic-text" id="home-groenten-text">Van tomaten tot courgettes — ontdek welke groenten jij kan kweken.</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk groenten →</button>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('fruit')">
@@ -558,7 +557,6 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title" id="home-fruit-title">Fruit</div>
         <div class="mic-text" id="home-fruit-text">Verse aardbeien, frambozen of appels uit eigen tuin — het kan!</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk fruit →</button>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('kruiden')">
@@ -569,7 +567,6 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title" id="home-kruiden-title">Kruiden</div>
         <div class="mic-text" id="home-kruiden-text">Basilicum, munt, rozemarijn — kweek je eigen kruidenparadijs.</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk kruiden →</button>
       </div>
     </div>
   </div>
@@ -602,7 +599,6 @@ select option{background:var(--surface2);}
         <div class="mic-body">
           <div class="mic-title" id="mic-groenten-title">Groenten</div>
           <div class="mic-text" id="mic-groenten-text">Van tomaten tot courgettes — ontdek welke groenten jij kan kweken.</div>
-          <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk groenten →</button>
         </div>
       </div>
       <!-- Fruit -->
@@ -614,7 +610,6 @@ select option{background:var(--surface2);}
         <div class="mic-body">
           <div class="mic-title" id="mic-fruit-title">Fruit</div>
           <div class="mic-text" id="mic-fruit-text">Verse aardbeien, frambozen of appels uit eigen tuin — het kan!</div>
-          <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk fruit →</button>
         </div>
       </div>
       <!-- Kruiden -->
@@ -626,7 +621,6 @@ select option{background:var(--surface2);}
         <div class="mic-body">
           <div class="mic-title" id="mic-kruiden-title">Kruiden</div>
           <div class="mic-text" id="mic-kruiden-text">Basilicum, munt, rozemarijn — kweek je eigen kruidenparadijs.</div>
-          <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk kruiden →</button>
         </div>
       </div>
     </div>
@@ -666,7 +660,7 @@ select option{background:var(--surface2);}
     <button class="filter-btn" onclick="setGroentenFilter('wortel',this)">🥕 Wortelgroenten</button>
     <button class="filter-btn" onclick="setGroentenFilter('kool',this)">🥦 Koolgewassen</button>
     <button class="filter-btn" onclick="setGroentenFilter('ui',this)">🧅 Ui & Look</button>
-    <button class="filter-btn" onclick="setGroentenFilter('peul',this)">🫘 Peulvruchten</button>
+    <button class="filter-btn" onclick="setGroentenFilter('peul',this)">🥜 Peulvruchten</button>
   </div>
   <div class="herb-grid" id="groenten-grid"></div>
 </div>
@@ -703,7 +697,6 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title">Alle recepten</div>
         <div class="mic-text">Bekijk alle recepten in één overzicht — gerechten, soepen, dranken, thee, gebak, dips, broodbeleg en verzorging.</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk alle recepten →</button>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('gerecht')">
@@ -714,7 +707,6 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title" id="ri-gerecht-title">Gerechten</div>
         <div class="mic-text" id="ri-gerecht-text">Heerlijke maaltijden met verse ingrediënten uit de moestuin.</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk gerechten →</button>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('soep')">
@@ -725,7 +717,6 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title" id="ri-soep-title">Soepen</div>
         <div class="mic-text" id="ri-soep-text">Warme en koude soepen met groenten en kruiden uit eigen tuin.</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk soepen →</button>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('drank')">
@@ -736,7 +727,6 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title" id="ri-drank-title">Dranken & Cocktails</div>
         <div class="mic-text" id="ri-drank-text">Verfrissende dranken en cocktails met kruiden en fruit.</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk dranken →</button>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('thee')">
@@ -747,7 +737,6 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title" id="ri-thee-title">Thee & Infusies</div>
         <div class="mic-text" id="ri-thee-text">Rustgevende theeën en gezonde infusies met verse kruiden.</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk theeën →</button>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('dessert')">
@@ -758,7 +747,6 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title" id="ri-dessert-title">Gebak & Zoetwaren</div>
         <div class="mic-text" id="ri-dessert-text">Zoet gebak, taarten en lekkernijen met fruit en kruiden.</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk gebak →</button>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('dip')">
@@ -768,7 +756,6 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title">Dips & Spreads</div>
         <div class="mic-text">Smaakvolle dips en smeerbare sauzen met verse kruiden en groenten.</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk dips →</button>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('broodbeleg')">
@@ -778,7 +765,6 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title">Broodbeleg</div>
         <div class="mic-text">Zelfgemaakt broodbeleg met kruiden, groenten en fruit uit de tuin.</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk broodbeleg →</button>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('verzorging')">
@@ -789,7 +775,6 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title" id="ri-verzorging-title">Verzorgingsproducten</div>
         <div class="mic-text" id="ri-verzorging-text">Natuurlijke schoonheidsproducten gemaakt met kruiden.</div>
-        <button class="btn" style="margin-top:.85rem;font-size:.78rem;padding:.4rem .9rem;display:inline-flex;width:auto">Bekijk verzorging →</button>
       </div>
     </div>
   </div>
@@ -3450,7 +3435,7 @@ const GROENTEN = [
 
 {id:'erwten',name:'Erwten',lat:'Pisum sativum',care:'easy',
  photo:'https://picsum.photos/seed/peas/480/320',photo2:'https://picsum.photos/seed/peas/480/320',
- emoji:'🫘',cat:['peul'],wf:3,sun:'Volle zon – halfschaduw',ph:'6.0–7.5',temp:'7–20°C',soil:'Goed drainerende tuingrond',
+ emoji:'🥜',cat:['peul'],wf:3,sun:'Volle zon – halfschaduw',ph:'6.0–7.5',temp:'7–20°C',soil:'Goed drainerende tuingrond',
  zaai_binnen:[2,3],zaai_buiten:[3,4,5],uitplanten:[],stek:[],oogst:[5,6,7],
  oogst_hoe:'Pluk peultjes wanneer ze vol maar nog zacht zijn. Dagelijks plukken stimuleert nieuwe productie. Droge erwten: laat peulen indrogen aan de plant.',
  bewaring:'<strong>Vers</strong><br>In koelkast (2–3 dagen). <strong>Invriezen</strong><br>Direct blancheer 2 min en invriezen (1 jaar — ideaal). <strong>Droog</strong><br>Volledig gedroogde erwten in pot (2 jaar).',
@@ -3458,11 +3443,11 @@ const GROENTEN = [
  rec:['Erwtensoep','Risotto met erwten','Erwtenhummus','Pasta met erwten','Stamppot'],
  good:['Wortel','Radijs','Sla'],bad:['Ui','Knoflook'],
  tip:'Vroeg zaaien (april) geeft het beste resultaat. Klimplant — geef steun. Voeg nooit stikstofmeststof toe — maken het zelf!',
- pests:[{naam:'Erwtenluis',beschrijving:'Grijsgroene luizen in kolonies op jonge scheuten en peulen.',voorkomen:'Spuit met zeepwater, plant naast munt of dille, moedig lieveheersbeestjes aan.'},{naam:'Erwtenkeverkever',beschrijving:'Larven boren in de zaden en eten ze van binnenuit op.',voorkomen:'Bedek met insectengaas bij bloei, verwijder aangetaste peulen direct.'}],diseases:[{naam:'Erwtenmeeldauw',beschrijving:'Wit poederachtig laagje op blad en stengel bij warm droog weer.',voorkomen:'Ruime plantafstand, giet aan de basis, kies meeldauwresistent ras.'},{naam:'Voetziekte (Fusarium)',beschrijving:'Bruine verkleuringen aan stengelbasis, plant verwelkt.',voorkomen:'Gebruik ziektevrij zaad, crop rotatie, vermijd wateroverlast.'}],ph_stages:['🌱','🌿','🫘','🌸'],cp:0,watered:Date.now()-86400000*2},
+ pests:[{naam:'Erwtenluis',beschrijving:'Grijsgroene luizen in kolonies op jonge scheuten en peulen.',voorkomen:'Spuit met zeepwater, plant naast munt of dille, moedig lieveheersbeestjes aan.'},{naam:'Erwtenkeverkever',beschrijving:'Larven boren in de zaden en eten ze van binnenuit op.',voorkomen:'Bedek met insectengaas bij bloei, verwijder aangetaste peulen direct.'}],diseases:[{naam:'Erwtenmeeldauw',beschrijving:'Wit poederachtig laagje op blad en stengel bij warm droog weer.',voorkomen:'Ruime plantafstand, giet aan de basis, kies meeldauwresistent ras.'},{naam:'Voetziekte (Fusarium)',beschrijving:'Bruine verkleuringen aan stengelbasis, plant verwelkt.',voorkomen:'Gebruik ziektevrij zaad, crop rotatie, vermijd wateroverlast.'}],ph_stages:['🌱','🌿','🥜','🌸'],cp:0,watered:Date.now()-86400000*2},
 
 {id:'sperzieboon',name:'Sperzieboon',lat:'Phaseolus vulgaris',care:'easy',
  photo:'https://picsum.photos/seed/greenbean/480/320',photo2:'https://picsum.photos/seed/greenbean/480/320',
- emoji:'🫘',cat:['peul'],wf:3,sun:'Volle zon',ph:'6.0–7.0',temp:'18–28°C',soil:'Warme, goed drainerende grond',
+ emoji:'🥜',cat:['peul'],wf:3,sun:'Volle zon',ph:'6.0–7.0',temp:'18–28°C',soil:'Warme, goed drainerende grond',
  zaai_binnen:[4,5],zaai_buiten:[5,6],uitplanten:[5,6],stek:[],oogst:[7,8,9],
  oogst_hoe:'Pluk peulen wanneer ze 10–12 cm lang zijn en nog sappig. Niet laten uitgroeien — worden taai en vezelachtig.',
  bewaring:'<strong>Koelkast</strong><br>3–5 dagen. <strong>Invriezen</strong><br>Blancheer 3 min en invriezen (1 jaar — standaardmethode). <strong>Inmaken</strong><br>In weckpotten in lichtgezouten water.',
@@ -3470,7 +3455,7 @@ const GROENTEN = [
  rec:['Boontjessalade','Nicoise salade','Wokgerechten','Geroosterde boontjes','Stamppot'],
  good:['Wortel','Komkommer','Radijs'],bad:['Ui','Knoflook','Venkel'],
  tip:'Houdt van warmte — plant pas na de ijsheiligen (15 mei). Struikboontjes zijn makkelijker dan stokboontjes.',
- pests:[{naam:'Bonenvlieg',beschrijving:'Larven vreten zaad en jonge kiemen aan, kiemplanten verdwijnen.',voorkomen:'Zaai op warme grond (18°C+), gebruik insectengaas, niet te vroeg zaaien.'},{naam:'Spintmijt',beschrijving:'Gele spikkels op blad bij droogte, fijn spinseltje zichtbaar.',voorkomen:'Spuit regelmatig met water, verhoog luchtvochtigheid, gebruik roofmijten.'}],diseases:[{naam:'Bonenvlekkenvirus',beschrijving:'Mozaïekpatroon en misvorming van blad en peulen.',voorkomen:'Bestrijd bladluis (vector), gebruik ziektevrij zaad, verwijder aangetaste planten.'},{naam:'Schimmelrot (Sclerotinia)',beschrijving:'Wit watig schimmellaagje op stengels, plant sterft af.',voorkomen:'Crop rotatie, goede drainage, verwijder plantenresten na de oogst.'}],ph_stages:['🌱','🌿','🫘','🌸'],cp:0,watered:Date.now()-86400000*2},
+ pests:[{naam:'Bonenvlieg',beschrijving:'Larven vreten zaad en jonge kiemen aan, kiemplanten verdwijnen.',voorkomen:'Zaai op warme grond (18°C+), gebruik insectengaas, niet te vroeg zaaien.'},{naam:'Spintmijt',beschrijving:'Gele spikkels op blad bij droogte, fijn spinseltje zichtbaar.',voorkomen:'Spuit regelmatig met water, verhoog luchtvochtigheid, gebruik roofmijten.'}],diseases:[{naam:'Bonenvlekkenvirus',beschrijving:'Mozaïekpatroon en misvorming van blad en peulen.',voorkomen:'Bestrijd bladluis (vector), gebruik ziektevrij zaad, verwijder aangetaste planten.'},{naam:'Schimmelrot (Sclerotinia)',beschrijving:'Wit watig schimmellaagje op stengels, plant sterft af.',voorkomen:'Crop rotatie, goede drainage, verwijder plantenresten na de oogst.'}],ph_stages:['🌱','🌿','🥜','🌸'],cp:0,watered:Date.now()-86400000*2},
 
 {id:'radijs',name:'Radijs',lat:'Raphanus sativus',care:'easy',
  photo:'https://picsum.photos/seed/radish/480/320',photo2:'https://picsum.photos/seed/radish/480/320',
@@ -3782,29 +3767,6 @@ function openPlantModal(id, type) {
     '</div>' +
     '<div class="section-h">🌿 Voordelen & gebruik</div>' +
     '<ul class="benefit-list">' + (h.ben||[]).map(b => '<li>'+b+'</li>').join('') + '</ul>' +
-    (function() {
-      const drankKeywords = /limonade|cider|wijn|likeur|smoothie|sap|bier|azijn|siroop|drank|ijsthee|karkadeh/i;
-      const koken = (h.rec||[]).filter(r => !drankKeywords.test(r));
-      const dranken = (h.rec||[]).filter(r => drankKeywords.test(r));
-      let html = '';
-      if (koken.length) {
-        html += '<div class="section-h">🍽 Recepten</div>' +
-          '<div class="herb-tags">' + koken.map(r => {
-            const hasR = !!RECEPTEN_DB[r];
-            const esc = r.replace(/'/g, "\\'");
-            return '<span class="tag gold has-recept" style="cursor:pointer" data-herbid="'+id+'" data-recept="'+encodeURIComponent(r)+'" title="Bekijk recept">🍴 ' + r + '</span>';
-          }).join('') + '</div>';
-      }
-      if (dranken.length) {
-        html += '<div class="section-h">🥤 Dranken</div>' +
-          '<div class="herb-tags">' + dranken.map(r => {
-            const hasR = !!RECEPTEN_DB[r];
-            const esc = r.replace(/'/g, "\\'");
-            return '<span class="tag gold has-recept" style="cursor:pointer" data-herbid="'+id+'" data-recept="'+encodeURIComponent(r)+'" title="Bekijk recept">🥤 ' + r + '</span>';
-          }).join('') + '</div>';
-      }
-      return html;
-    })() +
     '</div>';
 
   // Calendar panel
