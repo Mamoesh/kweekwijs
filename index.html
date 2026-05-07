@@ -1970,7 +1970,7 @@ function openModal(id){
       ${h.zaai_buiten&&h.zaai_buiten.length?`<div class="info-item"><div class="info-label">🌿 Zaaien buiten</div><div class="info-val">${h.zaai_buiten.map(m=>MAANDEN_KORT[m-1]).join(', ')}</div></div>`:''}
       ${h.uitplanten&&h.uitplanten.length?`<div class="info-item"><div class="info-label">🌱 Uitplanten</div><div class="info-val">${h.uitplanten.map(m=>MAANDEN_KORT[m-1]).join(', ')}</div></div>`:''}
       ${h.stek&&h.stek.length?`<div class="info-item"><div class="info-label">✂️ Stekken</div><div class="info-val">${h.stek.map(m=>MAANDEN_KORT[m-1]).join(', ')}</div></div>`:''}
-      ${h.oogst&&h.oogst.length?`<div class="info-item" style="grid-column:1/-1"><div class="info-label">🌾 Oogsttijd</div><div class="info-val">${h.oogst.map(m=>MAANDEN_KORT[m-1]).join(', ')}</div></div>`:''}
+      ${h.oogst&&h.oogst.length?`<div class="info-item" style="${h.stek&&h.stek.length?'grid-column:1/-1':''}"><div class="info-label">🌾 Oogsttijd</div><div class="info-val">${h.oogst.map(m=>MAANDEN_KORT[m-1]).join(', ')}</div></div>`:''}
     </div>
     ${h.stek&&h.stek.length&&h.stek_hoe?`<div class="section-h">✂️ Hoe stekken?</div><div class="harvest-box">${h.stek_hoe}</div>`:''}
     ${h.oogst_hoe?`<div class="section-h">🌾 Hoe oogsten?</div><div class="harvest-box">${h.oogst_hoe}</div>`:''}
@@ -3791,7 +3791,7 @@ function openPlantModal(id, type) {
     calEntry(h.zaai_buiten, '🌿 Zaaien buiten') +
     calEntry(h.uitplanten, '🌱 Uitplanten') +
     calEntry(h.stek, '✂️ Stekken') +
-    (h.oogst && h.oogst.length ? '<div class="info-item" style="grid-column:1/-1"><div class="info-label">🌾 Oogsttijd</div><div class="info-val">' + h.oogst.map(m => MAANDEN_KORT_LOCAL[m-1]).join(', ') + '</div></div>' : '') +
+    (h.oogst && h.oogst.length ? '<div class="info-item" style="' + (h.stek && h.stek.length ? 'grid-column:1/-1' : '') + '"><div class="info-label">🌾 Oogsttijd</div><div class="info-val">' + h.oogst.map(m => MAANDEN_KORT_LOCAL[m-1]).join(', ') + '</div></div>' : '') +
     '</div>' +
     (h.stek_hoe ? '<div class="section-h">✂️ Hoe stekken?</div><div class="harvest-box">' + h.stek_hoe + '</div>' : '') +
     (h.oogst_hoe ? '<div class="section-h">🌾 Hoe oogsten?</div><div class="harvest-box">' + h.oogst_hoe + '</div>' : '') +
