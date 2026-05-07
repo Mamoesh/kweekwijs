@@ -1924,14 +1924,12 @@ function openModal(id){
       const theeCombos = h.thee_combos || [];
 
       function makeTag(r, emoji, colorClass) {
-        const hasR = !!RECEPTEN_DB[r];
-        const esc = r.replace(/'/g, "\'");
-        return '<span class="tag '+colorClass+' has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\'' + h.id + '\',\''+esc+'\')" title="Bekijk recept">'+emoji+' '+r+'</span>';
+        return '<span class="tag '+colorClass+' has-recept" style="cursor:pointer" data-herbid="'+h.id+'" data-recept="'+encodeURIComponent(r)+'" title="Bekijk recept">'+emoji+' '+r+'</span>';
       }
       function makeComboTag(tc) {
         const hasR = !!RECEPTEN_DB[tc.naam];
         const esc = tc.naam.replace(/'/g, "\'");
-        return '<span class="tag green'+(hasR?' has-recept':'')+'" style="cursor:pointer" title="'+tc.voordeel+'" onclick="openReceptDetail(\'' + h.id + '\',\''+esc+'\')">🍵 '+tc.naam+'</span>';
+        return '<span class="tag green'+(hasR?' has-recept':'')+'" style="cursor:pointer" data-herbid="'+h.id+'" data-recept="'+encodeURIComponent(tc.naam)+'" title="'+tc.voordeel+'">🍵 '+tc.naam+'</span>';
       }
 
       let html = '';
@@ -2046,6 +2044,15 @@ function openModal(id){
   document.getElementById('tab-panels').innerHTML=infoPanel+calPanel+storagePanel+naastPanel+plagenPanel+(huidPanel||'');
   document.getElementById('modal-overlay').classList.add('open');
 }
+
+// Globale click-delegatie voor recept-tags (data-recept attribuut)
+document.addEventListener('click', function(e) {
+  const el = e.target.closest('[data-recept]');
+  if (!el) return;
+  const naam = decodeURIComponent(el.getAttribute('data-recept'));
+  const herbId = el.getAttribute('data-herbid') || '';
+  goToReceptFromModal(herbId, naam);
+});
 
 function switchTab(tabId,btn){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -3698,7 +3705,7 @@ function openPlantModal(id, type) {
           '<div class="herb-tags">' + koken.map(r => {
             const hasR = !!RECEPTEN_DB[r];
             const esc = r.replace(/'/g, "\\'");
-            return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\''+id+'\',\''+esc+'\')" title="Bekijk recept">🍴 ' + r + '</span>';
+            return '<span class="tag gold has-recept" style="cursor:pointer" data-herbid="'+id+'" data-recept="'+encodeURIComponent(r)+'" title="Bekijk recept">🍴 ' + r + '</span>';
           }).join('') + '</div>';
       }
       if (dranken.length) {
@@ -3706,7 +3713,7 @@ function openPlantModal(id, type) {
           '<div class="herb-tags">' + dranken.map(r => {
             const hasR = !!RECEPTEN_DB[r];
             const esc = r.replace(/'/g, "\\'");
-            return '<span class="tag gold has-recept" style="cursor:pointer" onclick="goToReceptFromModal(\''+id+'\',\''+esc+'\')" title="Bekijk recept">🥤 ' + r + '</span>';
+            return '<span class="tag gold has-recept" style="cursor:pointer" data-herbid="'+id+'" data-recept="'+encodeURIComponent(r)+'" title="Bekijk recept">🥤 ' + r + '</span>';
           }).join('') + '</div>';
       }
       return html;
