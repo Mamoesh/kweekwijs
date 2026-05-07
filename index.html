@@ -2141,6 +2141,47 @@ function updateHerbImg(herbId, blobUrl) {
   });
 }
 
+// Plant foto updater (groenten/fruit) — zelfde systeem als kruiden
+function updatePlantImg(plantId, blobUrl, type) {
+  const arr = type === 'fruit' ? FRUIT : GROENTEN;
+  const plant = arr.find(p => p.id === plantId);
+  if (plant) { plant.photo = blobUrl; plant.photo2 = blobUrl; }
+  // Update kaarten in de grid
+  document.querySelectorAll('[data-herbid="' + plantId + '"] .herb-card-img img').forEach(img => {
+    img.src = blobUrl;
+    img.style.display = 'block';
+    const fb = img.parentElement.querySelector('.herb-img-fallback');
+    if (fb) fb.style.display = 'none';
+  });
+  // Update modal hero als die open is
+  const hero = document.getElementById('modal-hero');
+  if (hero) {
+    const heroImg = hero.querySelector('img');
+    if (heroImg && heroImg.alt && plant && heroImg.alt === plant.name) heroImg.src = blobUrl;
+  }
+  // Update moestuin home kaart
+  const homeImg = document.getElementById('home-' + type + '-img') || document.getElementById('home-groenten-img');
+  // ignore
+}
+
+async function loadPlantPhoto(plantId, photoUrl, type) {
+  if (!photoUrl || photoUrl.startsWith('blob:')) return;
+  try {
+    const blobUrl = await fetchImageAsBlob(photoUrl);
+    updatePlantImg(plantId, blobUrl, type);
+  } catch(e) { /* foto niet beschikbaar — emoji blijft zichtbaar */ }
+}
+
+async function loadPlantPhotos() {
+  const all = [
+    ...GROENTEN.filter(p => p.photo).map(p => [p.id, p.photo, 'groenten']),
+    ...FRUIT.filter(p => p.photo).map(p => [p.id, p.photo, 'fruit'])
+  ];
+  for (let i = 0; i < all.length; i += 4) {
+    await Promise.all(all.slice(i, i + 4).map(([id, url, type]) => loadPlantPhoto(id, url, type)));
+  }
+}
+
 async function loadHerbPhoto(herbId, wikiTitle) {
   if (wikiTitle === '__skip__') return; // herb has embedded/custom photo
   try {
@@ -3054,16 +3095,26 @@ async function renderHome() {
         setTxt(prefix+'Title', d[prefix.replace('home-','')+'Title']||'');
         setTxt(prefix+'Text',  d[prefix.replace('home-','')+'Text']||'');
       };
+      // Helper: laad afbeelding via blob (omzeilt Wikimedia hotlink-beveiliging)
+      function laadHomeImg(url, imgId, emojiId) {
+        if (!url) return;
+        const img = document.getElementById(imgId);
+        const emoji = document.getElementById(emojiId);
+        if (!img) return;
+        fetchImageAsBlob(url)
+          .then(blob => { img.src = blob; img.style.display = 'block'; if (emoji) emoji.style.display = 'none'; })
+          .catch(() => { img.src = url; img.style.display = 'block'; if (emoji) emoji.style.display = 'none'; });
+      }
       // Groenten kaart
-      if (d.groentenImg) { const i=document.getElementById('home-groenten-img'); if(i){i.src=d.groentenImg;i.style.display='block';document.getElementById('home-groenten-emoji').style.display='none';} }
+      laadHomeImg(d.groentenImg, 'home-groenten-img', 'home-groenten-emoji');
       setTxt('home-groenten-title', d.groentenTitle);
       setTxt('home-groenten-text',  d.groentenText);
       // Fruit kaart
-      if (d.fruitImg) { const i=document.getElementById('home-fruit-img'); if(i){i.src=d.fruitImg;i.style.display='block';document.getElementById('home-fruit-emoji').style.display='none';} }
+      laadHomeImg(d.fruitImg, 'home-fruit-img', 'home-fruit-emoji');
       setTxt('home-fruit-title', d.fruitTitle);
       setTxt('home-fruit-text',  d.fruitText);
       // Kruiden kaart
-      if (d.kruidenImg) { const i=document.getElementById('home-kruiden-img'); if(i){i.src=d.kruidenImg;i.style.display='block';document.getElementById('home-kruiden-emoji').style.display='none';} }
+      laadHomeImg(d.kruidenImg, 'home-kruiden-img', 'home-kruiden-emoji');
       setTxt('home-kruiden-title', d.kruidenTitle);
       setTxt('home-kruiden-text',  d.kruidenText);
     }
@@ -3579,6 +3630,7 @@ function renderGroenten() {
   });
   document.getElementById('groenten-count').textContent = list.length + ' groente' + (list.length !== 1 ? 'n' : '');
   document.getElementById('groenten-grid').innerHTML = list.map(h => renderPlantCard(h, 'groenten')).join('');
+  loadPlantPhotos();
 }
 
 function renderFruit() {
@@ -3590,6 +3642,7 @@ function renderFruit() {
   });
   document.getElementById('fruit-count').textContent = list.length + ' fruit' + (list.length !== 1 ? 'soort' : 'soort');
   document.getElementById('fruit-grid').innerHTML = list.map(h => renderPlantCard(h, 'fruit')).join('');
+  loadPlantPhotos();
 }
 
 function renderPlantCard(h, type) {
@@ -3656,13 +3709,13 @@ function openPlantModal(id, type) {
   const heroFallback = '<div class="modal-hero-fallback">' + h.emoji + '</div>';
   if (h.photo) {
     const img = document.createElement('img');
-    img.src = heroSrc;
     img.alt = h.name;
-    img.setAttribute('referrerpolicy', 'no-referrer');
     img.style.cssText = 'width:100%;height:100%;object-fit:cover';
     img.onerror = function() { hero.innerHTML = heroFallback; };
     hero.innerHTML = '';
     hero.appendChild(img);
+    // Laad via blob om Wikimedia hotlink-beveiliging te omzeilen
+    fetchImageAsBlob(heroSrc).then(blob => { img.src = blob; }).catch(() => { img.src = heroSrc; });
   } else {
     hero.innerHTML = heroFallback;
   }
@@ -4455,6 +4508,7 @@ async function laadFirebaseData() {
       });
 
       if (typeof vulPlantRecepten === 'function') vulPlantRecepten();
+    loadPlantPhotos();
     } catch(e) { console.warn('Recepten laden fout:', e.message); }
 
     // Herrender alle actieve schermen
