@@ -2505,9 +2505,19 @@ function openReceptDetail(a, b) {
     document.getElementById('recept-modal-overlay').classList.add('open');
     return;
   }
-  const herb = HERBS.find(h => h.id === herbId) || GROENTEN.find(h => h.id === herbId) || FRUIT.find(h => h.id === herbId) || {};
+  // Ondersteuning voor meerdere herbIds (komma-gescheiden in Firebase)
+  const allPlants = [...HERBS,...GROENTEN,...FRUIT];
+  const herbIds = (recept.herbId||herbId||'').split(',').map(x=>x.trim()).filter(Boolean);
+  const herbLinks = herbIds.map(id => {
+    const h = allPlants.find(p => p.id === id);
+    if (!h) return id;
+    // Bepaal type voor openPlantModal
+    const type = GROENTEN.find(p=>p.id===id) ? 'groenten' : FRUIT.find(p=>p.id===id) ? 'fruit' : 'kruiden';
+    const fn = type === 'kruiden' ? `openModal('${id}');closeReceptModal()` : `openPlantModal('${id}','${type}');closeReceptModal()`;
+    return `<span style="cursor:pointer;color:var(--accent);text-decoration:underline;text-decoration-style:dotted" onclick="${fn}">${h.emoji||''} ${h.name}</span>`;
+  });
   document.getElementById('recept-modal-title').textContent = naam;
-  document.getElementById('recept-modal-meta').textContent = (herb.emoji||'') + ' ' + (herb.name||'') + ' — ' + (recept.cat||'');
+  document.getElementById('recept-modal-meta').innerHTML = herbLinks.join(' · ') + (recept.cat ? ' — ' + recept.cat : '');
   const diffColor = (recept.moeilijk||'').includes('Makkelijk') ? 'var(--accent)' : (recept.moeilijk||'').includes('Gemiddeld') ? 'var(--accent2)' : 'var(--danger)';
   document.getElementById('recept-modal-body').innerHTML =
     (recept.intro ? '<p style="color:var(--text2);font-size:.9rem;line-height:1.65;margin-bottom:.75rem">'+recept.intro+'</p>' : '') +
