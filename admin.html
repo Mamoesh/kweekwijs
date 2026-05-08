@@ -1080,7 +1080,7 @@ window.saveTheme=async()=>{
 
 // ── Recepten ──────────────────────────────────────────────────
 function renderRecepten() {
-  const cats={gerecht:'🍽 Gerechten',soep:'🥣 Soepen',drank:'🥤 Dranken',thee:'🍵 Thee',dessert:'🍰 Desserts',verzorging:'✨ Verzorging'};
+  const cats={gerecht:'🍽 Gerechten',soep:'🥣 Soepen',drank:'🥤 Dranken',thee:'🍵 Thee',dessert:'🍰 Desserts',dips:'🥣 Dips & Spreads',broodbeleg:'🍞 Broodbeleg',verzorging:'✨ Verzorging'};
   const keys=Object.keys(allRecepten);
   document.getElementById('main-panel').innerHTML=`
     <div class="page-title-row">
@@ -1098,7 +1098,7 @@ function renderRecepten() {
 let receptFilter='all';
 window.filterReceptAdmin=(cat,btn)=>{receptFilter=cat;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderReceptList(cat);};
 function renderReceptList(cat){
-  const cats={gerecht:'🍽',soep:'🥣',drank:'🥤',thee:'🍵',dessert:'🍰',verzorging:'✨'};
+  const cats={gerecht:'🍽',soep:'🥣',drank:'🥤',thee:'🍵',dessert:'🍰',dips:'🥣',broodbeleg:'🍞',verzorging:'✨'};
   const entries=Object.entries(allRecepten).filter(([,v])=>cat==='all'||v.cat===cat).sort(([a],[b])=>a.localeCompare(b));
   document.getElementById('recept-list').innerHTML=entries.map(([naam,r])=>`
     <div class="list-row">
@@ -1384,6 +1384,8 @@ async function renderReceptenIntroAdmin() {
     {key:'drank',      label:'🥤 Dranken & Cocktails'},
     {key:'thee',       label:'🍵 Thee & Infusies'},
     {key:'dessert',    label:'🍰 Desserts'},
+    {key:'dips',       label:'🥣 Dips & Spreads'},
+    {key:'broodbeleg', label:'🍞 Broodbeleg'},
     {key:'verzorging', label:'✨ Verzorgingsproducten'},
   ];
 
@@ -1431,7 +1433,7 @@ async function renderReceptenIntroAdmin() {
 
 window.saveReceptenIntro = async () => {
   const get = id => (document.getElementById(id)||{}).value||'';
-  const cats = ['gerecht','soep','drank','thee','dessert','verzorging'];
+  const cats = ['gerecht','soep','drank','thee','dessert','dips','broodbeleg','verzorging'];
   const data = {
     title: get('ri-title'), sub: get('ri-sub'),
     heroImg: get('ri-heroImg'), tekst: get('ri-tekst'),
@@ -2128,6 +2130,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
               <option value="drank">🥤 Drank & Cocktail</option>
               <option value="thee">🍵 Thee & Infusie</option>
               <option value="dessert">🍰 Dessert</option>
+              <option value="dips">🥣 Dips & Spreads</option>
+              <option value="broodbeleg">🍞 Broodbeleg</option>
               <option value="verzorging">✨ Verzorgingsproduct</option>
             </select></div>
         <div class="fg"><label>Plant/kruid ID</label><input id="re-herbid" placeholder="bijv. munt"></div>
