@@ -2357,15 +2357,23 @@ function classifyRecept(name, herbId) {
 // Build recipe database from HERBS
 function buildReceptenDB() {
   const db = [];
+  const allPlants = [...HERBS,...GROENTEN,...FRUIT];
   // Enkel Firebase recepten tonen (uit RECEPTEN_DB)
   Object.entries(RECEPTEN_DB||{}).forEach(([naam, r]) => {
-    const herb = [...HERBS,...GROENTEN,...FRUIT].find(h=>h.id===(r.herbId||''));
+    // Ondersteuning voor meerdere herbIds (komma-gescheiden)
+    const herbIds = (r.herbId||'').split(',').map(x=>x.trim()).filter(Boolean);
+    const eersteHerbId = herbIds[0] || '';
+    const herb = allPlants.find(h=>h.id===eersteHerbId);
+    // Bouw label met alle kruiden
+    const herbNaam = herbIds.map(id => allPlants.find(h=>h.id===id)?.name || id).join(', ') || eersteHerbId;
+    const herbEmoji = herb?.emoji||'🍳';
     db.push({
       naam,
-      herbId: r.herbId||'',
-      herbNaam: herb?.name || r.herbId||'',
-      herbEmoji: herb?.emoji||'🍳',
-      cat: r.cat||classifyRecept(naam, r.herbId||''),
+      herbId: eersteHerbId,
+      herbIds,
+      herbNaam,
+      herbEmoji,
+      cat: r.cat||classifyRecept(naam, eersteHerbId),
       tip: r.intro||''
     });
   });
@@ -3687,9 +3695,12 @@ function vulPlantRecepten() {
   const placeholder = document.getElementById('plant-recept-placeholder');
   if (!placeholder) return;
   const plantId = placeholder.getAttribute('data-plantid');
-  // Zoek recepten via herbId (case-insensitief)
+  // Zoek recepten via herbId (case-insensitief, meerdere IDs mogelijk)
   const recepten = Object.entries(RECEPTEN_DB || {})
-    .filter(([, r]) => (r.herbId || '').toLowerCase() === plantId.toLowerCase())
+    .filter(([, r]) => {
+      const ids = (r.herbId || '').split(',').map(x => x.trim().toLowerCase());
+      return ids.includes(plantId.toLowerCase());
+    })
     .map(([naam]) => naam);
   if (!recepten.length) { placeholder.innerHTML = ''; return; }
   // Bouw DOM-elementen (geen onclick strings = geen escaping-problemen)
