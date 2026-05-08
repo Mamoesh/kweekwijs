@@ -2514,7 +2514,7 @@ function openReceptDetail(a, b) {
     // Bepaal type voor openPlantModal
     const type = GROENTEN.find(p=>p.id===id) ? 'groenten' : FRUIT.find(p=>p.id===id) ? 'fruit' : 'kruiden';
     const fn = type === 'kruiden' ? `openModal('${id}');closeReceptModal()` : `openPlantModal('${id}','${type}');closeReceptModal()`;
-    return `<span style="cursor:pointer;color:var(--accent);text-decoration:underline;text-decoration-style:dotted" onclick="${fn}">${h.emoji||''} ${h.name}</span>`;
+    return `<span style="cursor:pointer;color:var(--text2);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text2)'" onclick="${fn}">${h.emoji||''} ${h.name}</span>`;
   });
   document.getElementById('recept-modal-title').textContent = naam;
   document.getElementById('recept-modal-meta').innerHTML = herbLinks.join(' · ') + (recept.cat ? ' — ' + recept.cat : '');
