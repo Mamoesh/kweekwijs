@@ -4498,6 +4498,8 @@ async function laadFirebaseData() {
       const recSnap = await getDocs(collection(db, 'recepten'));
       recSnap.docs.forEach(d => {
         const data = d.data();
+        // Sla drafts over — toon enkel live of recepten zonder status (bestaande/gemigreerde)
+        if (data.status === 'draft' || data.status === 'draft_edit') return;
         const naam = data.naam || d.id.replace(/_sl_/g,'/').replace(/_dt_/g,'.').replace(/_/g,' ');
         if (naam && !RECEPTEN_DB[naam]) RECEPTEN_DB[naam] = data;
       });
