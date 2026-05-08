@@ -2455,11 +2455,13 @@ function filterReceptenBySearch() {
     soep:{label:'🥣 Soepen',icon:'🥣',items:[]},
     drank:{label:'🥤 Dranken',icon:'🥤',items:[]},
     thee:{label:'🍵 Thee',icon:'🍵',items:[]},
-    dessert:{label:'🍰 Desserts',icon:'🍰',items:[]},
+    dessert:{label:'🧁 Gebak & Zoetwaren',icon:'🧁',items:[]},
+    dip:{label:'🥣 Dips & Spreads',icon:'🥣',items:[]},
+    broodbeleg:{label:'🍞 Broodbeleg',icon:'🍞',items:[]},
     verzorging:{label:'✨ Verzorgingsproducten',icon:'✨',items:[]},
   };
   filtered.forEach(r => { if(groups[r.cat]) groups[r.cat].items.push(r); });
-  const catOrder = ['gerecht','soep','drank','thee','dessert','verzorging'];
+  const catOrder = ['gerecht','soep','drank','thee','dessert','dip','broodbeleg','verzorging'];
   const html = catOrder.map(cat => {
     const g = groups[cat];
     if(!g.items.length) return '';
@@ -3966,7 +3968,7 @@ const TRANSLATIONS = {
     label_waterFreq:'Bewatering', label_sun:'Zonlicht', label_temp:'Temperatuur',
     label_ph:'pH grond', label_soil:'Aarde', label_care:'Verzorging',
     sec_voordelen:'🌿 Voordelen & gebruik', sec_koken:'🍳 Koken', sec_dranken:'🥤 Dranken',
-    sec_desserts:'🍰 Desserts', sec_thee:'🍵 Thee', sec_tip:'💡 Kweektip',
+    sec_desserts:'🧁 Gebak & Zoetwaren', sec_thee:'🍵 Thee', sec_tip:'💡 Kweektip',
     sec_stekken:'✂️ Hoe stekken?', sec_oogsten:'🌾 Hoe oogsten?',
     profile_title:'Mijn Moestuin', profile_sub:'Upload foto\'s van jouw planten.',
     community_title:'Community', recepten_title:'Recepten & Dranken',
@@ -3992,7 +3994,7 @@ const TRANSLATIONS = {
     label_waterFreq:'Watering', label_sun:'Sunlight', label_temp:'Temperature',
     label_ph:'Soil pH', label_soil:'Soil', label_care:'Care level',
     sec_voordelen:'🌿 Benefits & uses', sec_koken:'🍳 Cooking', sec_dranken:'🥤 Drinks',
-    sec_desserts:'🍰 Desserts', sec_thee:'🍵 Tea', sec_tip:'💡 Growing tip',
+    sec_desserts:'🧁 Baked goods & sweets', sec_thee:'🍵 Tea', sec_tip:'💡 Growing tip',
     sec_stekken:'✂️ How to propagate?', sec_oogsten:'🌾 How to harvest?',
     profile_title:'My Garden', profile_sub:'Upload photos of your plants.',
     community_title:'Community', recepten_title:'Recipes & Drinks',
@@ -4018,7 +4020,7 @@ const TRANSLATIONS = {
     label_waterFreq:'Arrosage', label_sun:'Ensoleillement', label_temp:'Température',
     label_ph:'pH du sol', label_soil:'Sol', label_care:'Entretien',
     sec_voordelen:'🌿 Bienfaits & usages', sec_koken:'🍳 Cuisine', sec_dranken:'🥤 Boissons',
-    sec_desserts:'🍰 Desserts', sec_thee:'🍵 Tisanes', sec_tip:'💡 Conseil de culture',
+    sec_desserts:'🧁 Pâtisseries & sucreries', sec_thee:'🍵 Tisanes', sec_tip:'💡 Conseil de culture',
     sec_stekken:'✂️ Comment bouturer?', sec_oogsten:'🌾 Comment récolter?',
     profile_title:'Mon Jardin', profile_sub:'Ajoutez des photos de vos plantes.',
     community_title:'Communauté', recepten_title:'Recettes & Boissons',
