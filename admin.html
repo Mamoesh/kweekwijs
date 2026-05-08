@@ -1146,30 +1146,23 @@ window.saveRecept=async()=>{
     allRecepten[naam]=data;
 
     // Voeg receptnaam toe aan de plant's rec-array als die er nog niet in staat
-    const herbId = get('re-herbid').trim();
-    if(herbId) {
-      // Zoek case-insensitief op id
+    // Ondersteuning voor meerdere herbIds (komma-gescheiden)
+    const herbIds = get('re-herbid').split(',').map(x=>x.trim()).filter(Boolean);
+    const linkedNames = [];
+    for (const herbId of herbIds) {
       const herbIdLc = herbId.toLowerCase();
       const plantType = ['kruiden','groenten','fruit'].find(t => (allPlants[t]||[]).find(p=>p.id.toLowerCase()===herbIdLc));
       if(plantType) {
         const plant = allPlants[plantType].find(p=>p.id.toLowerCase()===herbIdLc);
         if(plant) {
-          if(!(plant.rec||[]).includes(naam)) {
-            plant.rec = [...(plant.rec||[]), naam];
-            await setDoc(doc(db,plantType,herbId), {...plant, status: plant.status||'live'});
-            toast(`${naam} opgeslagen ✓ en toegevoegd aan ${plant.name}`,'ok');
-          } else {
-            // Recept stond al in rec — zorg toch dat Firebase up-to-date is
-            await setDoc(doc(db,plantType,herbId), {...plant, status: plant.status||'live'});
-            toast(`${naam} opgeslagen ✓`,'ok');
-          }
+          if(!(plant.rec||[]).includes(naam)) plant.rec = [...(plant.rec||[]), naam];
+          await setDoc(doc(db,plantType,plant.id), {...plant, status: plant.status||'live'});
+          linkedNames.push(plant.name);
         }
-      } else {
-        toast(`${naam} opgeslagen ✓`,'ok');
       }
-    } else {
-      toast(`${naam} opgeslagen ✓`,'ok');
     }
+    if(linkedNames.length) toast(`${naam} opgeslagen ✓ en gekoppeld aan ${linkedNames.join(', ')}`,'ok');
+    else toast(`${naam} opgeslagen ✓`,'ok');
 
     closeReceptEditor();renderRecepten();
   }
@@ -2146,7 +2139,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
               <option value="broodbeleg">🍞 Broodbeleg</option>
               <option value="verzorging">✨ Verzorgingsproduct</option>
             </select></div>
-        <div class="fg"><label>Plant/kruid ID</label><input id="re-herbid" placeholder="bijv. munt"></div>
+        <div class="fg"><label>Plant/kruid ID(s)</label><input id="re-herbid" placeholder="bijv. bieslook, peterselie, knoflook"><span class="hint">Meerdere IDs? Scheid ze met een komma.</span></div>
         <div class="fg"><label>Bereidingstijd</label><input id="re-tijd" placeholder="15 min"></div>
         <div class="fg"><label>Porties</label><input id="re-porties" placeholder="4 porties"></div>
         <div class="fg"><label>Moeilijkheid</label>
