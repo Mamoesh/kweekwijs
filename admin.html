@@ -208,7 +208,7 @@ function renderDashboard() {
       '</div>' +
     '</div>' +
     (() => {
-      const draftCount = ['kruiden','groenten','fruit'].reduce((n,t)=>n+(allPlants[t]||[]).filter(p=>p.status!=='live').length, 0);
+      const draftCount = ['kruiden','groenten','fruit'].reduce((n,t)=>n+(allPlants[t]||[]).filter(p=>p.status!=='live').length, 0) + Object.values(allRecepten).filter(r=>r.status==='draft'||r.status==='draft_edit').length;
       return '<div style="margin-top:1.25rem;background:var(--surface);border:2px solid ' + (draftCount>0?'var(--green)':'var(--border)') + ';border-radius:var(--radius-lg);padding:1.25rem">' +
         '<div class="dash-section-title" style="margin-bottom:.35rem">🚀 Publiceren</div>' +
         '<div style="font-size:.83rem;color:var(--text-muted);margin-bottom:.85rem">' +
@@ -263,11 +263,21 @@ window.publishAll = async () => {
   const btn = document.getElementById('publish-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Publiceren…'; }
   try {
+    // Planten publiceren
     for (const type of types) {
       const drafts = (allPlants[type]||[]).filter(p => p.status !== 'live');
       for (const plant of drafts) {
         await setDoc(doc(db, type, plant.id), {...plant, status:'live'});
         plant.status = 'live';
+        count++;
+      }
+    }
+    // Recepten publiceren
+    for (const [naam, r] of Object.entries(allRecepten)) {
+      if (r.status === 'draft' || r.status === 'draft_edit') {
+        const safeId = naam.replace(/\//g,'_sl_').replace(/\\/g,'_bs_').replace(/\./g,'_dt_').replace(/\s+/g,'_').substring(0,500);
+        await setDoc(doc(db,'recepten',safeId), {...r, status:'live'});
+        allRecepten[naam] = {...r, status:'live'};
         count++;
       }
     }
@@ -1080,7 +1090,7 @@ window.saveTheme=async()=>{
 
 // ── Recepten ──────────────────────────────────────────────────
 function renderRecepten() {
-  const cats={gerecht:'🍽 Gerechten',soep:'🥣 Soepen',drank:'🥤 Dranken',thee:'🍵 Thee',dessert:'🍰 Desserts',dips:'🥣 Dips & Spreads',broodbeleg:'🍞 Broodbeleg',verzorging:'✨ Verzorging'};
+  const cats={gerecht:'🍽 Gerechten',soep:'🥣 Soepen',drank:'🥤 Dranken',thee:'🍵 Thee',dessert:'🍰 Desserts',dip:'🥣 Dips & Spreads',broodbeleg:'🍞 Broodbeleg',verzorging:'✨ Verzorging'};
   const keys=Object.keys(allRecepten);
   document.getElementById('main-panel').innerHTML=`
     <div class="page-title-row">
@@ -1098,7 +1108,7 @@ function renderRecepten() {
 let receptFilter='all';
 window.filterReceptAdmin=(cat,btn)=>{receptFilter=cat;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderReceptList(cat);};
 function renderReceptList(cat){
-  const cats={gerecht:'🍽',soep:'🥣',drank:'🥤',thee:'🍵',dessert:'🍰',dips:'🥣',broodbeleg:'🍞',verzorging:'✨'};
+  const cats={gerecht:'🍽',soep:'🥣',drank:'🥤',thee:'🍵',dessert:'🍰',dip:'🥣',broodbeleg:'🍞',verzorging:'✨'};
   const entries=Object.entries(allRecepten).filter(([,v])=>cat==='all'||v.cat===cat).sort(([a],[b])=>a.localeCompare(b));
   document.getElementById('recept-list').innerHTML=entries.map(([naam,r])=>`
     <div class="list-row">
@@ -1128,7 +1138,9 @@ window.saveRecept=async()=>{
   const get=id=>(document.getElementById(id)||{}).value||'';
   const naam=get('re-naam').trim();if(!naam){toast('Vul een naam in.','err');return;}
   const safeId=naam.replace(/\//g,'_sl_').replace(/\\/g,'_bs_').replace(/\./g,'_dt_').replace(/\s+/g,'_').substring(0,500);
-  const data={naam,cat:get('re-cat'),herbId:get('re-herbid'),tijd:get('re-tijd'),porties:get('re-porties'),moeilijk:get('re-moeilijk'),intro:get('re-intro'),ingredienten:get('re-ingredienten').split('\n').map(x=>x.trim()).filter(Boolean),methode:get('re-methode').split('\n').map(x=>x.trim()).filter(Boolean),tip:get('re-tip')};
+  const bestaandeStatus=allRecepten[naam]?.status;
+  const nieuweStatus=bestaandeStatus==='live'?'draft_edit':(bestaandeStatus||'draft');
+  const data={naam,cat:get('re-cat'),herbId:get('re-herbid'),tijd:get('re-tijd'),porties:get('re-porties'),moeilijk:get('re-moeilijk'),intro:get('re-intro'),ingredienten:get('re-ingredienten').split('\n').map(x=>x.trim()).filter(Boolean),methode:get('re-methode').split('\n').map(x=>x.trim()).filter(Boolean),tip:get('re-tip'),status:nieuweStatus};
   try{
     await setDoc(doc(db,'recepten',safeId),data);
     allRecepten[naam]=data;
@@ -1384,7 +1396,7 @@ async function renderReceptenIntroAdmin() {
     {key:'drank',      label:'🥤 Dranken & Cocktails'},
     {key:'thee',       label:'🍵 Thee & Infusies'},
     {key:'dessert',    label:'🍰 Desserts'},
-    {key:'dips',       label:'🥣 Dips & Spreads'},
+    {key:'dip',       label:'🥣 Dips & Spreads'},
     {key:'broodbeleg', label:'🍞 Broodbeleg'},
     {key:'verzorging', label:'✨ Verzorgingsproducten'},
   ];
@@ -1433,7 +1445,7 @@ async function renderReceptenIntroAdmin() {
 
 window.saveReceptenIntro = async () => {
   const get = id => (document.getElementById(id)||{}).value||'';
-  const cats = ['gerecht','soep','drank','thee','dessert','dips','broodbeleg','verzorging'];
+  const cats = ['gerecht','soep','drank','thee','dessert','dip','broodbeleg','verzorging'];
   const data = {
     title: get('ri-title'), sub: get('ri-sub'),
     heroImg: get('ri-heroImg'), tekst: get('ri-tekst'),
@@ -2130,7 +2142,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
               <option value="drank">🥤 Drank & Cocktail</option>
               <option value="thee">🍵 Thee & Infusie</option>
               <option value="dessert">🍰 Dessert</option>
-              <option value="dips">🥣 Dips & Spreads</option>
+              <option value="dip">🥣 Dips & Spreads</option>
               <option value="broodbeleg">🍞 Broodbeleg</option>
               <option value="verzorging">✨ Verzorgingsproduct</option>
             </select></div>
