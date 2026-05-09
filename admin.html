@@ -150,6 +150,7 @@ window.switchSection = s => {
   main.innerHTML = '';
   const map = {
     dashboard:       renderDashboard,
+    home:            renderHomeAdmin,
     'moestuin-intro': renderMoetuinIntroAdmin,
     'recepten-intro': renderReceptenIntroAdmin,
     kruiden:   ()=>renderSection('kruiden'),
@@ -1351,6 +1352,99 @@ window.importAllPlants=async()=>{
   }
 };
 
+// ── Startpagina beheer ────────────────────────────────────────
+async function renderHomeAdmin() {
+  document.getElementById('main-panel').innerHTML = `
+    <div class="page-title-row">
+      <div class="page-title">🏠 Startpagina</div>
+      <button class="btn-primary" onclick="saveHome()">💾 Opslaan</button>
+    </div>
+    <p class="page-sub">Pas hier de tekst en foto's aan van de startpagina.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:.5rem">
+      <div>
+        <div class="dash-section-title">📄 Algemeen</div>
+        <div class="fg"><label>Paginatitel</label><input id="home-title-inp" placeholder="Welkom bij Kweekwijs"></div>
+        <div class="fg"><label>Subtitel</label><input id="home-sub-inp" placeholder="Jouw persoonlijke moestuingids..."></div>
+        <div class="fg"><label>Introductietekst (HTML toegestaan)</label><textarea id="home-tekst-inp" rows="5" placeholder="Welkomstekst..."></textarea></div>
+      </div>
+      <div>
+        <div class="dash-section-title">🖼 Hero afbeelding</div>
+        <div class="fg"><label>Foto URL</label><input id="home-heroImg-inp" placeholder="https://images.unsplash.com/..."></div>
+        <div class="fg"><label>Overlay titel (op foto)</label><input id="home-overlayTitle-inp" placeholder="Kweekwijs"></div>
+        <div class="fg"><label>Overlay subtitel (op foto)</label><input id="home-overlaySub-inp" placeholder="Jouw moestuingids"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;margin-top:1.5rem">
+      <div class="upload-dash-box">
+        <div class="dash-section-title">🥦 Groenten kaart</div>
+        <div class="fg"><label>Titel</label><input id="home-groentenTitle-inp" placeholder="Groenten"></div>
+        <div class="fg"><label>Tekst</label><textarea id="home-groentenText-inp" rows="3"></textarea></div>
+        <div class="fg"><label>Foto URL</label><input id="home-groentenImg-inp" placeholder="https://..."></div>
+      </div>
+      <div class="upload-dash-box">
+        <div class="dash-section-title">🍎 Fruit kaart</div>
+        <div class="fg"><label>Titel</label><input id="home-fruitTitle-inp" placeholder="Fruit"></div>
+        <div class="fg"><label>Tekst</label><textarea id="home-fruitText-inp" rows="3"></textarea></div>
+        <div class="fg"><label>Foto URL</label><input id="home-fruitImg-inp" placeholder="https://..."></div>
+      </div>
+      <div class="upload-dash-box">
+        <div class="dash-section-title">🌱 Kruiden kaart</div>
+        <div class="fg"><label>Titel</label><input id="home-kruidenTitle-inp" placeholder="Kruiden"></div>
+        <div class="fg"><label>Tekst</label><textarea id="home-kruidenText-inp" rows="3"></textarea></div>
+        <div class="fg"><label>Foto URL</label><input id="home-kruidenImg-inp" placeholder="https://..."></div>
+      </div>
+    </div>`;
+
+  // Laad bestaande data
+  try {
+    const snap = await getDoc(doc(db,'siteContent','home'));
+    if (snap.exists()) {
+      const d = snap.data();
+      const set = (id,val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
+      set('home-title-inp', d.title);
+      set('home-sub-inp', d.sub);
+      set('home-tekst-inp', d.tekst);
+      set('home-heroImg-inp', d.heroImg);
+      set('home-overlayTitle-inp', d.overlayTitle);
+      set('home-overlaySub-inp', d.overlaySub);
+      set('home-groentenTitle-inp', d.groentenTitle);
+      set('home-groentenText-inp', d.groentenText);
+      set('home-groentenImg-inp', d.groentenImg);
+      set('home-fruitTitle-inp', d.fruitTitle);
+      set('home-fruitText-inp', d.fruitText);
+      set('home-fruitImg-inp', d.fruitImg);
+      set('home-kruidenTitle-inp', d.kruidenTitle);
+      set('home-kruidenText-inp', d.kruidenText);
+      set('home-kruidenImg-inp', d.kruidenImg);
+    }
+  } catch(e) { console.warn('Laden fout:', e.message); }
+}
+
+window.saveHome = async () => {
+  const get = id => (document.getElementById(id)||{}).value||'';
+  const data = {
+    title:         get('home-title-inp'),
+    sub:           get('home-sub-inp'),
+    tekst:         get('home-tekst-inp'),
+    heroImg:       get('home-heroImg-inp'),
+    overlayTitle:  get('home-overlayTitle-inp'),
+    overlaySub:    get('home-overlaySub-inp'),
+    groentenTitle: get('home-groentenTitle-inp'),
+    groentenText:  get('home-groentenText-inp'),
+    groentenImg:   get('home-groentenImg-inp'),
+    fruitTitle:    get('home-fruitTitle-inp'),
+    fruitText:     get('home-fruitText-inp'),
+    fruitImg:      get('home-fruitImg-inp'),
+    kruidenTitle:  get('home-kruidenTitle-inp'),
+    kruidenText:   get('home-kruidenText-inp'),
+    kruidenImg:    get('home-kruidenImg-inp'),
+  };
+  try {
+    await setDoc(doc(db,'siteContent','home'), data);
+    toast('Startpagina opgeslagen ✓','ok');
+  } catch(e) { toast('Fout: '+e.message,'err'); }
+};
+
 // ── De Moestuin Intro beheer ──────────────────────────────────
 async function renderMoetuinIntroAdmin() {
   document.getElementById('main-panel').innerHTML = `
@@ -2009,6 +2103,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       <div class="nav-section">Overzicht</div>
       <div class="nav-item active" data-section="dashboard" onclick="switchSection('dashboard')">
         <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" data-section="home" onclick="switchSection('home')">
+        <span class="nav-icon">🏠</span> Startpagina
       </div>
       <div class="nav-section">Planten</div>
       <div class="nav-item" data-section="kruiden" onclick="switchSection('kruiden')">
