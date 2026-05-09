@@ -256,6 +256,44 @@ window.testFirebaseConnection = async () => {
 
 // ── Plant raster ──────────────────────────────────────────────
 
+// ── Afbeelding URL helper: waarschuw bij niet-embeddable sites ────
+function bewaarImgUrlInput(inputEl) {
+  const val = (inputEl.value || '').trim();
+  let hint = inputEl.parentElement.querySelector('.img-url-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.className = 'img-url-hint';
+    hint.style.cssText = 'font-size:.75rem;margin-top:.35rem;padding:.4rem .6rem;border-radius:6px;';
+    inputEl.parentElement.appendChild(hint);
+  }
+  if (!val) { hint.textContent=''; return; }
+  const blocked = ['pexels.com','istockphoto.com','shutterstock.com','gettyimages.com','unsplash.com'];
+  const isBlocked = blocked.some(s => val.includes(s));
+  if (isBlocked) {
+    hint.style.background = 'rgba(220,80,60,.12)';
+    hint.style.color = '#e88';
+    hint.style.border = '1px solid rgba(220,80,60,.25)';
+    hint.innerHTML = '⚠️ Deze site blokkeert inladen op andere websites. Gebruik in plaats daarvan de <strong>directe afbeeldings-URL</strong> (eindigt op .jpg of .png) of upload de foto naar <a href="https://imgbb.com" target="_blank" style="color:#f9a">ImgBB.com</a> en gebruik die link.';
+  } else if (val.match(/\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i) || val.includes('firebasestorage') || val.includes('upload.wikimedia')) {
+    hint.style.background = 'rgba(60,180,80,.1)';
+    hint.style.color = '#8d8';
+    hint.style.border = '1px solid rgba(60,180,80,.2)';
+    hint.textContent = '✅ Ziet er goed uit!';
+  } else {
+    hint.style.background = 'rgba(200,160,40,.1)';
+    hint.style.color = '#cc9';
+    hint.style.border = '1px solid rgba(200,160,40,.2)';
+    hint.textContent = '⚠️ Zorg dat de URL eindigt op .jpg, .png of .webp voor het beste resultaat.';
+  }
+}
+// Activeer op alle URL-inputs bij laden
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('input[type=text][placeholder*="https"]').forEach(el => {
+    el.addEventListener('input', () => bewaarImgUrlInput(el));
+    el.addEventListener('paste', () => setTimeout(() => bewaarImgUrlInput(el), 50));
+  });
+});
+
 // ── Publiceer: zet alle drafts live ──────────────────────────────
 window.publishAll = async () => {
   const types = ['kruiden','groenten','fruit'];
