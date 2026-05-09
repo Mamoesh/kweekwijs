@@ -267,14 +267,20 @@ function bewaarImgUrlInput(inputEl) {
     inputEl.parentElement.appendChild(hint);
   }
   if (!val) { hint.textContent=''; return; }
-  const blocked = ['pexels.com','istockphoto.com','shutterstock.com','gettyimages.com','unsplash.com'];
+  const blocked = ['pexels.com','istockphoto.com','shutterstock.com','gettyimages.com'];
   const isBlocked = blocked.some(s => val.includes(s));
-  if (isBlocked) {
+  const isUnsplashPage = val.includes('unsplash.com') && !val.includes('images.unsplash.com');
+  if (isUnsplashPage) {
+    hint.style.background = 'rgba(200,160,40,.12)';
+    hint.style.color = '#cc9';
+    hint.style.border = '1px solid rgba(200,160,40,.25)';
+    hint.innerHTML = '⚠️ Gebruik de <strong>directe Unsplash foto-URL</strong> die begint met <code>https://images.unsplash.com/photo-...</code> — niet de pagina-URL van unsplash.com.';
+  } else if (isBlocked) {
     hint.style.background = 'rgba(220,80,60,.12)';
     hint.style.color = '#e88';
     hint.style.border = '1px solid rgba(220,80,60,.25)';
-    hint.innerHTML = '⚠️ Deze site blokkeert inladen op andere websites. Gebruik in plaats daarvan de <strong>directe afbeeldings-URL</strong> (eindigt op .jpg of .png) of upload de foto naar <a href="https://imgbb.com" target="_blank" style="color:#f9a">ImgBB.com</a> en gebruik die link.';
-  } else if (val.match(/\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i) || val.includes('firebasestorage') || val.includes('upload.wikimedia')) {
+    hint.innerHTML = '⚠️ Deze site blokkeert inladen op andere websites. Upload de foto naar <a href="https://imgbb.com" target="_blank" style="color:#f9a">ImgBB.com</a> en gebruik die link.';
+  } else if (val.match(/\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i) || val.includes('firebasestorage') || val.includes('upload.wikimedia') || val.includes('images.unsplash.com')) {
     hint.style.background = 'rgba(60,180,80,.1)';
     hint.style.color = '#8d8';
     hint.style.border = '1px solid rgba(60,180,80,.2)';
