@@ -3159,17 +3159,20 @@ async function renderHome() {
       const d = snap.data();
       const setTxt  = (id,val) => { const el=document.getElementById(id); if(el&&val) el.textContent=val; };
       const setHTML = (id,val) => { const el=document.getElementById(id); if(el&&val) el.innerHTML=val; };
-      // Slide-in animatie voor paginatitel
+      // Letter-voor-letter slide-in voor paginatitel (geen cursor)
       const titleEl = document.getElementById('home-title');
       if (titleEl && d.title) {
-        titleEl.textContent = d.title;
-        titleEl.style.animation = 'none';
-        titleEl.style.opacity = '0';
-        titleEl.style.transform = 'translateX(-32px)';
-        requestAnimationFrame(() => {
-          titleEl.style.transition = 'opacity .6s ease, transform .6s cubic-bezier(.22,.68,0,1.2)';
-          titleEl.style.opacity = '1';
-          titleEl.style.transform = 'translateX(0)';
+        titleEl.innerHTML = '';
+        const letters = d.title.split('');
+        letters.forEach((ch, i) => {
+          const span = document.createElement('span');
+          span.textContent = ch === ' ' ? ' ' : ch;
+          span.style.cssText = 'display:inline-block;opacity:0;transform:translateX(-10px);transition:opacity .35s ease, transform .35s cubic-bezier(.22,.68,0,1.1)';
+          titleEl.appendChild(span);
+          setTimeout(() => {
+            span.style.opacity = '1';
+            span.style.transform = 'translateX(0)';
+          }, 80 * i + 200);
         });
       }
       setTxt('home-sub',   d.sub);
