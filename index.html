@@ -2133,7 +2133,19 @@ const photoCache = {};
 
 async function fetchImageAsBlob(imgUrl) {
   if (photoCache[imgUrl]) return photoCache[imgUrl];
-  // Probeer eerst direct (werkt voor Firebase Storage en eigen URLs)
+
+  // Sites die directe <img src> wél toelaten — geen blob/proxy nodig
+  const directOk = [
+    'images.unsplash.com',
+    'firebasestorage.googleapis.com',
+    'lh3.googleusercontent.com',
+    'github.io',
+  ];
+  if (directOk.some(h => imgUrl.includes(h))) {
+    photoCache[imgUrl] = imgUrl;
+    return imgUrl;
+  }
+
   const tryFetch = async (url) => {
     const res = await fetch(url);
     if (!res.ok) throw new Error(res.status);
@@ -2141,25 +2153,24 @@ async function fetchImageAsBlob(imgUrl) {
     if (!blob.type.startsWith('image/')) throw new Error('not an image');
     return URL.createObjectURL(blob);
   };
-  // Controleer of het een externe URL is (niet eigen domein, niet Firebase)
-  const isExternal = imgUrl.startsWith('http') &&
-    !imgUrl.includes('firebasestorage') &&
-    !imgUrl.includes('github.io');
-  if (isExternal) {
-    // Gebruik corsproxy.io als doorgeefluik voor externe afbeeldingen
-    const proxy = 'https://corsproxy.io/?' + encodeURIComponent(imgUrl);
-    try {
-      const blobUrl = await tryFetch(proxy);
-      photoCache[imgUrl] = blobUrl;
-      return blobUrl;
-    } catch {
-      // Als proxy ook faalt, gooi error zodat fallback (direct src) wordt gebruikt
-      throw new Error('cors-proxy-failed');
-    }
+
+  // Wikimedia en eigen Firebase werken direct via fetch
+  const directFetch = ['upload.wikimedia.org','commons.wikimedia.org'];
+  if (!imgUrl.startsWith('http') || directFetch.some(h => imgUrl.includes(h))) {
+    const blobUrl = await tryFetch(imgUrl);
+    photoCache[imgUrl] = blobUrl;
+    return blobUrl;
   }
-  const blobUrl = await tryFetch(imgUrl);
-  photoCache[imgUrl] = blobUrl;
-  return blobUrl;
+
+  // Alle andere externe URLs: probeer corsproxy
+  const proxy = 'https://corsproxy.io/?' + encodeURIComponent(imgUrl);
+  try {
+    const blobUrl = await tryFetch(proxy);
+    photoCache[imgUrl] = blobUrl;
+    return blobUrl;
+  } catch {
+    throw new Error('cors-proxy-failed');
+  }
 }
 
 function updateHerbImg(herbId, blobUrl) {
