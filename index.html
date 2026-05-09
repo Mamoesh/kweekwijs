@@ -3073,11 +3073,29 @@ async function renderReceptenIntro() {
       const d = snap.data();
       const setTxt = (id,val) => { const el=document.getElementById(id); if(el&&val) el.textContent=val; };
       const setHTML = (id,val) => { const el=document.getElementById(id); if(el&&val) el.innerHTML=val; };
-      const setImg = (id,emojiId,val) => { if(!val) return; const i=document.getElementById(id); const e=document.getElementById(emojiId); if(i){i.src=val;i.style.display='block';} if(e) e.style.display='none'; };
+      const setImg = (id,emojiId,val) => {
+        if(!val) return;
+        const i=document.getElementById(id); const e=document.getElementById(emojiId);
+        if(!i) return;
+        // Laad via blob om hotlink-blokkering (Pexels e.a.) te omzeilen
+        fetchImageAsBlob(val).then(blobUrl => {
+          i.src=blobUrl; i.style.display='block';
+          if(e) e.style.display='none';
+        }).catch(() => {
+          // Fallback: probeer direct
+          i.src=val; i.style.display='block';
+          if(e) e.style.display='none';
+        });
+      };
       if (d.title) setTxt('ri-title', d.title);
       if (d.sub) setTxt('ri-sub', d.sub);
       if (d.tekst) setHTML('ri-tekst', d.tekst);
-      if (d.heroImg) { const img=document.getElementById('ri-hero-img'); if(img){img.src=d.heroImg;img.style.display='block';} }
+      if (d.heroImg) {
+        const img=document.getElementById('ri-hero-img');
+        if(img) {
+          fetchImageAsBlob(d.heroImg).then(b=>{img.src=b;img.style.display='block';}).catch(()=>{img.src=d.heroImg;img.style.display='block';});
+        }
+      }
       setImg('ri-gerecht-img','ri-gerecht-emoji', d.gerichtImg);
       if (d.gerichtTitle) setTxt('ri-gerecht-title', d.gerichtTitle);
       if (d.gerichtText) setTxt('ri-gerecht-text', d.gerichtText);
@@ -3172,14 +3190,25 @@ async function renderMoetuinIntro() {
       setTxt('moestuin-intro-title', d.title);
       setTxt('moestuin-intro-sub', d.sub);
       setHTML('moestuin-intro-tekst', d.tekst);
-      if (d.heroImg) { const img=document.getElementById('moestuin-intro-hero-img'); if(img){img.src=d.heroImg;img.style.display='block';} }
-      if (d.groentenImg) { const i=document.getElementById('mic-groenten-img'); if(i){i.src=d.groentenImg;i.style.display='block';document.getElementById('mic-groenten-emoji').style.display='none';} }
+      if (d.heroImg) {
+        const img=document.getElementById('moestuin-intro-hero-img');
+        if(img) {
+          fetchImageAsBlob(d.heroImg).then(b=>{img.src=b;img.style.display='block';}).catch(()=>{img.src=d.heroImg;img.style.display='block';});
+        }
+      }
+      const laadMic = (imgKey, imgId, emojiId) => {
+        if (!d[imgKey]) return;
+        const i=document.getElementById(imgId); const e=document.getElementById(emojiId);
+        if (!i) return;
+        fetchImageAsBlob(d[imgKey]).then(b=>{i.src=b;i.style.display='block';if(e)e.style.display='none';}).catch(()=>{i.src=d[imgKey];i.style.display='block';if(e)e.style.display='none';});
+      };
+      laadMic('groentenImg','mic-groenten-img','mic-groenten-emoji');
       setTxt('mic-groenten-title', d.groentenTitle);
       setTxt('mic-groenten-text', d.groentenText);
-      if (d.fruitImg) { const i=document.getElementById('mic-fruit-img'); if(i){i.src=d.fruitImg;i.style.display='block';document.getElementById('mic-fruit-emoji').style.display='none';} }
+      laadMic('fruitImg','mic-fruit-img','mic-fruit-emoji');
       setTxt('mic-fruit-title', d.fruitTitle);
       setTxt('mic-fruit-text', d.fruitText);
-      if (d.kruidenImg) { const i=document.getElementById('mic-kruiden-img'); if(i){i.src=d.kruidenImg;i.style.display='block';document.getElementById('mic-kruiden-emoji').style.display='none';} }
+      laadMic('kruidenImg','mic-kruiden-img','mic-kruiden-emoji');
       setTxt('mic-kruiden-title', d.kruidenTitle);
       setTxt('mic-kruiden-text', d.kruidenText);
     }
