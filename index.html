@@ -2133,11 +2133,31 @@ const photoCache = {};
 
 async function fetchImageAsBlob(imgUrl) {
   if (photoCache[imgUrl]) return photoCache[imgUrl];
-  const res = await fetch(imgUrl);
-  if (!res.ok) throw new Error(res.status);
-  const blob = await res.blob();
-  if (!blob.type.startsWith('image/')) throw new Error('not an image');
-  const blobUrl = URL.createObjectURL(blob);
+  // Probeer eerst direct (werkt voor Firebase Storage en eigen URLs)
+  const tryFetch = async (url) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(res.status);
+    const blob = await res.blob();
+    if (!blob.type.startsWith('image/')) throw new Error('not an image');
+    return URL.createObjectURL(blob);
+  };
+  // Controleer of het een externe URL is (niet eigen domein, niet Firebase)
+  const isExternal = imgUrl.startsWith('http') &&
+    !imgUrl.includes('firebasestorage') &&
+    !imgUrl.includes('github.io');
+  if (isExternal) {
+    // Gebruik corsproxy.io als doorgeefluik voor externe afbeeldingen
+    const proxy = 'https://corsproxy.io/?' + encodeURIComponent(imgUrl);
+    try {
+      const blobUrl = await tryFetch(proxy);
+      photoCache[imgUrl] = blobUrl;
+      return blobUrl;
+    } catch {
+      // Als proxy ook faalt, gooi error zodat fallback (direct src) wordt gebruikt
+      throw new Error('cors-proxy-failed');
+    }
+  }
+  const blobUrl = await tryFetch(imgUrl);
   photoCache[imgUrl] = blobUrl;
   return blobUrl;
 }
