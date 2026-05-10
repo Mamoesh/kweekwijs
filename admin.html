@@ -1393,6 +1393,12 @@ async function renderHomeAdmin() {
         <div class="fg"><label>Tekst</label><textarea id="home-kruidenText-inp" rows="3"></textarea></div>
         <div class="fg"><label>Foto URL</label><input id="home-kruidenImg-inp" placeholder="https://..."></div>
       </div>
+      <div class="upload-dash-box">
+        <div class="dash-section-title">🍳 Recepten kaart</div>
+        <div class="fg"><label>Titel</label><input id="home-receptenTitle-inp" placeholder="Recepten"></div>
+        <div class="fg"><label>Tekst</label><textarea id="home-receptenText-inp" rows="3"></textarea></div>
+        <div class="fg"><label>Foto URL</label><input id="home-receptenImg-inp" placeholder="https://..."></div>
+      </div>
     </div>`;
 
   // Laad bestaande data
@@ -1416,6 +1422,9 @@ async function renderHomeAdmin() {
       set('home-kruidenTitle-inp', d.kruidenTitle);
       set('home-kruidenText-inp', d.kruidenText);
       set('home-kruidenImg-inp', d.kruidenImg);
+      set('home-receptenTitle-inp', d.receptenTitle);
+      set('home-receptenText-inp', d.receptenText);
+      set('home-receptenImg-inp', d.receptenImg);
     }
   } catch(e) { console.warn('Laden fout:', e.message); }
 }
@@ -1438,6 +1447,9 @@ window.saveHome = async () => {
     kruidenTitle:  get('home-kruidenTitle-inp'),
     kruidenText:   get('home-kruidenText-inp'),
     kruidenImg:    get('home-kruidenImg-inp'),
+    receptenTitle: get('home-receptenTitle-inp'),
+    receptenText:  get('home-receptenText-inp'),
+    receptenImg:   get('home-receptenImg-inp'),
   };
   try {
     await setDoc(doc(db,'siteContent','home'), data);
