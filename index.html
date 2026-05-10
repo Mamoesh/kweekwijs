@@ -2711,6 +2711,9 @@ function initAuth() {
           renderHerbs();
           if (typeof laadFirebaseData === 'function') laadFirebaseData();
           loadMoetuinFromFirebase();
+          // Zorg dat de startpagina actief is en geladen wordt
+          go('home');
+          renderHome();
         } else {
           currentUser = null;
           localStorage.removeItem('hr_current_user');
