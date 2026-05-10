@@ -309,7 +309,7 @@ select option{background:var(--surface2);}
 .recepten-intro-grid .mic-text{font-size:.82rem;}
 .moestuin-intro-grid{display:flex;flex-direction:column;gap:1.25rem;margin-top:.5rem;}
 .moestuin-intro-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .2s;display:flex;flex-direction:row;align-items:stretch;}
-.moestuin-intro-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow);}
+.moestuin-intro-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow);}.mic-reverse{flex-direction:row-reverse;}.mic-reverse .mic-body{align-items:flex-end;text-align:right;}@media(max-width:600px){.mic-reverse{flex-direction:column;}.mic-reverse .mic-body{align-items:flex-start;text-align:left;}}
 .mic-img-wrap{width:220px;min-width:220px;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;flex-shrink:0;}
 .mic-img-wrap img{width:100%;height:100%;object-fit:cover;}
 .mic-emoji{font-size:3.5rem;}
@@ -539,6 +539,7 @@ select option{background:var(--surface2);}
     <div id="home-tekst" style="color:var(--text2);line-height:1.8;font-size:.93rem;margin-bottom:1.5rem"></div>
   </div>
   <div class="moestuin-intro-grid" style="padding:0 1.25rem 1.5rem">
+    <!-- Groenten: foto links -->
     <div class="moestuin-intro-card" onclick="go('groenten')">
       <div class="mic-img-wrap">
         <img id="home-groenten-img" src="" alt="Groenten" style="display:none">
@@ -549,16 +550,18 @@ select option{background:var(--surface2);}
         <div class="mic-text" id="home-groenten-text">Van tomaten tot courgettes — ontdek welke groenten jij kan kweken.</div>
       </div>
     </div>
-    <div class="moestuin-intro-card" onclick="go('fruit')">
-      <div class="mic-img-wrap">
-        <img id="home-fruit-img" src="" alt="Fruit" style="display:none">
-        <div class="mic-emoji" id="home-fruit-emoji">🍎</div>
-      </div>
+    <!-- Fruit: foto rechts -->
+    <div class="moestuin-intro-card mic-reverse" onclick="go('fruit')">
       <div class="mic-body">
         <div class="mic-title" id="home-fruit-title">Fruit</div>
         <div class="mic-text" id="home-fruit-text">Verse aardbeien, frambozen of appels uit eigen tuin — het kan!</div>
       </div>
+      <div class="mic-img-wrap">
+        <img id="home-fruit-img" src="" alt="Fruit" style="display:none">
+        <div class="mic-emoji" id="home-fruit-emoji">🍎</div>
+      </div>
     </div>
+    <!-- Kruiden: foto links -->
     <div class="moestuin-intro-card" onclick="go('kruiden')">
       <div class="mic-img-wrap">
         <img id="home-kruiden-img" src="" alt="Kruiden" style="display:none">
@@ -567,6 +570,17 @@ select option{background:var(--surface2);}
       <div class="mic-body">
         <div class="mic-title" id="home-kruiden-title">Kruiden</div>
         <div class="mic-text" id="home-kruiden-text">Basilicum, munt, rozemarijn — kweek je eigen kruidenparadijs.</div>
+      </div>
+    </div>
+    <!-- Recepten: foto rechts -->
+    <div class="moestuin-intro-card mic-reverse" onclick="go('recepten')">
+      <div class="mic-body">
+        <div class="mic-title" id="home-recepten-title">Recepten</div>
+        <div class="mic-text" id="home-recepten-text">Van pesto tot kruidenboter — verwerk je oogst in heerlijke gerechten.</div>
+      </div>
+      <div class="mic-img-wrap">
+        <img id="home-recepten-img" src="" alt="Recepten" style="display:none">
+        <div class="mic-emoji" id="home-recepten-emoji">🍳</div>
       </div>
     </div>
   </div>
@@ -3217,6 +3231,10 @@ async function renderHome() {
       laadHomeImg(d.kruidenImg, 'home-kruiden-img', 'home-kruiden-emoji');
       setTxt('home-kruiden-title', d.kruidenTitle);
       setTxt('home-kruiden-text',  d.kruidenText);
+      // Recepten kaart
+      laadHomeImg(d.receptenImg, 'home-recepten-img', 'home-recepten-emoji');
+      setTxt('home-recepten-title', d.receptenTitle);
+      setTxt('home-recepten-text',  d.receptenText);
     }
   } catch(e) { console.warn('Home render fout:', e.message); }
 }
