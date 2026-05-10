@@ -644,7 +644,7 @@ select option{background:var(--surface2);}
 <!-- KRUIDEN -->
 <div class="screen" id="screen-kruiden">
   <div class="section-title">Kruidentuin <span class="count-badge" id="herb-count"></span></div>
-  <div class="section-sub">Klik op een kruid voor volledige info — kweek, zaaitijden, oogst, bewaring en meer.</div>
+  <div class="section-sub">Kruiden geven niet alleen extra smaak aan gerechten, maar bevatten ook tal van gezonde eigenschappen. Veel kruiden zijn rijk aan antioxidanten, etherische oliën en voedingsstoffen die al eeuwenlang gewaardeerd worden in voeding en verzorging.</div>
   <div class="search-bar"><input type="text" id="herb-search" placeholder="🔍  Zoek op naam of latijnse naam..." oninput="renderHerbs()"></div>
   <div class="filter-bar">
     <button class="filter-btn active" onclick="setFilter('all',this)">Alles</button>
@@ -665,7 +665,7 @@ select option{background:var(--surface2);}
 <!-- GROENTEN -->
 <div class="screen" id="screen-groenten">
   <div class="section-title">Groentetuin <span class="count-badge" id="groenten-count"></span></div>
-  <div class="section-sub">Klik op een groente voor volledige info — kweek, zaaitijden, oogst, bewaring en meer.</div>
+  <div class="section-sub">Groenten zitten boordevol vitamines, mineralen en vezels die bijdragen aan een gezonde en evenwichtige voeding. Elke groentesoort heeft haar eigen unieke voedingsstoffen en voordelen, waardoor variatie in de moestuin én op het bord extra belangrijk is.</div>
   <div class="search-bar"><input type="text" id="groenten-search" placeholder="🔍  Zoek op naam of latijnse naam..." oninput="renderGroenten()"></div>
   <div class="filter-bar" id="groenten-filter-bar">
     <button class="filter-btn active" onclick="setGroentenFilter('all',this)">Alles</button>
@@ -682,7 +682,7 @@ select option{background:var(--surface2);}
 <!-- FRUIT -->
 <div class="screen" id="screen-fruit">
   <div class="section-title">Fruittuin <span class="count-badge" id="fruit-count"></span></div>
-  <div class="section-sub">Klik op een fruitsoort voor volledige info — kweek, zaaitijden, oogst, bewaring en meer.</div>
+  <div class="section-sub">Fruit is een natuurlijke bron van vitamines, antioxidanten en fruitsuikers die het lichaam energie en ondersteuning geven. Vers fruit uit eigen tuin combineert heerlijke smaken met waardevolle voedingsstoffen voor elke dag.</div>
   <div class="search-bar"><input type="text" id="fruit-search" placeholder="🔍  Zoek op naam of latijnse naam..." oninput="renderFruit()"></div>
   <div class="filter-bar" id="fruit-filter-bar">
     <button class="filter-btn active" onclick="setFruitFilter('all',this)">Alles</button>
@@ -4053,9 +4053,9 @@ const TRANSLATIONS = {
     hero_title:'Kweek je eigen<br><em>moestuin</em>',
     hero_sub:'Persoonlijk kwekerijadvies op basis van jouw klimaat, ruimte en smaak — van zaad tot bloei.',
     hero_start:'Aan de slag →', hero_demo:'Demo bekijken',
-    kruiden_title:'Kruidentuin', kruiden_sub:'Klik op een kruid voor volledige info — kweek, zaaitijden, oogst, bewaring en meer.',
-    groenten_title:'Groentetuin', groenten_sub:'Klik op een groente voor volledige info.',
-    fruit_title:'Fruittuin', fruit_sub:'Klik op een fruitsoort voor volledige info.',
+    kruiden_title:'Kruidentuin', kruiden_sub:'Kruiden geven niet alleen extra smaak aan gerechten, maar bevatten ook tal van gezonde eigenschappen. Veel kruiden zijn rijk aan antioxidanten, etherische oliën en voedingsstoffen die al eeuwenlang gewaardeerd worden in voeding en verzorging.',
+    groenten_title:'Groentetuin', groenten_sub:'Groenten zitten boordevol vitamines, mineralen en vezels die bijdragen aan een gezonde en evenwichtige voeding. Elke groentesoort heeft haar eigen unieke voedingsstoffen en voordelen, waardoor variatie in de moestuin én op het bord extra belangrijk is.',
+    fruit_title:'Fruittuin', fruit_sub:'Fruit is een natuurlijke bron van vitamines, antioxidanten en fruitsuikers die het lichaam energie en ondersteuning geven. Vers fruit uit eigen tuin combineert heerlijke smaken met waardevolle voedingsstoffen voor elke dag.',
     tab_info:'🌿 Info', tab_kalender:'📅 Kalender & Oogst', tab_bewaring:'📦 Bewaring', tab_naast:'🌿 Kweektip',
     filter_all:'Alles', search_placeholder:'🔍  Zoek op naam of latijnse naam...',
     label_waterFreq:'Bewatering', label_sun:'Zonlicht', label_temp:'Temperatuur',
