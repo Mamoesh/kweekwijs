@@ -765,20 +765,22 @@ select option{background:var(--surface2);}
     </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('dip')">
       <div class="mic-img-wrap">
+        <img id="ri-dip-img" src="" alt="Dips & Spreads" style="display:none">
         <div class="mic-emoji" id="ri-dip-emoji">🥣</div>
       </div>
       <div class="mic-body">
-        <div class="mic-title">Dips & Spreads</div>
-        <div class="mic-text">Smaakvolle dips en smeerbare sauzen met verse kruiden en groenten.</div>
+        <div class="mic-title" id="ri-dip-title">Dips & Spreads</div>
+        <div class="mic-text" id="ri-dip-text">Smaakvolle dips en smeerbare sauzen met verse kruiden en groenten.</div>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('broodbeleg')">
       <div class="mic-img-wrap">
+        <img id="ri-broodbeleg-img" src="" alt="Broodbeleg" style="display:none">
         <div class="mic-emoji" id="ri-broodbeleg-emoji">🍞</div>
       </div>
       <div class="mic-body">
-        <div class="mic-title">Broodbeleg</div>
-        <div class="mic-text">Zelfgemaakt broodbeleg met kruiden, groenten en fruit uit de tuin.</div>
+        <div class="mic-title" id="ri-broodbeleg-title">Broodbeleg</div>
+        <div class="mic-text" id="ri-broodbeleg-text">Zelfgemaakt broodbeleg met kruiden, groenten en fruit uit de tuin.</div>
       </div>
     </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('verzorging')">
@@ -2154,6 +2156,12 @@ async function fetchImageAsBlob(imgUrl) {
     'firebasestorage.googleapis.com',
     'lh3.googleusercontent.com',
     'github.io',
+    'picsum.photos',
+    'imgbb.com',
+    'i.ibb.co',
+    'imgur.com',
+    'wikimedia.org',
+    'wikipedia.org',
   ];
   if (directOk.some(h => imgUrl.includes(h))) {
     photoCache[imgUrl] = imgUrl;
@@ -3141,21 +3149,13 @@ async function renderReceptenIntro() {
           fetchImageAsBlob(d.heroImg).then(b=>{img.src=b;img.style.display='block';}).catch(()=>{img.src=d.heroImg;img.style.display='block';});
         }
       }
-      setImg('ri-gerecht-img','ri-gerecht-emoji', d.gerichtImg);
-      if (d.gerichtTitle) setTxt('ri-gerecht-title', d.gerichtTitle);
-      if (d.gerichtText) setTxt('ri-gerecht-text', d.gerichtText);
-      setImg('ri-drank-img','ri-drank-emoji', d.drankImg);
-      if (d.drankTitle) setTxt('ri-drank-title', d.drankTitle);
-      if (d.drankText) setTxt('ri-drank-text', d.drankText);
-      setImg('ri-thee-img','ri-thee-emoji', d.theeImg);
-      if (d.theeTitle) setTxt('ri-thee-title', d.theeTitle);
-      if (d.theeText) setTxt('ri-thee-text', d.theeText);
-      setImg('ri-dessert-img','ri-dessert-emoji', d.dessertImg);
-      if (d.dessertTitle) setTxt('ri-dessert-title', d.dessertTitle);
-      if (d.dessertText) setTxt('ri-dessert-text', d.dessertText);
-      setImg('ri-verzorging-img','ri-verzorging-emoji', d.verzorgingImg);
-      if (d.verzorgingTitle) setTxt('ri-verzorging-title', d.verzorgingTitle);
-      if (d.verzorgingText) setTxt('ri-verzorging-text', d.verzorgingText);
+      // Alle categorieën laden met correcte sleutelnamen (overeenkomen met admin)
+      const riCats = ['gerecht','soep','drank','thee','dessert','dip','broodbeleg','verzorging'];
+      riCats.forEach(cat => {
+        setImg('ri-'+cat+'-img', 'ri-'+cat+'-emoji', d[cat+'Img']);
+        if (d[cat+'Title']) setTxt('ri-'+cat+'-title', d[cat+'Title']);
+        if (d[cat+'Text'])  setTxt('ri-'+cat+'-text',  d[cat+'Text']);
+      });
     }
   } catch(e) { console.warn('Recepten intro fout:', e.message); }
 }
