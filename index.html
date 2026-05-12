@@ -808,16 +808,16 @@ select option{background:var(--surface2);}
     <input type="text" id="recept-search" placeholder="🔍  Zoek op ingrediënt, gerecht of kruid..." oninput="filterReceptenBySearch()" style="max-width:100%">
   </div>
   <div class="filter-bar" id="recept-filter-bar">
-    <button class="filter-btn active" onclick="filterRecepten('all',this)">Alle recepten</button>
-    <button class="filter-btn" onclick="filterRecepten('gerecht',this)">🍽 Gerechten</button>
-    <button class="filter-btn" onclick="filterRecepten('soep',this)">🥣 Soepen</button>
-    <button class="filter-btn" onclick="filterRecepten('drank',this)">🥤 Dranken</button>
-    <button class="filter-btn" onclick="filterRecepten('thee',this)">🍵 Thee</button>
-    <button class="filter-btn" onclick="filterRecepten('dessert',this)">🧁 Gebak & Zoetwaren</button>
-    <button class="filter-btn" onclick="filterRecepten('dip',this)">🥣 Dips & Spreads</button>
-    <button class="filter-btn" onclick="filterRecepten('broodbeleg',this)">🍞 Broodbeleg</button>
-    <button class="filter-btn" onclick="filterRecepten('broodgebak',this)">🥖 Brood & Hartig gebak</button>
-    <button class="filter-btn" onclick="filterRecepten('verzorging',this)">✨ Verzorging</button>
+    <button class="filter-btn active" data-cat="all" onclick="filterRecepten('all',this)">Alle recepten</button>
+    <button class="filter-btn" data-cat="gerecht" onclick="filterRecepten('gerecht',this)">🍽 Gerechten</button>
+    <button class="filter-btn" data-cat="soep" onclick="filterRecepten('soep',this)">🥣 Soepen</button>
+    <button class="filter-btn" data-cat="drank" onclick="filterRecepten('drank',this)">🥤 Dranken</button>
+    <button class="filter-btn" data-cat="thee" onclick="filterRecepten('thee',this)">🍵 Thee</button>
+    <button class="filter-btn" data-cat="dessert" onclick="filterRecepten('dessert',this)">🧁 Gebak & Zoetwaren</button>
+    <button class="filter-btn" data-cat="dip" onclick="filterRecepten('dip',this)">🥣 Dips & Spreads</button>
+    <button class="filter-btn" data-cat="broodbeleg" onclick="filterRecepten('broodbeleg',this)">🍞 Broodbeleg</button>
+    <button class="filter-btn" data-cat="broodgebak" onclick="filterRecepten('broodgebak',this)">🥖 Brood & Hartig gebak</button>
+    <button class="filter-btn" data-cat="verzorging" onclick="filterRecepten('verzorging',this)">✨ Verzorging</button>
   </div>
   <div id="recepten-grid"></div>
 </div>
@@ -1650,13 +1650,12 @@ function filterReceptenDirect(cat) {
     document.querySelectorAll('#recept-filter-bar .filter-btn').forEach(b => {
       b.classList.remove('active');
     });
-    if (cat === 'all') {
-      document.querySelector('#recept-filter-bar .filter-btn')?.classList.add('active');
-    } else {
-      document.querySelectorAll('#recept-filter-bar .filter-btn').forEach(b => {
-        if (b.textContent.toLowerCase().includes(cat)) b.classList.add('active');
-      });
-    }
+    // Gebruik data-cat attribuut voor exacte match
+    document.querySelectorAll('#recept-filter-bar .filter-btn').forEach(b => {
+      if ((b.dataset.cat || '') === cat || (cat === 'all' && b.dataset.cat === 'all')) {
+        b.classList.add('active');
+      }
+    });
     renderRecepten();
   }, 50);
 }
@@ -2400,8 +2399,12 @@ function setGeoResult(countryCode, city, countryName, lat, lon) {
 // Classify each recipe into a category
 function classifyRecept(name, herbId) {
   // Check RECEPTEN_DB first — als cat daar al ingesteld is, gebruik die
-  if (typeof RECEPTEN_DB !== 'undefined' && RECEPTEN_DB[name] && RECEPTEN_DB[name].cat) {
-    return RECEPTEN_DB[name].cat;
+  if (typeof RECEPTEN_DB !== 'undefined') {
+    // Exacte match
+    if (RECEPTEN_DB[name] && RECEPTEN_DB[name].cat) return RECEPTEN_DB[name].cat;
+    // Case-insensitieve match
+    const key = Object.keys(RECEPTEN_DB).find(k => k.toLowerCase() === name.toLowerCase());
+    if (key && RECEPTEN_DB[key].cat) return RECEPTEN_DB[key].cat;
   }
   const n = name.toLowerCase();
   if (n.match(/gel|balsem|zalf|serum|masker|scrub|peeling|verzorging|huidcrème|tonic|oogcrème|lippenbalsem|shampoo|conditioner|deodorant|spray|oil blend|aromatherapy|badolie|bodybutter|bodylotion/)) return 'verzorging';
