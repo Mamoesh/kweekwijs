@@ -229,6 +229,7 @@ select option{background:var(--surface2);}
 .recept-tag.dessert{background:rgba(200,126,180,.1);color:#d4a0c8;border:1px solid rgba(200,126,180,.2);}
 .recept-tag.dip{background:rgba(230,180,80,.1);color:#e8b84b;border:1px solid rgba(230,180,80,.2);}
 .recept-tag.broodbeleg{background:rgba(180,140,100,.1);color:#c8a878;border:1px solid rgba(180,140,100,.2);}
+.recept-tag.broodgebak{background:rgba(210,160,80,.1);color:#d4a84b;border:1px solid rgba(210,160,80,.2);}
 .recept-tag.verzorging{background:rgba(180,130,220,.1);color:#c8a0e8;border:1px solid rgba(180,130,220,.2);}
 .tag.purple{background:rgba(180,130,220,.12);color:#c8a0e8;border:1px solid rgba(180,130,220,.25);}
 
@@ -423,6 +424,7 @@ select option{background:var(--surface2);}
         <button onclick="go('recepten');filterReceptenDirect('dessert');closeAllDropdowns()">🧁 Gebak & Zoetwaren</button>
         <button onclick="go('recepten');filterReceptenDirect('dip');closeAllDropdowns()">🥣 Dips & Spreads</button>
         <button onclick="go('recepten');filterReceptenDirect('broodbeleg');closeAllDropdowns()">🍞 Broodbeleg</button>
+        <button onclick="go('recepten');filterReceptenDirect('broodgebak');closeAllDropdowns()">🥖 Brood & Hartig gebak</button>
         <button onclick="go('recepten');filterReceptenDirect('verzorging');closeAllDropdowns()">✨ Verzorging</button>
       </div>
     </div>
@@ -775,6 +777,16 @@ select option{background:var(--surface2);}
         <div class="mic-text" id="ri-broodbeleg-text">Zelfgemaakt broodbeleg met kruiden, groenten en fruit uit de tuin.</div>
       </div>
     </div>
+    <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('broodgebak')">
+      <div class="mic-img-wrap">
+        <img id="ri-broodgebak-img" src="" alt="Brood & Hartig gebak" style="display:none">
+        <div class="mic-emoji" id="ri-broodgebak-emoji">🥖</div>
+      </div>
+      <div class="mic-body">
+        <div class="mic-title" id="ri-broodgebak-title">Brood & Hartig gebak</div>
+        <div class="mic-text" id="ri-broodgebak-text">Zelfgebakken brood en hartig gebak met kruiden en groenten uit de tuin.</div>
+      </div>
+    </div>
     <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('verzorging')">
       <div class="mic-img-wrap">
         <img id="ri-verzorging-img" src="" alt="Verzorging" style="display:none">
@@ -804,6 +816,7 @@ select option{background:var(--surface2);}
     <button class="filter-btn" onclick="filterRecepten('dessert',this)">🧁 Gebak & Zoetwaren</button>
     <button class="filter-btn" onclick="filterRecepten('dip',this)">🥣 Dips & Spreads</button>
     <button class="filter-btn" onclick="filterRecepten('broodbeleg',this)">🍞 Broodbeleg</button>
+    <button class="filter-btn" onclick="filterRecepten('broodgebak',this)">🥖 Brood & Hartig gebak</button>
     <button class="filter-btn" onclick="filterRecepten('verzorging',this)">✨ Verzorging</button>
   </div>
   <div id="recepten-grid"></div>
@@ -2503,10 +2516,11 @@ function filterReceptenBySearch() {
     dessert:{label:'🧁 Gebak & Zoetwaren',icon:'🧁',items:[]},
     dip:{label:'🥣 Dips & Spreads',icon:'🥣',items:[]},
     broodbeleg:{label:'🍞 Broodbeleg',icon:'🍞',items:[]},
+    broodgebak:{label:'🥖 Brood & Hartig gebak',icon:'🥖',items:[]},
     verzorging:{label:'✨ Verzorgingsproducten',icon:'✨',items:[]},
   };
   filtered.forEach(r => { if(groups[r.cat]) groups[r.cat].items.push(r); });
-  const catOrder = ['gerecht','soep','drank','thee','dessert','dip','broodbeleg','verzorging'];
+  const catOrder = ['gerecht','soep','drank','thee','dessert','dip','broodbeleg','broodgebak','verzorging'];
   const html = catOrder.map(cat => {
     const g = groups[cat];
     if(!g.items.length) return '';
@@ -3147,7 +3161,7 @@ async function renderReceptenIntro() {
         }
       }
       // Alle categorieën laden met correcte sleutelnamen (overeenkomen met admin)
-      const riCats = ['gerecht','soep','drank','thee','dessert','dip','broodbeleg','verzorging'];
+      const riCats = ['gerecht','soep','drank','thee','dessert','dip','broodbeleg','broodgebak','verzorging'];
       riCats.forEach(cat => {
         setImg('ri-'+cat+'-img', 'ri-'+cat+'-emoji', d[cat+'Img']);
         if (d[cat+'Title']) setTxt('ri-'+cat+'-title', d[cat+'Title']);
