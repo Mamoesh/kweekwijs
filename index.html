@@ -2011,6 +2011,7 @@ function openModal(id){
       const thee       = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='thee'; });
       const dips       = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='dip'; });
       const broodbeleg = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='broodbeleg'; });
+      const broodgebak  = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='broodgebak'; });
       const verzorging = allRec.filter(r => { const cat=classifyRecept(r,h.id); return cat==='verzorging'; });
       const theeCombos = h.thee_combos || [];
       function makeTag(r, emoji, colorClass) {
@@ -2025,6 +2026,7 @@ function openModal(id){
       if (desserts.length)   html += '<div class="section-h">🧁 Gebak & Zoetwaren</div><div class="herb-tags">'+desserts.map(r=>makeTag(r,'🍰','gold')).join('')+'</div>';
       if (dips.length)       html += '<div class="section-h">🥣 Dips & Spreads</div><div class="herb-tags">'+dips.map(r=>makeTag(r,'🥣','gold')).join('')+'</div>';
       if (broodbeleg.length) html += '<div class="section-h">🍞 Broodbeleg</div><div class="herb-tags">'+broodbeleg.map(r=>makeTag(r,'🍞','gold')).join('')+'</div>';
+      if (broodgebak.length)  html += '<div class="section-h">🥖 Brood & Hartig gebak</div><div class="herb-tags">'+broodgebak.map(r=>makeTag(r,'🥖','gold')).join('')+'</div>';
       if (thee.length || theeCombos.length) {
         html += '<div class="section-h">🍵 Thee</div><div class="herb-tags">';
         html += thee.map(r=>makeTag(r,'🍵','green')).join('');
@@ -2408,6 +2410,7 @@ function classifyRecept(name, herbId) {
   if (n.match(/soep|bouillon|potage|velouté|bisque|gazpacho|vichyssoise/)) return 'soep';
   if (n.match(/dip|spread|hummus|tapenade|pesto|aioli|tzatziki|salsa|guacamole|paté|rillette/)) return 'dip';
   if (n.match(/broodbeleg|chutney|compote|confituur|kruidenboter|kruidenkaas|beleg/)) return 'broodbeleg';
+  if (n.match(/brood|focaccia|quiche|hartig.*gebak|gebak.*hartig|pizza|flatbread|crackers|scone/)) return 'broodgebak';
   if (n.match(/koek|cake|taart|dessert|ijs|pudding|suiker|confiture|jam|gelei|honing/)) return 'dessert';
   return 'gerecht';
 }
@@ -2469,7 +2472,7 @@ function renderRecepten() {
   });
 
   const catOrder = activeReceptFilter === 'all'
-    ? ['gerecht','soep','drank','thee','dessert','dip','broodbeleg','verzorging']
+    ? ['gerecht','soep','drank','thee','dessert','dip','broodbeleg','broodgebak','verzorging']
     : [activeReceptFilter];
 
   const html = catOrder.map(cat => {
@@ -4072,7 +4075,7 @@ const TRANSLATIONS = {
     label_waterFreq:'Bewatering', label_sun:'Zonlicht', label_temp:'Temperatuur',
     label_ph:'pH grond', label_soil:'Aarde', label_care:'Verzorging',
     sec_voordelen:'🌿 Voordelen & gebruik', sec_koken:'🍳 Koken', sec_dranken:'🥤 Dranken',
-    sec_desserts:'🧁 Gebak & Zoetwaren', sec_thee:'🍵 Thee', sec_tip:'💡 Kweektip',
+    sec_desserts:'🧁 Gebak & Zoetwaren', sec_broodgebak:'🥖 Brood & Hartig gebak', sec_thee:'🍵 Thee', sec_tip:'💡 Kweektip',
     sec_stekken:'✂️ Hoe stekken?', sec_oogsten:'🌾 Hoe oogsten?',
     profile_title:'Mijn Moestuin', profile_sub:'Upload foto\'s van jouw planten.',
     community_title:'Community', recepten_title:'Recepten & Dranken',
@@ -4098,7 +4101,7 @@ const TRANSLATIONS = {
     label_waterFreq:'Watering', label_sun:'Sunlight', label_temp:'Temperature',
     label_ph:'Soil pH', label_soil:'Soil', label_care:'Care level',
     sec_voordelen:'🌿 Benefits & uses', sec_koken:'🍳 Cooking', sec_dranken:'🥤 Drinks',
-    sec_desserts:'🧁 Baked goods & sweets', sec_thee:'🍵 Tea', sec_tip:'💡 Growing tip',
+    sec_desserts:'🧁 Baked goods & sweets', sec_broodgebak:'🥖 Bread & Savoury bakes', sec_thee:'🍵 Tea', sec_tip:'💡 Growing tip',
     sec_stekken:'✂️ How to propagate?', sec_oogsten:'🌾 How to harvest?',
     profile_title:'My Garden', profile_sub:'Upload photos of your plants.',
     community_title:'Community', recepten_title:'Recipes & Drinks',
@@ -4124,7 +4127,7 @@ const TRANSLATIONS = {
     label_waterFreq:'Arrosage', label_sun:'Ensoleillement', label_temp:'Température',
     label_ph:'pH du sol', label_soil:'Sol', label_care:'Entretien',
     sec_voordelen:'🌿 Bienfaits & usages', sec_koken:'🍳 Cuisine', sec_dranken:'🥤 Boissons',
-    sec_desserts:'🧁 Pâtisseries & sucreries', sec_thee:'🍵 Tisanes', sec_tip:'💡 Conseil de culture',
+    sec_desserts:'🧁 Pâtisseries & sucreries', sec_broodgebak:'🥖 Pain & boulangerie salée', sec_thee:'🍵 Tisanes', sec_tip:'💡 Conseil de culture',
     sec_stekken:'✂️ Comment bouturer?', sec_oogsten:'🌾 Comment récolter?',
     profile_title:'Mon Jardin', profile_sub:'Ajoutez des photos de vos plantes.',
     community_title:'Communauté', recepten_title:'Recettes & Boissons',
