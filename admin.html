@@ -1135,7 +1135,7 @@ window.saveTheme=async()=>{
 
 // ── Recepten ──────────────────────────────────────────────────
 function renderRecepten() {
-  const cats={gerecht:'🍽 Gerechten',soep:'🥣 Soepen',drank:'🥤 Dranken',thee:'🍵 Thee',dessert:'🍰 Desserts',dip:'🥣 Dips & Spreads',broodbeleg:'🍞 Broodbeleg',verzorging:'✨ Verzorging'};
+  const cats={gerecht:'🍽 Gerechten',soep:'🥣 Soepen',drank:'🥤 Dranken',thee:'🍵 Thee',dessert:'🍰 Desserts',dip:'🥣 Dips & Spreads',broodbeleg:'🍞 Broodbeleg',broodgebak:'🥖 Brood & Hartig gebak',verzorging:'✨ Verzorging'};
   const keys=Object.keys(allRecepten);
   document.getElementById('main-panel').innerHTML=`
     <div class="page-title-row">
@@ -1153,7 +1153,7 @@ function renderRecepten() {
 let receptFilter='all';
 window.filterReceptAdmin=(cat,btn)=>{receptFilter=cat;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderReceptList(cat);};
 function renderReceptList(cat){
-  const cats={gerecht:'🍽',soep:'🥣',drank:'🥤',thee:'🍵',dessert:'🍰',dip:'🥣',broodbeleg:'🍞',verzorging:'✨'};
+  const cats={gerecht:'🍽',soep:'🥣',drank:'🥤',thee:'🍵',dessert:'🍰',dip:'🥣',broodbeleg:'🍞',broodgebak:'🥖',verzorging:'✨'};
   const entries=Object.entries(allRecepten).filter(([,v])=>cat==='all'||v.cat===cat).sort(([a],[b])=>a.localeCompare(b));
   document.getElementById('recept-list').innerHTML=entries.map(([naam,r])=>`
     <div class="list-row">
@@ -1541,6 +1541,7 @@ async function renderReceptenIntroAdmin() {
     {key:'dessert',    label:'🍰 Desserts'},
     {key:'dip',       label:'🥣 Dips & Spreads'},
     {key:'broodbeleg', label:'🍞 Broodbeleg'},
+    {key:'broodgebak', label:'🥖 Brood & Hartig gebak'},
     {key:'verzorging', label:'✨ Verzorgingsproducten'},
   ];
 
@@ -1588,7 +1589,7 @@ async function renderReceptenIntroAdmin() {
 
 window.saveReceptenIntro = async () => {
   const get = id => (document.getElementById(id)||{}).value||'';
-  const cats = ['gerecht','soep','drank','thee','dessert','dip','broodbeleg','verzorging'];
+  const cats = ['gerecht','soep','drank','thee','dessert','dip','broodbeleg','broodgebak','verzorging'];
   const data = {
     title: get('ri-title'), sub: get('ri-sub'),
     heroImg: get('ri-heroImg'), tekst: get('ri-tekst'),
@@ -2290,6 +2291,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
               <option value="dessert">🍰 Dessert</option>
               <option value="dip">🥣 Dips & Spreads</option>
               <option value="broodbeleg">🍞 Broodbeleg</option>
+              <option value="broodgebak">🥖 Brood & Hartig gebak</option>
               <option value="verzorging">✨ Verzorgingsproduct</option>
             </select></div>
         <div class="fg"><label>Plant/kruid ID(s)</label><input id="re-herbid" placeholder="bijv. bieslook, peterselie, knoflook"><span class="hint">Meerdere IDs? Scheid ze met een komma.</span></div>
