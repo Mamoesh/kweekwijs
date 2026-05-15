@@ -2733,7 +2733,11 @@ function initAuth() {
           loadMoetuinFromFirebase();
           // Zorg dat de startpagina actief is en geladen wordt
           go('home');
+          // Fallback: altijd zichtbaar na 3 seconden, ook als renderHome faalt
+          setTimeout(() => { document.body.style.opacity = '1'; }, 3000);
           renderHome().then(() => {
+            document.body.style.opacity = '1';
+          }).catch(() => {
             document.body.style.opacity = '1';
           });
         } else {
