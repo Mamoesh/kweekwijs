@@ -398,7 +398,7 @@ select option{background:var(--surface2);}
 
 
 </head>
-<body style="opacity:0;transition:opacity .4s ease" onload="setTimeout(function(){document.body.style.opacity='1'},4000)">
+<body style="opacity:0;transition:opacity .4s ease" onload="setTimeout(function(){document.body.style.opacity='1'},8000)">
 <header>
   <div class="logo" onclick="go('home')" style="cursor:pointer">🌱 Kweekwijs</div>
   <nav>
@@ -2733,13 +2733,13 @@ function initAuth() {
           loadMoetuinFromFirebase();
           // Zorg dat de startpagina actief is en geladen wordt
           go('home');
-          // Fallback: altijd zichtbaar na 3 seconden, ook als renderHome faalt
-          setTimeout(() => { document.body.style.opacity = '1'; }, 3000);
+          // Wacht op renderHome + extra tijd voor foto's en Firebase data
+          const showSite = () => { document.body.style.opacity = '1'; };
+          setTimeout(showSite, 8000); // absolute fallback
           renderHome().then(() => {
-            document.body.style.opacity = '1';
-          }).catch(() => {
-            document.body.style.opacity = '1';
-          });
+            // Extra wachttijd zodat foto's en Firebase data ook geladen zijn
+            setTimeout(showSite, 1500);
+          }).catch(showSite);
         } else {
           currentUser = null;
           localStorage.removeItem('hr_current_user');
@@ -3258,6 +3258,16 @@ async function renderHome() { // returns Promise
       setTxt('home-recepten-text',  d.receptenText);
     }
   } catch(e) { console.warn('Home render fout:', e.message); }
+
+  // Wacht tot alle afbeeldingen geladen zijn (max 3 sec)
+  await new Promise(resolve => {
+    const imgs = Array.from(document.querySelectorAll('#screen-home img')).filter(i => i.src && i.style.display !== 'none');
+    if (!imgs.length) { setTimeout(resolve, 500); return; }
+    let loaded = 0;
+    const done = () => { if (++loaded >= imgs.length) resolve(); };
+    imgs.forEach(img => { if (img.complete) done(); else { img.onload = done; img.onerror = done; } });
+    setTimeout(resolve, 3000);
+  });
 }
 
 async function renderMoetuinIntro() {
