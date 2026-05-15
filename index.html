@@ -398,7 +398,7 @@ select option{background:var(--surface2);}
 
 
 </head>
-<body style="opacity:0;transition:opacity .4s ease">
+<body style="opacity:0;transition:opacity .4s ease" onload="setTimeout(function(){document.body.style.opacity='1'},4000)">
 <header>
   <div class="logo" onclick="go('home')" style="cursor:pointer">🌱 Kweekwijs</div>
   <nav>
