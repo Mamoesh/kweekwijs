@@ -1436,17 +1436,35 @@ function filterReceptenDirect(cat) {
   }, 50);
 }
 
-function go(id){
+// URL mapping voor history API
+const SCREEN_URLS = {
+  'home':          '/',
+  'moestuin-intro':'de-moestuin',
+  'groenten':      'de-moestuin/groenten',
+  'fruit':         'de-moestuin/fruit',
+  'kruiden':       'de-moestuin/kruiden',
+  'recepten-intro':'recepten',
+  'recepten':      'recepten/overzicht',
+  'community':     'community',
+  'profiel':       'profiel',
+};
+
+function updateURL(path, title='Kweekwijs') {
+  try {
+    const base = window.location.origin + (window.location.pathname.replace(/\/[^\/]*$/, '') || '');
+    history.pushState({path}, title, '/' + path);
+  } catch(e) {}
+}
+
+function go(id, pushHistory=true){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const screen = document.getElementById('screen-'+id);
   if(screen) screen.classList.add('active');
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-  // Mark moestuin dropdown as active when any moestuin screen is active
   const moetuinScreens = ['moestuin-intro','groenten','fruit','kruiden'];
   if (moetuinScreens.includes(id)) {
     document.getElementById('nav-moestuin-intro')?.classList.add('active');
   }
-  // Mark recepten dropdown as active
   const receptenScreens = ['recepten','recepten-intro'];
   if (receptenScreens.includes(id)) {
     document.getElementById('nav-recepten')?.classList.add('active');
@@ -1464,6 +1482,49 @@ function go(id){
   if(id==='moestuin-intro')renderMoetuinIntro();
   if(id==='profiel'){ renderProfielMoestuin(); }
   if(id==='moestuin')renderMoestuin();
+  // Update URL
+  if(pushHistory && SCREEN_URLS[id]) {
+    updateURL(SCREEN_URLS[id], 'Kweekwijs — ' + id);
+  }
+}
+
+// ── History / Deep linking ──────────────────────────────────────
+// Verwerk redirect van 404.html (GitHub Pages SPA trick)
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const redirect = params.get('redirect');
+  if (redirect) {
+    history.replaceState({path: redirect.replace(/^\//, '')}, '', redirect);
+  }
+})();
+window.addEventListener('popstate', (e) => {
+  const path = e.state?.path || location.pathname.replace(/^\//, '');
+  handleDeepLink(path);
+});
+
+function handleDeepLink(path) {
+  if (!path || path === '' || path === '/') { go('home', false); return; }
+  const p = path.replace(/^\//, '');
+  if (p === 'de-moestuin')                       { go('moestuin-intro', false); return; }
+  if (p === 'de-moestuin/groenten')              { go('groenten', false); return; }
+  if (p === 'de-moestuin/fruit')                 { go('fruit', false); return; }
+  if (p === 'de-moestuin/kruiden')               { go('kruiden', false); return; }
+  if (p === 'recepten')                          { go('recepten-intro', false); return; }
+  if (p === 'recepten/overzicht')                { go('recepten', false); return; }
+  if (p === 'community')                         { go('community', false); return; }
+  if (p === 'profiel')                           { go('profiel', false); return; }
+  // Plant detail
+  const kruidMatch = p.match(/^de-moestuin\/kruiden\/(.+)$/);
+  if (kruidMatch) { go('kruiden', false); setTimeout(() => openModal(kruidMatch[1]), 200); return; }
+  const groenteMatch = p.match(/^de-moestuin\/groenten\/(.+)$/);
+  if (groenteMatch) { go('groenten', false); setTimeout(() => openPlantModal(groenteMatch[1],'groenten'), 200); return; }
+  const fruitMatch = p.match(/^de-moestuin\/fruit\/(.+)$/);
+  if (fruitMatch) { go('fruit', false); setTimeout(() => openPlantModal(fruitMatch[1],'fruit'), 200); return; }
+  // Recept detail
+  const receptMatch = p.match(/^recepten\/(.+)$/);
+  if (receptMatch) { go('recepten', false); setTimeout(() => openReceptDetail(receptMatch[1],''), 200); return; }
+  // Fallback
+  go('home', false);
 }
 
 // ═══════════════════════════════════════
@@ -1680,6 +1741,7 @@ function getCalTooltip(h,n){
 // ═══════════════════════════════════════
 function openModal(id){
   const h=HERBS.find(x=>x.id===id);if(!h)return;
+  updateURL('de-moestuin/kruiden/'+id,'Kweekwijs — '+(h.name||id));
   document.getElementById('modal-title').textContent=h.name;
   document.getElementById('modal-latin').textContent=h.lat;
   const hero=document.getElementById('modal-hero');
@@ -1872,7 +1934,7 @@ function switchTab(tabId,btn){
   btn.classList.add('active');
   document.getElementById('panel-'+tabId).classList.add('active');
 }
-function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');history.back();}
 
 // ═══════════════════════════════════════
 // PHOTO LOADER — fetch() → blob URL
@@ -2330,6 +2392,8 @@ function openReceptModal(herbId) {
 }
 
 function openReceptDetail(a, b) {
+  const receptNaam = (typeof a === 'string' && RECEPTEN_DB && RECEPTEN_DB[a]) ? a : b;
+  if(receptNaam) updateURL('recepten/' + receptNaam.toLowerCase().replace(/\s+/g,'-'), 'Kweekwijs — ' + receptNaam);
   // a can be herbId or naam, b can be naam or herbId
   const naam = RECEPTEN_DB[a] ? a : (RECEPTEN_DB[b] ? b : a);
   const herbId = RECEPTEN_DB[a] ? b : a;
@@ -3739,6 +3803,7 @@ function vulPlantRecepten() {
 }
 
 function openPlantModal(id, type) {
+  updateURL('de-moestuin/' + type + '/' + id, 'Kweekwijs — ' + id);
   const db = type === 'fruit' ? FRUIT : GROENTEN;
   const h = db.find(x => x.id === id);
   if (!h) return;
