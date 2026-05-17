@@ -2611,15 +2611,20 @@ function initAuth() {
           renderHerbs();
           if (typeof laadFirebaseData === 'function') laadFirebaseData();
           loadMoetuinFromFirebase();
-          // Zorg dat de startpagina actief is en geladen wordt
-          go('home');
-          // Wacht op renderHome + extra tijd voor foto's en Firebase data
+          // Controleer of er een deeplink in de URL zit
+          const currentPath = location.pathname.replace(/^\//, '');
+          const hasDeepLink = currentPath && currentPath !== '' && currentPath !== 'index.html';
           const showSite = () => { document.body.style.opacity = '1'; };
           setTimeout(showSite, 8000); // absolute fallback
-          renderHome().then(() => {
-            // Extra wachttijd zodat foto's en Firebase data ook geladen zijn
-            setTimeout(showSite, 1500);
-          }).catch(showSite);
+          if (hasDeepLink) {
+            setTimeout(showSite, 500);
+            setTimeout(() => handleDeepLink(currentPath), 400);
+          } else {
+            go('home');
+            renderHome().then(() => {
+              setTimeout(showSite, 1500);
+            }).catch(showSite);
+          }
         } else {
           currentUser = null;
           localStorage.removeItem('hr_current_user');
