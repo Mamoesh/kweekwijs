@@ -1555,9 +1555,16 @@ function handleDeepLink(path) {
   // Recept detail
   const receptMatch = p.match(/^recepten\/([^\/]+)\/([^\/]+)$/) || p.match(/^recepten\/(.+)$/);
   if (receptMatch) {
-    const naam = receptMatch[2] || receptMatch[1];
+    const slug = receptMatch[2] || receptMatch[1];
+    const naamMetSpaties = slug.replace(/-/g,' ');
     go('recepten', false);
-    setTimeout(() => openReceptDetail(naam.replace(/-/g,' '),''), 300);
+    setTimeout(() => {
+      // Zoek recept case-insensitief in RECEPTEN_DB
+      const dbKey = Object.keys(RECEPTEN_DB||{}).find(k =>
+        k.toLowerCase() === naamMetSpaties.toLowerCase()
+      );
+      openReceptDetail(dbKey || naamMetSpaties, '');
+    }, 400);
     return;
   }
   // Fallback
@@ -2442,7 +2449,7 @@ function openReceptModal(herbId) {
 
 function openReceptDetail(a, b) {
   const receptNaam = (typeof a === 'string' && RECEPTEN_DB && RECEPTEN_DB[a]) ? a : b;
-  if(receptNaam) updateURL('recepten/' + receptNaam.toLowerCase().replace(/\s+/g,'-'), 'Kweekwijs — ' + receptNaam);
+  if(receptNaam) updateURL('recepten/' + receptNaam.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''), 'Kweekwijs — ' + receptNaam);
   // a can be herbId or naam, b can be naam or herbId
   const naam = RECEPTEN_DB[a] ? a : (RECEPTEN_DB[b] ? b : a);
   const herbId = RECEPTEN_DB[a] ? b : a;
@@ -4584,7 +4591,7 @@ function getMoetuinSelections() {
 // ── PWA: Register Service Worker ──────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
+    navigator.serviceWorker.register('/sw.js')
       .then(reg => console.log('SW registered:', reg.scope))
       .catch(err => console.warn('SW registration failed:', err));
   });
