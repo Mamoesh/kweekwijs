@@ -1971,7 +1971,16 @@ function switchTab(tabId,btn){
   btn.classList.add('active');
   document.getElementById('panel-'+tabId).classList.add('active');
 }
-function closeModal(){document.getElementById('modal-overlay').classList.remove('open');history.back();}
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  // Ga terug in history alleen als die er is, anders naar de lijstpagina
+  const path = location.pathname.replace(/^\//, '');
+  if (path.includes('kruiden/')) { history.pushState({}, '', '/de-moestuin/kruiden'); }
+  else if (path.includes('groenten/')) { history.pushState({}, '', '/de-moestuin/groenten'); }
+  else if (path.includes('fruit/')) { history.pushState({}, '', '/de-moestuin/fruit'); }
+  else if (path.includes('recepten/')) { history.pushState({}, '', '/recepten/overzicht'); }
+  else { history.back(); }
+}
 
 // ═══════════════════════════════════════
 // PHOTO LOADER — fetch() → blob URL
@@ -3848,6 +3857,8 @@ function vulPlantRecepten() {
 
 function openPlantModal(id, type) {
   updateURL('de-moestuin/' + type + '/' + id, 'Kweekwijs — ' + id);
+  // Sla het type op voor closeModal
+  window._openModalType = type;
   const db = type === 'fruit' ? FRUIT : GROENTEN;
   const h = db.find(x => x.id === id);
   if (!h) return;
