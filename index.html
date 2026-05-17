@@ -1973,13 +1973,14 @@ function switchTab(tabId,btn){
 }
 function closeModal(){
   document.getElementById('modal-overlay').classList.remove('open');
-  // Ga terug in history alleen als die er is, anders naar de lijstpagina
+  // URL terugzetten naar lijstpagina op basis van huidig pad
   const path = location.pathname.replace(/^\//, '');
-  if (path.includes('kruiden/')) { history.pushState({}, '', '/de-moestuin/kruiden'); }
-  else if (path.includes('groenten/')) { history.pushState({}, '', '/de-moestuin/groenten'); }
-  else if (path.includes('fruit/')) { history.pushState({}, '', '/de-moestuin/fruit'); }
-  else if (path.includes('recepten/')) { history.pushState({}, '', '/recepten/overzicht'); }
-  else { history.back(); }
+  try {
+    if (path.includes('/kruiden/') || path.endsWith('/kruiden')) { history.pushState({}, '', '/de-moestuin/kruiden'); }
+    else if (path.includes('/groenten/') || path.endsWith('/groenten')) { history.pushState({}, '', '/de-moestuin/groenten'); }
+    else if (path.includes('/fruit/') || path.endsWith('/fruit')) { history.pushState({}, '', '/de-moestuin/fruit'); }
+    else if (path.startsWith('recepten/') && path.split('/').length > 2) { history.pushState({}, '', '/recepten/overzicht'); }
+  } catch(e) {}
 }
 
 // ═══════════════════════════════════════
