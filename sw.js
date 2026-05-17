@@ -2,9 +2,9 @@
 const CACHE_NAME = 'herbalroot-v5';
 
 const PRECACHE_URLS = [
-  './manifest.json',
-  './icons/icon-192x192.png',
-  './icons/icon-512x512.png',
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
 ];
 
 self.addEventListener('install', event => {
