@@ -1426,13 +1426,14 @@ function filterReceptenDirect(cat) {
     document.querySelectorAll('#recept-filter-bar .filter-btn').forEach(b => {
       b.classList.remove('active');
     });
-    // Gebruik data-cat attribuut voor exacte match
     document.querySelectorAll('#recept-filter-bar .filter-btn').forEach(b => {
       if ((b.dataset.cat || '') === cat || (cat === 'all' && b.dataset.cat === 'all')) {
         b.classList.add('active');
       }
     });
     renderRecepten();
+    // URL bijwerken
+    if (RECEPT_CAT_URLS[cat]) updateURL(RECEPT_CAT_URLS[cat], 'Kweekwijs — Recepten');
   }, 50);
 }
 
@@ -1447,6 +1448,19 @@ const SCREEN_URLS = {
   'recepten':      'recepten/overzicht',
   'community':     'community',
   'profiel':       'profiel',
+};
+
+const RECEPT_CAT_URLS = {
+  'all':       'recepten/overzicht',
+  'gerecht':   'recepten/gerechten',
+  'soep':      'recepten/soepen',
+  'drank':     'recepten/dranken',
+  'thee':      'recepten/thee',
+  'dessert':   'recepten/gebak',
+  'dip':       'recepten/dips-spreads',
+  'broodbeleg':'recepten/broodbeleg',
+  'broodgebak':'recepten/brood-hartig-gebak',
+  'verzorging':'recepten/verzorging',
 };
 
 function updateURL(path, title='Kweekwijs') {
@@ -1520,9 +1534,32 @@ function handleDeepLink(path) {
   if (groenteMatch) { go('groenten', false); setTimeout(() => openPlantModal(groenteMatch[1],'groenten'), 200); return; }
   const fruitMatch = p.match(/^de-moestuin\/fruit\/(.+)$/);
   if (fruitMatch) { go('fruit', false); setTimeout(() => openPlantModal(fruitMatch[1],'fruit'), 200); return; }
+  // Recept categorieën
+  const RECEPT_URL_TO_CAT = {
+    'recepten/overzicht':        'all',
+    'recepten/gerechten':        'gerecht',
+    'recepten/soepen':           'soep',
+    'recepten/dranken':          'drank',
+    'recepten/thee':             'thee',
+    'recepten/gebak':            'dessert',
+    'recepten/dips-spreads':     'dip',
+    'recepten/broodbeleg':       'broodbeleg',
+    'recepten/brood-hartig-gebak':'broodgebak',
+    'recepten/verzorging':       'verzorging',
+  };
+  if (RECEPT_URL_TO_CAT[p] !== undefined) {
+    go('recepten', false);
+    setTimeout(() => filterReceptenDirect(RECEPT_URL_TO_CAT[p]), 200);
+    return;
+  }
   // Recept detail
-  const receptMatch = p.match(/^recepten\/(.+)$/);
-  if (receptMatch) { go('recepten', false); setTimeout(() => openReceptDetail(receptMatch[1],''), 200); return; }
+  const receptMatch = p.match(/^recepten\/([^\/]+)\/([^\/]+)$/) || p.match(/^recepten\/(.+)$/);
+  if (receptMatch) {
+    const naam = receptMatch[2] || receptMatch[1];
+    go('recepten', false);
+    setTimeout(() => openReceptDetail(naam.replace(/-/g,' '),''), 300);
+    return;
+  }
   // Fallback
   go('home', false);
 }
@@ -2385,6 +2422,8 @@ function filterRecepten(cat, btn) {
   document.querySelectorAll('#recept-filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderRecepten();
+  // URL bijwerken
+  if (RECEPT_CAT_URLS[cat]) updateURL(RECEPT_CAT_URLS[cat], 'Kweekwijs — Recepten');
 }
 
 function openReceptModal(herbId) {
