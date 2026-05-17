@@ -854,6 +854,12 @@ select option{background:var(--surface2);}
   </div>
 
   <div style="margin-top:2rem">
+    <div class="section-title">❤️ Favoriete recepten</div>
+    <div class="section-sub" style="margin-bottom:1rem">Recepten die je hebt bewaard voor later.</div>
+    <div id="profiel-favorieten" style="max-width:500px"></div>
+  </div>
+
+  <div style="margin-top:2rem">
     <div class="section-title">⚙️ Profiel bewerken</div>
     <div class="card" style="margin-top:.75rem;max-width:500px">
       <div class="auth-field"><label>Naam</label><input type="text" id="edit-name" placeholder="Jouw naam"></div>
@@ -1470,7 +1476,15 @@ function updateURL(path, title='Kweekwijs') {
   } catch(e) {}
 }
 
+// Pagina's enkel voor ingelogde gebruikers
+const PROTECTED_SCREENS = ['community', 'profiel'];
+
 function go(id, pushHistory=true){
+  // Controleer of pagina inloggen vereist
+  if (PROTECTED_SCREENS.includes(id) && !currentUser) {
+    showLoginPrompt();
+    return;
+  }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const screen = document.getElementById('screen-'+id);
   if(screen) screen.classList.add('active');
@@ -2449,7 +2463,11 @@ function openReceptModal(herbId) {
 
 function openReceptDetail(a, b) {
   const receptNaam = (typeof a === 'string' && RECEPTEN_DB && RECEPTEN_DB[a]) ? a : b;
-  if(receptNaam) updateURL('recepten/' + receptNaam.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''), 'Kweekwijs — ' + receptNaam);
+  if(receptNaam) {
+    updateURL('recepten/' + receptNaam.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''), 'Kweekwijs — ' + receptNaam);
+    _huidigRecept = receptNaam;
+    setTimeout(() => updateFavBtn(receptNaam), 100);
+  }
   // a can be herbId or naam, b can be naam or herbId
   const naam = RECEPTEN_DB[a] ? a : (RECEPTEN_DB[b] ? b : a);
   const herbId = RECEPTEN_DB[a] ? b : a;
@@ -2496,6 +2514,34 @@ function openReceptDetail(a, b) {
     '<ol class="method-steps">' + (recept.methode||[]).map(s => '<li>'+s+'</li>').join('') + '</ol>' +
     (recept.tip ? '<div class="tip-box"><strong>💡 Tip</strong><br>' + recept.tip + '</div>' : '');
   document.getElementById('recept-modal-overlay').classList.add('open');
+}
+
+// ── Favoriete recepten ──────────────────────────────────────────
+let _huidigRecept = '';
+
+function getFavorieten() {
+  if (!currentUser) return [];
+  try { return JSON.parse(localStorage.getItem('favorieten_' + currentUser.uid) || '[]'); } catch { return []; }
+}
+function saveFavorieten(favs) {
+  if (!currentUser) return;
+  localStorage.setItem('favorieten_' + currentUser.uid, JSON.stringify(favs));
+}
+function toggleFavoriet() {
+  if (!currentUser) { showLoginPrompt(); return; }
+  const favs = getFavorieten();
+  const idx = favs.indexOf(_huidigRecept);
+  if (idx === -1) { favs.push(_huidigRecept); } else { favs.splice(idx, 1); }
+  saveFavorieten(favs);
+  updateFavBtn(_huidigRecept);
+}
+function updateFavBtn(naam) {
+  const btn = document.getElementById('fav-btn');
+  if (!btn) return;
+  const isFav = getFavorieten().includes(naam);
+  btn.textContent = isFav ? '❤️' : '🤍';
+  btn.title = isFav ? 'Verwijder uit favorieten' : 'Voeg toe aan favorieten';
+  btn.style.color = isFav ? '#e05' : '';
 }
 
 function closeReceptModal() {
@@ -2646,7 +2692,9 @@ function initAuth() {
           currentUser = null;
           localStorage.removeItem('hr_current_user');
           moetuinData = {};
-          showAuthOverlay();
+          // Niet ingelogd — toon site gewoon, geen overlay
+          document.body.style.opacity = '1';
+          go('home', false);
         }
       });
     } catch(e) {
@@ -2655,13 +2703,43 @@ function initAuth() {
   })();
 }
 
-function showAuthOverlay() {
-  const el = document.getElementById('auth-overlay');
-  if (el) el.style.display = 'flex';
+function showAuthOverlay(full=false) {
+  if (full) {
+    // Volledige overlay voor initiële login
+    const el = document.getElementById('auth-overlay');
+    if (el) el.style.display = 'flex';
+  } else {
+    // Mini login popup voor afgeschermde pagina's
+    showLoginPrompt();
+  }
 }
 function hideAuthOverlay() {
   const el = document.getElementById('auth-overlay');
   if (el) el.style.display = 'none';
+  hideLoginPrompt();
+}
+
+function showLoginPrompt() {
+  let popup = document.getElementById('login-prompt');
+  if (!popup) {
+    popup = document.createElement('div');
+    popup.id = 'login-prompt';
+    popup.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;animation:fadeUp .3s ease';
+    popup.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:380px;width:90%;text-align:center">
+        <div style="font-size:2.5rem;margin-bottom:1rem">🌱</div>
+        <h2 style="font-family:'Playfair Display',serif;color:var(--accent3);margin-bottom:.5rem">Aanmelden vereist</h2>
+        <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.5rem">Log in of maak een gratis account aan om toegang te krijgen tot deze pagina.</p>
+        <button onclick="hideLoginPrompt();document.getElementById('auth-overlay').style.display='flex'" style="background:var(--accent);color:#0f1a0f;border:none;padding:.75rem 2rem;border-radius:100px;font-weight:600;cursor:pointer;font-size:1rem;width:100%;margin-bottom:.75rem">Aanmelden / Registreren</button>
+        <button onclick="hideLoginPrompt();go('home')" style="background:none;border:1px solid var(--border);color:var(--text2);padding:.6rem 2rem;border-radius:100px;cursor:pointer;font-size:.9rem;width:100%">Terug naar startpagina</button>
+      </div>`;
+    document.body.appendChild(popup);
+  }
+  popup.style.display = 'flex';
+}
+function hideLoginPrompt() {
+  const p = document.getElementById('login-prompt');
+  if (p) p.style.display = 'none';
 }
 
 function switchAuthTab(tab) {
@@ -2921,6 +2999,30 @@ function renderProfiel() {
   }
 
   renderPlants();
+  renderFavorieten();
+}
+
+function renderFavorieten() {
+  const container = document.getElementById('profiel-favorieten');
+  if (!container || !currentUser) return;
+  const favs = getFavorieten();
+  if (!favs.length) {
+    container.innerHTML = '<p style="color:var(--text2);font-size:.9rem">Je hebt nog geen favoriete recepten. Klik op 🤍 in een recept om het te bewaren.</p>';
+    return;
+  }
+  container.innerHTML = favs.map(naam => {
+    const r = RECEPTEN_DB?.[naam] || {};
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .8rem;background:var(--surface2);border-radius:10px;margin-bottom:.5rem;cursor:pointer" onclick="openReceptDetail('${naam.replace(/'/g,"\'")}','')">
+      <span style="font-weight:500">${naam}</span>
+      <button onclick="event.stopPropagation();toggleFavorietVanaf('${naam.replace(/'/g,"\'")}');renderFavorieten()" style="background:none;border:none;cursor:pointer;font-size:1.1rem" title="Verwijder">🗑️</button>
+    </div>`;
+  }).join('');
+}
+
+function toggleFavorietVanaf(naam) {
+  const favs = getFavorieten();
+  const idx = favs.indexOf(naam);
+  if (idx !== -1) { favs.splice(idx, 1); saveFavorieten(favs); }
 }
 
 function saveProfile() {
@@ -4605,6 +4707,7 @@ if ('serviceWorker' in navigator) {
         <h2 id="recept-modal-title" style="font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--accent3)"></h2>
         <p id="recept-modal-meta" style="color:var(--text2);font-size:.85rem;margin-top:.25rem"></p>
       </div>
+      <button id="fav-btn" onclick="toggleFavoriet()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all .2s" title="Favoriet">🤍</button>
       <button class="close-btn" onclick="closeReceptModal()">✕</button>
     </div>
     <div class="modal-body" id="recept-modal-body" style="padding:1.5rem 2rem 2rem"></div>
@@ -4676,25 +4779,8 @@ async function laadFirebaseData() {
 
 // Wacht tot de auth overlay verborgen is, dan laad data
 function wachtOpLogin() {
-  const overlay = document.getElementById('auth-overlay');
-  if (!overlay) { laadFirebaseData(); return; }
-
-  const observer = new MutationObserver(() => {
-    const hidden = overlay.style.display === 'none' || !overlay.offsetParent;
-    if (hidden) {
-      observer.disconnect();
-      // Kleine vertraging zodat de app volledig geladen is
-      setTimeout(laadFirebaseData, 300);
-    }
-  });
-
-  // Check meteen of overlay al verborgen is
-  const hidden = overlay.style.display === 'none' || !overlay.offsetParent;
-  if (hidden) {
-    laadFirebaseData();
-  } else {
-    observer.observe(overlay, { attributes: true, attributeFilter: ['style'] });
-  }
+  // Laad Firebase data meteen — ook voor gasten zonder account
+  laadFirebaseData();
 }
 
 // Maak laadFirebaseData globaal beschikbaar
