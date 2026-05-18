@@ -1503,7 +1503,7 @@ function go(id, pushHistory=true){
   if(id==='recepten')renderRecepten();
   if(id==='groenten')renderGroenten();
   if(id==='fruit')renderFruit();
-  if(id==='profiel'){renderProfiel();setTimeout(renderFavorieten,100);}
+  if(id==='profiel'){renderProfiel();setTimeout(renderFavorieten,100);if(pushHistory)updateURL('profiel','Kweekwijs');}
   if(id==='community')renderCommunity();
   if(id==='recepten-intro')renderReceptenIntro();
   if(id==='home') renderHome();
@@ -3023,21 +3023,39 @@ function renderProfiel() {
   renderFavorieten();
 }
 
-function renderFavorieten() {
+async function renderFavorieten() {
   const container = document.getElementById('profiel-favorieten');
   if (!container || !currentUser) return;
+  container.innerHTML = '<p style="color:var(--text2);font-size:.85rem">Laden...</p>';
+  await laadFavorieten();
   const favs = getFavorieten();
   if (!favs.length) {
-    container.innerHTML = '<p style="color:var(--text2);font-size:.9rem">Je hebt nog geen favoriete recepten. Klik op 🤍 in een recept om het te bewaren.</p>';
+    container.innerHTML = '<p style="color:var(--text2);font-size:.9rem">Je hebt nog geen favoriete recepten. Klik op het hartje in een recept om het te bewaren.</p>';
     return;
   }
-  container.innerHTML = favs.map(naam => {
-    const r = RECEPTEN_DB?.[naam] || {};
-    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .8rem;background:var(--surface2);border-radius:10px;margin-bottom:.5rem;cursor:pointer" onclick="openReceptDetail('${naam.replace(/'/g,"\'")}','')">
-      <span style="font-weight:500">${naam}</span>
-      <button onclick="event.stopPropagation();toggleFavorietVanaf('${naam.replace(/'/g,"\'")}');renderFavorieten()" style="background:none;border:none;cursor:pointer;font-size:1.1rem" title="Verwijder">🗑️</button>
-    </div>`;
-  }).join('');
+  const items = favs.map(naam => {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:.6rem .8rem;background:var(--surface2);border-radius:10px;margin-bottom:.5rem;cursor:pointer';
+    const span = document.createElement('span');
+    span.style.fontWeight = '500';
+    span.textContent = naam;
+    const btn = document.createElement('button');
+    btn.textContent = 'X';
+    btn.title = 'Verwijder';
+    btn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:1.1rem';
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      const idx = _favorieten.indexOf(naam);
+      if (idx !== -1) { _favorieten.splice(idx, 1); await saveFavorieten(); }
+      renderFavorieten();
+    };
+    div.onclick = () => { go("recepten"); setTimeout(() => openReceptDetail(naam, ""), 300); };
+    div.appendChild(span);
+    div.appendChild(btn);
+    return div;
+  });
+  container.innerHTML = '';
+  items.forEach(el => container.appendChild(el));
 }
 
 async function toggleFavorietVanaf(naam) {
