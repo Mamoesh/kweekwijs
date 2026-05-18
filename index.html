@@ -436,7 +436,7 @@ select option{background:var(--surface2);}
 </header>
 
 <!-- AUTH OVERLAY -->
-<div class="auth-overlay" id="auth-overlay">
+<div class="auth-overlay" id="auth-overlay" style="display:none">
   <div class="auth-box">
     <div class="auth-logo">🌱 Kweekwijs</div>
     <div class="auth-sub">Jouw persoonlijk moestuin-assistent</div>
@@ -1503,7 +1503,7 @@ function go(id, pushHistory=true){
   if(id==='recepten')renderRecepten();
   if(id==='groenten')renderGroenten();
   if(id==='fruit')renderFruit();
-  if(id==='profiel')renderProfiel();
+  if(id==='profiel'){renderProfiel();setTimeout(renderFavorieten,100);}
   if(id==='community')renderCommunity();
   if(id==='recepten-intro')renderReceptenIntro();
   if(id==='home') renderHome();
@@ -2518,27 +2518,45 @@ function openReceptDetail(a, b) {
 
 // ── Favoriete recepten ──────────────────────────────────────────
 let _huidigRecept = '';
+let _favorieten = [];
 
-function getFavorieten() {
-  if (!currentUser) return [];
-  try { return JSON.parse(localStorage.getItem('favorieten_' + currentUser.uid) || '[]'); } catch { return []; }
+async function laadFavorieten() {
+  if (!currentUser?.uid) return;
+  try {
+    const db = await getFirebaseDb();
+    const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const snap = await getDoc(doc(db, 'users', currentUser.uid));
+    if (snap.exists()) _favorieten = snap.data().favorieten || [];
+    else _favorieten = [];
+  } catch(e) {
+    try { _favorieten = JSON.parse(localStorage.getItem('fav_' + currentUser.uid) || '[]'); } catch { _favorieten = []; }
+  }
 }
-function saveFavorieten(favs) {
-  if (!currentUser) return;
-  localStorage.setItem('favorieten_' + currentUser.uid, JSON.stringify(favs));
+
+function getFavorieten() { return _favorieten; }
+
+async function saveFavorieten() {
+  if (!currentUser?.uid) return;
+  try { localStorage.setItem('fav_' + currentUser.uid, JSON.stringify(_favorieten)); } catch {}
+  try {
+    const db = await getFirebaseDb();
+    const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    await setDoc(doc(db, 'users', currentUser.uid), { favorieten: _favorieten }, { merge: true });
+  } catch(e) { console.warn('Favorieten opslaan:', e.message); }
 }
-function toggleFavoriet() {
+
+async function toggleFavoriet() {
   if (!currentUser) { showLoginPrompt(); return; }
-  const favs = getFavorieten();
-  const idx = favs.indexOf(_huidigRecept);
-  if (idx === -1) { favs.push(_huidigRecept); } else { favs.splice(idx, 1); }
-  saveFavorieten(favs);
+  const idx = _favorieten.indexOf(_huidigRecept);
+  if (idx === -1) { _favorieten.push(_huidigRecept); } else { _favorieten.splice(idx, 1); }
   updateFavBtn(_huidigRecept);
+  await saveFavorieten();
 }
+
 function updateFavBtn(naam) {
   const btn = document.getElementById('fav-btn');
   if (!btn) return;
-  const isFav = getFavorieten().includes(naam);
+  const isFav = _favorieten.includes(naam);
   btn.textContent = isFav ? '❤️' : '🤍';
   btn.title = isFav ? 'Verwijder uit favorieten' : 'Voeg toe aan favorieten';
   btn.style.color = isFav ? '#e05' : '';
@@ -2674,6 +2692,7 @@ function initAuth() {
           renderHerbs();
           if (typeof laadFirebaseData === 'function') laadFirebaseData();
           loadMoetuinFromFirebase();
+          laadFavorieten();
           // Controleer of er een deeplink in de URL zit
           const currentPath = location.pathname.replace(/^\//, '');
           const hasDeepLink = currentPath && currentPath !== '' && currentPath !== 'index.html';
@@ -2698,7 +2717,9 @@ function initAuth() {
         }
       });
     } catch(e) {
-      if (!currentUser) showAuthOverlay();
+      // Bij fout: toon site gewoon
+      document.body.style.opacity = '1';
+      go('home', false);
     }
   })();
 }
@@ -3019,10 +3040,9 @@ function renderFavorieten() {
   }).join('');
 }
 
-function toggleFavorietVanaf(naam) {
-  const favs = getFavorieten();
-  const idx = favs.indexOf(naam);
-  if (idx !== -1) { favs.splice(idx, 1); saveFavorieten(favs); }
+async function toggleFavorietVanaf(naam) {
+  const idx = _favorieten.indexOf(naam);
+  if (idx !== -1) { _favorieten.splice(idx, 1); await saveFavorieten(); }
 }
 
 function saveProfile() {
