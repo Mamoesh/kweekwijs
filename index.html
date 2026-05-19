@@ -425,7 +425,7 @@ select option{background:var(--surface2);}
         <button onclick="go('recepten');filterReceptenDirect('dip');closeAllDropdowns()">🥣 Dips & Spreads</button>
         <button onclick="go('recepten');filterReceptenDirect('broodbeleg');closeAllDropdowns()">🍞 Broodbeleg</button>
         <button onclick="go('recepten');filterReceptenDirect('broodgebak');closeAllDropdowns()">🥖 Brood & Hartig gebak</button>
-        <button onclick="go('recepten');filterReceptenDirect('verzorging');closeAllDropdowns()">✨ Verzorging</button>
+        <button onclick="if(!currentUser){showLoginPrompt();closeAllDropdowns();return;}go('recepten');filterReceptenDirect('verzorging');closeAllDropdowns()">✨ Verzorging</button>
       </div>
     </div>
     <button onclick="go('community')" id="nav-community">🌿 <span>Community</span></button>
@@ -504,7 +504,9 @@ select option{background:var(--surface2);}
         <strong>👤 Privacy & Community</strong><br>
         Je gegevens worden lokaal opgeslagen op jouw apparaat. Community-berichten zijn zichtbaar voor andere gebruikers. Respecteer andere gebruikers en deel geen persoonlijke informatie van derden.<br><br>
         <strong>📋 Aansprakelijkheid</strong><br>
-        Kweekwijs is niet aansprakelijk voor schade voortvloeiend uit het gebruik van informatie op dit platform. Gebruik van de app is volledig op eigen risico.
+        Kweekwijs is niet aansprakelijk voor schade voortvloeiend uit het gebruik van informatie op dit platform. Gebruik van de app is volledig op eigen risico.<br><br>
+        <strong>© Intellectuele eigendom</strong><br>
+        Alle inhoud op Kweekwijs — waaronder teksten, afbeeldingen, recepten, plantbeschrijvingen, het ontwerp en de structuur — is eigendom van Kweekwijs en beschermd door het auteursrecht. Het is verboden om inhoud te kopiëren, te reproduceren, door te sturen, te publiceren of commercieel te gebruiken zonder voorafgaande schriftelijke toestemming. Persoonlijk gebruik voor educatieve doeleinden is toegestaan mits bronvermelding.
       </div>
       <label class="tc-check">
         <input type="checkbox" id="tc-agree">
@@ -787,7 +789,7 @@ select option{background:var(--surface2);}
         <div class="mic-text" id="ri-broodgebak-text">Zelfgebakken brood en hartig gebak met kruiden en groenten uit de tuin.</div>
       </div>
     </div>
-    <div class="moestuin-intro-card" onclick="go('recepten');filterReceptenDirect('verzorging')">
+    <div class="moestuin-intro-card" onclick="if(!currentUser){showLoginPrompt();return;}go('recepten');filterReceptenDirect('verzorging')">
       <div class="mic-img-wrap">
         <img id="ri-verzorging-img" src="" alt="Verzorging" style="display:none">
         <div class="mic-emoji" id="ri-verzorging-emoji" style="display:none">✨</div>
@@ -816,7 +818,7 @@ select option{background:var(--surface2);}
     <button class="filter-btn" data-cat="dip" onclick="filterRecepten('dip',this)">🥣 Dips & Spreads</button>
     <button class="filter-btn" data-cat="broodbeleg" onclick="filterRecepten('broodbeleg',this)">🍞 Broodbeleg</button>
     <button class="filter-btn" data-cat="broodgebak" onclick="filterRecepten('broodgebak',this)">🥖 Brood & Hartig gebak</button>
-    <button class="filter-btn" data-cat="verzorging" onclick="filterRecepten('verzorging',this)">✨ Verzorging</button>
+    <button class="filter-btn" data-cat="verzorging" onclick="if(!currentUser){showLoginPrompt();return;}filterRecepten('verzorging',this)">✨ Verzorging</button>
   </div>
   <div id="recepten-grid"></div>
 </div>
@@ -1427,6 +1429,7 @@ document.addEventListener('click', () => closeAllDropdowns());
 
 // Filter recepten direct via dropdown
 function filterReceptenDirect(cat) {
+  if (cat === 'verzorging' && !currentUser) { showLoginPrompt(); return; }
   setTimeout(() => {
     activeReceptFilter = cat === 'all' ? 'all' : cat;
     document.querySelectorAll('#recept-filter-bar .filter-btn').forEach(b => {
@@ -1928,7 +1931,8 @@ function openModal(id){
         html += theeCombos.map(tc=>makeComboTag(tc)).join('');
         html += '</div>';
       }
-      if (verzorging.length) html += '<div class="section-h">✨ Verzorgingsproducten</div><div class="herb-tags">'+verzorging.map(r=>makeTag(r,'✨','purple')).join('')+'</div>';
+      if (verzorging.length && currentUser) html += '<div class="section-h">✨ Verzorgingsproducten</div><div class="herb-tags">'+verzorging.map(r=>makeTag(r,'✨','purple')).join('')+'</div>';
+      if (verzorging.length && !currentUser) html += '<div class="section-h">✨ Verzorgingsproducten</div><div style="font-size:.85rem;color:var(--text2);padding:.5rem 0">Log in om verzorgingsrecepten te bekijken.</div>';
       return html;
     })()}
   </div>`;
@@ -2463,6 +2467,11 @@ function openReceptModal(herbId) {
 
 function openReceptDetail(a, b) {
   const receptNaam = (typeof a === 'string' && RECEPTEN_DB && RECEPTEN_DB[a]) ? a : b;
+  // Blokkeer verzorgingsrecepten voor niet-ingelogde gebruikers
+  if (!currentUser && receptNaam && RECEPTEN_DB?.[receptNaam]?.cat === 'verzorging') {
+    showLoginPrompt();
+    return;
+  }
   if(receptNaam) {
     updateURL('recepten/' + receptNaam.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''), 'Kweekwijs — ' + receptNaam);
     _huidigRecept = receptNaam;
@@ -4831,5 +4840,8 @@ if (document.readyState === 'loading') {
   wachtOpLogin();
 }
 </script>
+  <div style="text-align:center;padding:1.5rem 1rem;font-size:.75rem;color:var(--text2);border-top:1px solid var(--border);margin-top:2rem">
+    © 2025 Kweekwijs — Alle rechten voorbehouden. Niets van deze website mag worden gekopieerd, verveelvoudigd of openbaar gemaakt zonder voorafgaande schriftelijke toestemming.
+  </div>
 </body>
 </html>
