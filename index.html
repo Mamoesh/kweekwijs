@@ -429,9 +429,14 @@ select option{background:var(--surface2);}
       </div>
     </div>
     <button onclick="go('community')" id="nav-community">🌿 <span>Community</span></button>
-    
     <div style="flex:1"></div>
-    <button onclick="go('profiel')" id="nav-profiel" style="margin-left:auto">👤 <span>Profiel</span></button>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <div id="nav-lang-switcher" style="display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:.15rem .25rem">
+        <button id="lang-nl-btn" onclick="setNavLang('nl')" title="Nederlands" style="background:none;border:none;cursor:pointer;padding:.2rem .45rem;border-radius:100px;font-size:.78rem;font-weight:500;transition:all .2s">🇧🇪 NL</button>
+        <button id="lang-en-btn" onclick="setNavLang('en')" title="English" style="background:none;border:none;cursor:pointer;padding:.2rem .45rem;border-radius:100px;font-size:.78rem;font-weight:500;transition:all .2s">🇬🇧 EN</button>
+      </div>
+      <button onclick="go('profiel')" id="nav-profiel">👤 <span>Profiel</span></button>
+    </div>
   </nav>
 </header>
 
@@ -2670,6 +2675,7 @@ function initAuth() {
       hideAuthOverlay();
       updateNavUser();
       applyLanguage(currentUser.lang||'nl');
+      initNavLang();
       renderHerbs();
     } catch(e) { localStorage.removeItem('hr_current_user'); }
   }
@@ -2698,6 +2704,7 @@ function initAuth() {
           hideAuthOverlay();
           updateNavUser();
           applyLanguage(currentUser?.lang||'nl');
+      initNavLang();
           renderHerbs();
           if (typeof laadFirebaseData === 'function') laadFirebaseData();
           loadMoetuinFromFirebase();
@@ -2723,6 +2730,9 @@ function initAuth() {
           // Niet ingelogd — toon site gewoon, geen overlay
           document.body.style.opacity = '1';
           go('home', false);
+          const guestLang = localStorage.getItem('kw_lang') || 'nl';
+          applyLanguage(guestLang);
+          initNavLang();
         }
       });
     } catch(e) {
@@ -2865,6 +2875,7 @@ window.doLogin = async function() {
     hideAuthOverlay();
     updateNavUser();
     applyLanguage(currentUser.lang||'nl');
+      initNavLang();
     renderHerbs();
     if (typeof laadFirebaseData === 'function') laadFirebaseData();
   } catch(e) {
@@ -2914,6 +2925,7 @@ window.doRegister = async function() {
     hideAuthOverlay();
     updateNavUser();
     applyLanguage(currentUser.lang||'nl');
+      initNavLang();
     renderHerbs();
     if (typeof laadFirebaseData === 'function') laadFirebaseData();
   } catch(e) {
@@ -2965,6 +2977,7 @@ window.doGoogleLogin = async function() {
     hideAuthOverlay();
     updateNavUser();
     applyLanguage(currentUser.lang||'nl');
+      initNavLang();
     renderHerbs();
     if (typeof laadFirebaseData === 'function') laadFirebaseData();
     loadMoetuinFromFirebase();
@@ -4314,6 +4327,25 @@ const TRANSLATIONS = {
 
 function T(key) {
   return (TRANSLATIONS[currentLang] || TRANSLATIONS['nl'])[key] || (TRANSLATIONS['nl'])[key] || key;
+}
+
+function setNavLang(lang) {
+  // Update actieve staat van knoppen
+  const nlBtn = document.getElementById('lang-nl-btn');
+  const enBtn = document.getElementById('lang-en-btn');
+  if (nlBtn) nlBtn.style.background = lang === 'nl' ? 'var(--accent)' : '';
+  if (nlBtn) nlBtn.style.color = lang === 'nl' ? '#0f1a0f' : '';
+  if (enBtn) enBtn.style.background = lang === 'en' ? 'var(--accent)' : '';
+  if (enBtn) enBtn.style.color = lang === 'en' ? '#0f1a0f' : '';
+  // Sla op en pas toe
+  localStorage.setItem('kw_lang', lang);
+  if (currentUser) { currentUser.lang = lang; }
+  applyLanguage(lang);
+}
+
+function initNavLang() {
+  const lang = currentUser?.lang || localStorage.getItem('kw_lang') || 'nl';
+  setNavLang(lang);
 }
 
 function selectLang(el, lang) {
